@@ -19,6 +19,7 @@ app.use(responseLogger);
 
 // ROUTES
 app.use('/auth', require('./routes/auth/auth.route'));
+app.use('/system', require('./routes/system/system.route'));
 
 
 

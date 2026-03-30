@@ -1,4 +1,4 @@
-const authService=require("../../services/auth/auth.service");
+const authService = require("../../services/auth/auth.service");
 
 
 // OTP VERIFY
@@ -24,8 +24,15 @@ exports.resendOTP = async (req, res) => {
     res.status(200).json(result);
 };
 // REGISTRATION
-exports.register = async (req, res) => {
-    const result = await authService.registerUser(req.body);
+exports.register_zp_admin = async (req, res) => {
+    req.body.user = req.user;
+    const result = await authService.addZPAdmin(req.body);
+    res.status(201).json(result)
+};
+
+exports.register_dept_head = async (req, res) => {
+    req.body.user = req.user;
+    const result = await authService.addDeptHead(req.body);
     res.status(201).json(result)
 };
 

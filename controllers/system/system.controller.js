@@ -1,0 +1,40 @@
+const systemService=require("../../services/system/system.service");
+
+
+// get all casts
+exports.getCasts=async(req,res)=>{
+    const casts=await systemService.getCasts();
+    res.json(casts);
+}
+
+// get all roles
+exports.getRoles=async(req,res)=>{
+    const roles=await systemService.getRoles(req.user);
+    res.json(roles);
+}
+
+// get all departments
+exports.getDepartments=async(req,res)=>{
+    const departments=await systemService.getDepartments();
+    res.json(departments);
+}
+
+// get all posts
+exports.getPosts=async(req,res)=>{
+    if(!req.params) throw {status:400,message:"Department id is required"};
+    const posts=await systemService.getPosts(req.params);
+    res.json(posts);
+}
+
+// get all getDepartmentHead
+exports.getDepartmentHead=async(req,res)=>{
+    // if(!req.params) throw {status:400,message:"Department id is required"};
+    const posts = await systemService.getDepartmentHead(req.user);
+    res.json(posts);
+}
+
+// get all getZPAdmins
+exports.getZPAdmins=async(req,res)=>{
+    const zpAdmins = await systemService.getZPAdmins(req.user);
+    res.json(zpAdmins);
+}

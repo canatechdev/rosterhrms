@@ -26,3 +26,9 @@ uploads/*
 middlewares.zip
 # package locks (ignore if you want manual control)
 package-lock.json
+
+
+
+
+# TEMPORARY
+docs/
