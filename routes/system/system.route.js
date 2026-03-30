@@ -15,4 +15,7 @@ router.get('/posts/:department_id',authMiddleware, authController.getPosts);
 
 router.get("/departments/head", authMiddleware, authController.getDepartmentHead);
 router.get("/zp/admins", authMiddleware, authController.getZPAdmins);
+
+
+
 module.exports = router;

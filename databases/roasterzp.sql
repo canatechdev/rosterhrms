@@ -36,13 +36,21 @@ CREATE TABLE cadre_posts (
     total_posts INT
 );
 
-
 cadre_post_id | cadre_id | post_name        | level_order | total_posts
 ----------------------------------------------------------------------
 1             | 1        | Teacher          | 1           | 50
 2             | 1        | Senior Teacher   | 2           | 20
 3             | 1        | Head Master      | 3           | 5
 
+CREATE TABLE posts (
+    post_id SERIAL PRIMARY KEY,
+    zp_id INT NOT NULL,  
+    department_id INT,
+    post_name VARCHAR(100),
+    status INT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
 
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
@@ -54,7 +62,8 @@ CREATE TABLE users (
     role_id INT,
     zp_id INT,
     status INT DEFAULT 1,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 user_id | name    | caste_id | role_id | zp_id

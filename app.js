@@ -20,6 +20,7 @@ app.use(responseLogger);
 // ROUTES
 app.use('/auth', require('./routes/auth/auth.route'));
 app.use('/system', require('./routes/system/system.route'));
+app.use('/zp',require('./routes/zp/zp.route'));
 
 
 

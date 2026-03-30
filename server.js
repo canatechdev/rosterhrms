@@ -5,13 +5,16 @@ const pool = require("./config/database");
 
 const PORT = process.env.PORT || 1000;
 
+// create server (IMPORTANT)
+const server = require("http").createServer(app);
+
 // Start Server
-app.listen(PORT,"0.0.0.0", () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`
 ╔══════════════════════════════════╗
 ║   🚀 ZP Backend Server           ║
-║   📍 Port: ${PORT}                  ║
-║   🌍 Environment: ${PORT || "development"}           ║
+║   📍 Port: ${PORT}
+║   🌍 Environment: ${process.env.NODE_ENV || "development"}
 ╚══════════════════════════════════╝
   `);
 });
