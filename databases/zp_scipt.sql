@@ -126,3 +126,75 @@ CREATE TABLE user_transfer (
 	reason TEXT,
 	status INT NOT NULL DEFAULT 1
 );
+
+CREATE TABLE cadre (
+    cadre_id SERIAL PRIMARY KEY,
+    zp_id INT NOT NULL,
+    department_id INT NOT NULL,
+    cadre_name VARCHAR(100) NOT NULL,
+    description TEXT,
+    status INT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+
+CREATE TABLE cadre_posts (
+    cadre_post_id SERIAL PRIMARY KEY,
+    cadre_id INT NOT NULL,
+    post_id INT REFERENCES posts(post_id),  
+    level_order INT,
+    total_posts INT,
+    filled_posts INT DEFAULT 0,
+    cycle_size INT DEFAULT 100,
+	zp_id INT NOT NULL,
+    status INT DEFAULT 1
+);
+
+CREATE TABLE posts (
+    post_id SERIAL PRIMARY KEY,
+    zp_id INT NOT NULL,  
+    department_id INT,
+    designation VARCHAR(100),
+    status INT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT NOW(),
+	updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE roster_template (
+    template_id SERIAL PRIMARY KEY,
+    point_no INT,
+    caste_id INT,
+    cycle_size INT DEFAULT 100
+);
+
+CREATE TABLE roster_points (
+    roster_id SERIAL PRIMARY KEY,
+    cadre_post_id INT REFERENCES cadre_posts(cadre_post_id),
+    point_no INT,
+    caste_id INT REFERENCES castes(caste_id),
+    cycle_no INT DEFAULT 1,
+    is_filled BOOLEAN DEFAULT FALSE,
+    vacancy_id INT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    status INT DEFAULT 1,
+    zp_id INT
+);
+
+CREATE TABLE vacancies (
+    vacancy_id SERIAL PRIMARY KEY,
+    cadre_post_id INT REFERENCES cadre_posts(cadre_post_id),
+    roster_point INT,
+    caste_id INT REFERENCES castes(caste_id),
+    status VARCHAR(50), -- OPEN / FILLED
+    created_at TIMESTAMP DEFAULT NOW(),
+    zp_id INT
+);
+
+CREATE TABLE audit_logs (
+    log_id SERIAL PRIMARY KEY,
+    action VARCHAR(100),
+    cadre_post_id INT,
+    vacancy_id INT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    zp_id INT
+);
