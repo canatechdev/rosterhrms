@@ -87,3 +87,5 @@ employee_cadre_id | user_id | cadre_id | cadre_post_id | joining_date | seniorit
 1                 | 1       | 1        | 1             | 2015-01-01   | 1
 2                 | 2       | 1        | 1             | 2017-01-01   | 2
 3                 | 3       | 1        | 1             | 2018-01-01   | 3
+
+ALTER TABLE castes ADD COLUMN percentage DECIMAL(5,2);

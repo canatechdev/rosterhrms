@@ -14,19 +14,19 @@ exports.getRoles = async (user) => {
 }
 
 
-exports.getDepartments = async () => {
-    const departments = await pool.query("SELECT department_id,name FROM DEPARTMENTS where status=1");
+exports.getDepartments = async (zp_id) => {
+    const departments = await pool.query("SELECT department_id,name FROM DEPARTMENTS where status=1 AND zp_id=$1", [zp_id]);
     return departments.rows;
 }
 
-exports.getPosts = async ({ department_id }) => {
-    const departments = await pool.query("SELECT department_id FROM DEPARTMENTS where status=1 AND department_id=$1", [department_id]);
+exports.getPosts = async ({ department_id }, zp_id) => {
+    const departments = await pool.query("SELECT department_id FROM DEPARTMENTS where status=1 AND department_id=$1 AND zp_id=$2", [department_id, zp_id]);
     if (departments.rows.length == 0) throw { status: 404, message: "Department not found" };
     const posts = await pool.query("SELECT post_id,designation FROM POSTS where status=1 AND department_id=$1", [department_id]);
     return posts.rows;
 }
 
-exports.getDepartmentHead = async (user) => {
+exports.getDepartmentHead = async (zp_id ) => {
     const heads = await pool.query(`SELECT 
     u.user_id,
     u.email,
@@ -48,7 +48,7 @@ JOIN departments d ON up.department_id = d.department_id
 JOIN role_permissions rp ON rp.role_id = r.role_id
 JOIN permissions p ON p.permission_id = rp.permission_id
 
-WHERE r.name = 'Department Head'
+WHERE r.name = 'Department Head' AND d.zp_id = $1
 
 GROUP BY 
     u.user_id,
@@ -60,7 +60,7 @@ GROUP BY
     return heads.rows;
 }
 
-exports.getZPAdmins = async (user) => {
+exports.getZPAdmins = async (zp_id) => {
     const admins = await pool.query(`SELECT u.user_id,u.email,up.first_name,up.last_name,r.name as Role,zp.name as ZP,
         jsonb_agg(
         jsonb_build_object(
@@ -74,7 +74,7 @@ exports.getZPAdmins = async (user) => {
         JOIN zp ON u.zp_id=zp.zp_id
         JOIN role_permissions rp ON rp.role_id = r.role_id
         JOIN permissions p ON p.permission_id = rp.permission_id
-        WHERE r.name='ZP Admin'
-        GROUP BY u.user_id,u.email,up.first_name,up.last_name,r.name,zp.name`);
+        WHERE r.name='ZP Admin' AND zp.zp_id = $1
+        GROUP BY u.user_id,u.email,up.first_name,up.last_name,r.name,zp.name`, [zp_id]);
     return admins.rows;
 }

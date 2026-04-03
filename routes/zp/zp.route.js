@@ -26,7 +26,20 @@ router.delete('/delete_post/:post_id', authMiddleware, zpController.deletePost);
 router.post('/add_cadre_post', authMiddleware, reqBody, zpController.addCadrePost);
 router.get('/get_cadre_post', authMiddleware, zpController.getCadrePostByZP);
 router.get('/get_cadre_post/:cadre_id', authMiddleware, zpController.getCadrePostByCadreId);
+router.put('/update_cadre_post/:cadre_post_id', authMiddleware, reqBody, zpController.updateCadrePost);
 router.delete('/delete_cadre_post/:cadre_post_id', authMiddleware, zpController.deleteCadrePost);
+// roster templates/point crud
+router.post('/add_roster_template', authMiddleware, reqBody, zpController.addRosterTemplate);
+router.get('/get_roster_template', authMiddleware, zpController.getRosterTemplateByZP);
+router.get('/get_roster_template/:template_id', authMiddleware, zpController.getRosterTemplateById);
+router.put('/update_roster_template/:template_id', authMiddleware, reqBody, zpController.updateRosterTemplate);
+router.delete('/delete_roster_template/:template_id', authMiddleware, zpController.deleteRosterTemplate);
+
+// roster genaration 
+router.post("/generate-roster/:cadre_post_id", zpController.generateRoster);
+router.post("/create-vacancy/:cadre_post_id", zpController.createVacancy);
+router.post("/fill-vacancy/:vacancy_id", zpController.fillVacancy);
+
 
 
 module.exports = router;
