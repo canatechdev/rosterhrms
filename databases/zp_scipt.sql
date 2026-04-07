@@ -187,8 +187,13 @@ CREATE TABLE vacancies (
     caste_id INT REFERENCES castes(caste_id),
     status VARCHAR(50), -- OPEN / FILLED
     created_at TIMESTAMP DEFAULT NOW(),
+	user_id INT,
     zp_id INT
 );
+CREATE UNIQUE INDEX unique_active_user_vacancy
+ON vacancies(user_id)
+WHERE status = 'FILLED';
+
 
 CREATE TABLE audit_logs (
     log_id SERIAL PRIMARY KEY,

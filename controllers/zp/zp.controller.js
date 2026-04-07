@@ -439,6 +439,8 @@ exports.generateRoster = async (req, res) => {
     try {
         const { cadre_post_id } = req.params;
         const zp_id = req.user.user_id;
+        console.log("Generating roster for cadre_post_id:", cadre_post_id, "by ZP ID:", zp_id);
+        console.log("User details from request:", req.user.user_id);
 
         const data = await authService.generateRoster(cadre_post_id, zp_id);
 

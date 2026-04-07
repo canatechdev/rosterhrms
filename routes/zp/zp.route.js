@@ -35,11 +35,11 @@ router.get('/get_roster_template/:template_id', authMiddleware, zpController.get
 router.put('/update_roster_template/:template_id', authMiddleware, reqBody, zpController.updateRosterTemplate);
 router.delete('/delete_roster_template/:template_id', authMiddleware, zpController.deleteRosterTemplate);
 
-// roster genaration 
-router.post("/generate-roster/:cadre_post_id", zpController.generateRoster);
-router.post("/create-vacancy/:cadre_post_id", zpController.createVacancy);
-router.post("/fill-vacancy/:vacancy_id", zpController.fillVacancy);
-
+// roster generation 
+router.post("/generate-roster/:cadre_post_id",authMiddleware, zpController.generateRoster);
+router.post("/create-vacancy/:cadre_post_id", authMiddleware, zpController.createVacancy);
+router.post("/fill-vacancy/:vacancy_id", authMiddleware, zpController.fillVacancy);
+ 
 
 
 module.exports = router;

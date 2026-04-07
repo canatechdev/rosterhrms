@@ -299,9 +299,10 @@ exports.deleteRosterTemplate = async (template_id) => {
 };
 
 
-exports.generateRoster = async (cadre_post_id) => {
+exports.generateRoster = async (cadre_post_id, zp_id) => {
     const client = await pool.connect();
-
+console.log("Inside generateRoster service. Cadre Post ID:", cadre_post_id, "ZP ID:", zp_id);
+    
     try {
         await client.query("BEGIN");
 
@@ -315,15 +316,19 @@ exports.generateRoster = async (cadre_post_id) => {
         }
 
         const result = await client.query(`
-            INSERT INTO roster_points (cadre_post_id, point_no, caste_id, zp_id)
-            SELECT $1, point_no, caste_id, $2
-            FROM roster_template
-            WHERE status = 1
-            ORDER BY point_no
-            RETURNING *;
+           INSERT INTO roster_points (cadre_post_id, point_no, caste_id, zp_id)
+SELECT $1, point_no, caste_id, $2
+FROM roster_template
+WHERE status = 1
+ORDER BY point_no
+LIMIT (
+    SELECT total_posts 
+    FROM cadre_posts 
+    WHERE cadre_post_id = $1
+);
         `, [cadre_post_id, zp_id]);
 
-        await logAudit("ROSTER_GENERATED", cadre_post_id, null, client);
+        await logAudit("ROSTER_GENERATED", cadre_post_id, zp_id,null, client);
 
         await client.query("COMMIT");
 
@@ -376,7 +381,7 @@ exports.createVacancies = async (cadre_post_id, zp_id) => {
 
             created.push(vacancy.rows[0]);
 
-            await logAudit("VACANCY_CREATED", cadre_post_id, vacancy.rows[0].vacancy_id, client);
+            await logAudit("VACANCY_CREATED", cadre_post_id, zp_id,vacancy.rows[0].vacancy_id, client);
         }
 
         await client.query("COMMIT");
@@ -438,7 +443,7 @@ exports.fillVacancy = async (vacancy_id, user_id = null, zp_id ) => {
             WHERE cadre_post_id = $1
         `, [v.cadre_post_id]);
 
-        await logAudit("VACANCY_FILLED", v.cadre_post_id, vacancy_id, client);
+        await logAudit("VACANCY_FILLED", v.cadre_post_id, vacancy_id,zp_id, client);
 
         await client.query("COMMIT");
 
