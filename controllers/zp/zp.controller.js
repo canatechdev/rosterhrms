@@ -1,3 +1,49 @@
+const zpService = require('../../services/zp/zp.service.js');
+const asyncHandler = require('../../middlewares/async_handler.js');
+
+const createZp = asyncHandler(async (req, res) => {
+    const { name, district_id } = req.body;
+    const zp = await zpService.createZp(name, district_id);
+    res.status(201).json({ success: true, data: zp });
+});
+
+const getZps = asyncHandler(async (req, res) => {
+    const zps = await zpService.getZps();
+    res.status(200).json({ success: true, data: zps });
+});
+
+const getZpById = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const zp = await zpService.getZpById(id);
+    if (!zp) {
+        return res.status(404).json({ success: false, message: 'Zp not found' });
+    }
+    res.status(200).json({ success: true, data: zp });
+});
+
+const updateZp = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { name, district_id, status } = req.body;
+    const zp = await zpService.updateZp(id, name, district_id, status);
+    if (!zp) {
+        return res.status(404).json({ success: false, message: 'Zp not found' });
+    }
+    res.status(200).json({ success: true, data: zp });
+});
+
+const deleteZp = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    await zpService.deleteZp(id);
+    res.status(200).json({ success: true, message: 'Zp deleted successfully' });
+});
+
+module.exports = {
+    createZp,
+    getZps,
+    getZpById,
+    updateZp,
+    deleteZp,
+};
 const authService=require("../../services/zp/zp.service");
 
 // add zp wise cadre 

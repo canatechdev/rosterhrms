@@ -4,19 +4,9 @@ BEGIN;
 		name VARCHAR(100) NOT NULL,
 		status INT NOT NULL DEFAULT 1
 	);
-	create table zp (
-		zp_id BIGSERIAL PRIMARY KEY,
-		name VARCHAR(100) NOT NULL,
-		district_id BIGINT REFERENCES districts(district_id) ON DELETE SET NULL,
-		status INT NOT NULL DEFAULT 1,
-		created_at TIMESTAMP DEFAULT NOW(),
-		updated_at TIMESTAMP DEFAULT NOW()
-	); 
-
-	CREATE TABLE departments (
-		department_id BIGSERIAL PRIMARY KEY,
-		zp_id BIGINT REFERENCES zp(zp_id) ON DELETE SET NULL,
-		name VARCHAR(100) NOT NULL,
+	CREATE TABLE genders(
+		gender_id BIGSERIAL PRIMARY KEY,
+		name VARCHAR(50) NOT NULL,
 		status INT NOT NULL DEFAULT 1
 	);
 	CREATE TABLE roles (
@@ -31,9 +21,18 @@ BEGIN;
 		priority INT NOT NULL,
 		status INT NOT NULL DEFAULT 1
 	);
-	CREATE TABLE genders(
-		gender_id BIGSERIAL PRIMARY KEY,
-		name VARCHAR(50) NOT NULL,
+	create table zp (
+		zp_id BIGSERIAL PRIMARY KEY,
+		name VARCHAR(100) NOT NULL,
+		district_id BIGINT REFERENCES districts(district_id) ON DELETE SET NULL,
+		status INT NOT NULL DEFAULT 1,
+		created_at TIMESTAMP DEFAULT NOW(),
+		updated_at TIMESTAMP DEFAULT NOW()
+	); 
+	CREATE TABLE departments (
+		department_id BIGSERIAL PRIMARY KEY,
+		zp_id BIGINT REFERENCES zp(zp_id) ON DELETE SET NULL,
+		name VARCHAR(100) NOT NULL,
 		status INT NOT NULL DEFAULT 1
 	);
 	CREATE TABLE users (
@@ -91,11 +90,16 @@ BEGIN;
 		post_reservation_id BIGSERIAL PRIMARY KEY,
 		post_id BIGINT REFERENCES posts(post_id) ON DELETE CASCADE,
 		caste_id BIGINT REFERENCES castes(caste_id) ON DELETE SET NULL,
-		total_seats INT NOT NULL,
-		filled_seats INT NOT NULL,
+		caste_seats INT NOT NULL,
 		UNIQUE(post_id, caste_id)
 	);
 
+	-- CREATE TABLE reservation_points (
+	-- 	id BIGSERIAL PRIMARY KEY,
+	-- 	caste_id BIGINT NOT NULL REFERENCES castes(caste_id) ON DELETE CASCADE,
+	-- 	point INT NOT NULL,
+	-- 	UNIQUE (point)
+	-- );
 	CREATE TABLE refresh_tokens(
 		token_id BIGSERIAL PRIMARY KEY,
 		user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
@@ -103,16 +107,29 @@ BEGIN;
 		expires_at TIMESTAMP NOT NULL,
 		created_at TIMESTAMP DEFAULT NOW()
 	);
-	CREATE TABLE auth_otp(
-		otp_id UUID PRIMARY KEY,
-		user_id TEXT GENERATED ALWAYS AS (email) STORED,
-		email TEXT NOT NULL,
-		otp_hash TEXT NOT NULL,
-		attempts INT NOT NULL DEFAULT 0,
-		expires_at TIMESTAMP NOT NULL DEFAULT NOW() + INTERVAL '10 minutes',
-		created_at TIMESTAMP NOT NULL DEFAULT NOW()
-	);
+	-- CREATE TABLE auth_otp(
+	-- 	otp_id UUID PRIMARY KEY,
+	-- 	user_id TEXT GENERATED ALWAYS AS (email) STORED,
+	-- 	email TEXT NOT NULL,
+	-- 	otp_hash TEXT NOT NULL,
+	-- 	attempts INT NOT NULL DEFAULT 0,
+	-- 	expires_at TIMESTAMP NOT NULL DEFAULT NOW() + INTERVAL '10 minutes',
+	-- 	created_at TIMESTAMP NOT NULL DEFAULT NOW()
+	-- );
 COMMIT;
+-- -- NOT FOR NOW
+-- CREATE TABLE user_transfer (
+-- 	user_transfer_id BIGSERIAL PRIMARY KEY,
+-- 	user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
+-- 	from_zp_id BIGINT REFERENCES zp(zp_id) ON DELETE SET NULL,
+-- 	to_zp_id BIGINT REFERENCES zp(zp_id) ON DELETE SET NULL,
+-- 	from_post_reservation_id BIGINT REFERENCES post_reservations(post_id) ON DELETE SET NULL,
+-- 	to_post_reservation_id BIGINT REFERENCES post_reservations(post_id) ON DELETE SET NULL,
+-- 	transferred_by BIGINT REFERENCES users(user_id) ON DELETE SET NULL,
+-- 	transfer_date TIMESTAMP DEFAULT NOW(),
+-- 	reason TEXT,
+-- 	status INT NOT NULL DEFAULT 1
+-- );
 -- NOT FOR NOW
 CREATE TABLE user_transfer (
 	user_transfer_id BIGSERIAL PRIMARY KEY,

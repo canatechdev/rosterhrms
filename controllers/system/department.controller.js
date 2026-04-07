@@ -1,0 +1,46 @@
+const departmentService = require('../../services/system/department.service.js');
+const asyncHandler = require('../../middlewares/async_handler.js');
+
+const createDepartment = asyncHandler(async (req, res) => {
+    const { name, zp_id } = req.body;
+    const department = await departmentService.createDepartment(name, zp_id);
+    res.status(201).json({ success: true, data: department });
+});
+
+const getDepartments = asyncHandler(async (req, res) => {
+    const departments = await departmentService.getDepartments();
+    res.status(200).json({ success: true, data: departments });
+});
+
+const getDepartmentById = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const department = await departmentService.getDepartmentById(id);
+    if (!department) {
+        return res.status(404).json({ success: false, message: 'Department not found' });
+    }
+    res.status(200).json({ success: true, data: department });
+});
+
+const updateDepartment = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { name, zp_id, status } = req.body;
+    const department = await departmentService.updateDepartment(id, name, zp_id, status);
+    if (!department) {
+        return res.status(404).json({ success: false, message: 'Department not found' });
+    }
+    res.status(200).json({ success: true, data: department });
+});
+
+const deleteDepartment = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    await departmentService.deleteDepartment(id);
+    res.status(200).json({ success: true, message: 'Department deleted successfully' });
+});
+
+module.exports = {
+    createDepartment,
+    getDepartments,
+    getDepartmentById,
+    updateDepartment,
+    deleteDepartment,
+};

@@ -3,10 +3,14 @@ const zpController = require('../../controllers/zp/zp.controller');
 const { reqBody } = require('../../middlewares/req_body.middleware');
 const authMiddleware = require('../../middlewares/auth.middleware');
 const router = (require('express')).Router();
+const zpController = require('../../controllers/zp/zp.controller.js');
 
-router.post('/', (req, res) => {
-    res.json({ message: "ZP route is working" });
-});
+// ZP CRUD
+router.post('/', authMiddleware, reqBody, zpController.createZp);
+router.get('/', authMiddleware, zpController.getZps);
+router.get('/:id', authMiddleware, zpController.getZpById);
+router.put('/:id', authMiddleware, reqBody, zpController.updateZp);
+router.delete('/:id', authMiddleware, zpController.deleteZp);
 
 // cadre crud 
 router.post('/add_cadre',authMiddleware, reqBody, zpController.addCadre);
@@ -28,6 +32,7 @@ router.get('/get_cadre_post', authMiddleware, zpController.getCadrePostByZP);
 router.get('/get_cadre_post/:cadre_id', authMiddleware, zpController.getCadrePostByCadreId);
 router.put('/update_cadre_post/:cadre_post_id', authMiddleware, reqBody, zpController.updateCadrePost);
 router.delete('/delete_cadre_post/:cadre_post_id', authMiddleware, zpController.deleteCadrePost);
+
 // roster templates/point crud
 router.post('/add_roster_template', authMiddleware, reqBody, zpController.addRosterTemplate);
 router.get('/get_roster_template', authMiddleware, zpController.getRosterTemplateByZP);

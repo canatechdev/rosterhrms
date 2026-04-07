@@ -1,3 +1,47 @@
+const pool = require('../../config/database');
+
+const createZp = async (name, district_id) => {
+    const result = await pool.query(
+        'INSERT INTO zp (name, district_id) VALUES ($1, $2) RETURNING *',
+        [name, district_id]
+    );
+    return result.rows[0];
+};
+
+const getZps = async () => {
+    const result = await pool.query(`
+        SELECT z.*, d.name as district_name 
+        FROM zp z
+        LEFT JOIN districts d ON z.district_id = d.district_id
+        ORDER BY z.zp_id ASC
+    `);
+    return result.rows;
+};
+
+const getZpById = async (id) => {
+    const result = await pool.query('SELECT * FROM zp WHERE zp_id = $1', [id]);
+    return result.rows[0];
+};
+
+const updateZp = async (id, name, district_id, status) => {
+    const result = await pool.query(
+        'UPDATE zp SET name = $1, district_id = $2, status = $3, updated_at = NOW() WHERE zp_id = $4 RETURNING *',
+        [name, district_id, status, id]
+    );
+    return result.rows[0];
+};
+
+const deleteZp = async (id) => {
+    await pool.query('DELETE FROM zp WHERE zp_id = $1', [id]);
+};
+
+module.exports = {
+    createZp,
+    getZps,
+    getZpById,
+    updateZp,
+    deleteZp,
+};
 const pool = require("../../config/database");
 const { logAudit } = require("../../config/logAudit");
 
