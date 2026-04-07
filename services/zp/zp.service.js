@@ -1,6 +1,7 @@
 const pool = require('../../config/database');
+const { logAudit } = require("../../config/logAudit");
 
-const createZp = async (name, district_id) => {
+ exports.createZp = async (name, district_id) => {
     const result = await pool.query(
         'INSERT INTO zp (name, district_id) VALUES ($1, $2) RETURNING *',
         [name, district_id]
@@ -8,7 +9,7 @@ const createZp = async (name, district_id) => {
     return result.rows[0];
 };
 
-const getZps = async () => {
+exports.getZps = async () => {
     const result = await pool.query(`
         SELECT z.*, d.name as district_name 
         FROM zp z
@@ -18,12 +19,12 @@ const getZps = async () => {
     return result.rows;
 };
 
-const getZpById = async (id) => {
+exports.getZpById = async (id) => {
     const result = await pool.query('SELECT * FROM zp WHERE zp_id = $1', [id]);
     return result.rows[0];
 };
 
-const updateZp = async (id, name, district_id, status) => {
+exports.updateZp = async (id, name, district_id, status) => {
     const result = await pool.query(
         'UPDATE zp SET name = $1, district_id = $2, status = $3, updated_at = NOW() WHERE zp_id = $4 RETURNING *',
         [name, district_id, status, id]
@@ -31,19 +32,9 @@ const updateZp = async (id, name, district_id, status) => {
     return result.rows[0];
 };
 
-const deleteZp = async (id) => {
+exports.deleteZp = async (id) => {
     await pool.query('DELETE FROM zp WHERE zp_id = $1', [id]);
 };
-
-module.exports = {
-    createZp,
-    getZps,
-    getZpById,
-    updateZp,
-    deleteZp,
-};
-const pool = require("../../config/database");
-const { logAudit } = require("../../config/logAudit");
 
 // add cadre zp wise 
 exports.addCadre = async (department_id, description, cadre_name, zp_id) => {
@@ -343,40 +334,72 @@ exports.deleteRosterTemplate = async (template_id) => {
 };
 
 
-exports.generateRoster = async (cadre_post_id, zp_id) => {
+exports.generateRosterByZP = async (zp_id) => {
     const client = await pool.connect();
-console.log("Inside generateRoster service. Cadre Post ID:", cadre_post_id, "ZP ID:", zp_id);
-    
+
     try {
         await client.query("BEGIN");
 
-        const existing = await client.query(
-            "SELECT COUNT(*) FROM roster_points WHERE cadre_post_id = $1 AND zp_id = $2",
-            [cadre_post_id, zp_id]
-        );
+        const postsRes = await client.query(`
+            SELECT cadre_post_id, total_posts
+            FROM cadre_posts
+            WHERE zp_id = $1 AND status = 1
+        `, [zp_id]);
 
-        if (parseInt(existing.rows[0].count) > 0) {
-            throw new Error("Roster already generated");
+
+        if (postsRes.rows.length === 0) {
+            throw new Error("No cadre posts found for this ZP");
         }
 
-        const result = await client.query(`
-           INSERT INTO roster_points (cadre_post_id, point_no, caste_id, zp_id)
-SELECT $1, point_no, caste_id, $2
-FROM roster_template
-WHERE status = 1
-ORDER BY point_no
-LIMIT (
-    SELECT total_posts 
-    FROM cadre_posts 
-    WHERE cadre_post_id = $1
-);
-        `, [cadre_post_id, zp_id]);
+        let resultSummary = [];
 
-        await logAudit("ROSTER_GENERATED", cadre_post_id, zp_id,null, client);
+        for (const post of postsRes.rows) {
+            const { cadre_post_id, total_posts } = post;
+
+            const existing = await client.query(`
+                SELECT COUNT(*) 
+                FROM roster_points 
+                WHERE cadre_post_id = $1 
+                  AND zp_id = $2 
+                  AND status = 1
+            `, [cadre_post_id, zp_id]);
+
+            if (parseInt(existing.rows[0].count) > 0) {
+                console.log(`Skipping ${cadre_post_id} (already generated)`);
+                continue;
+            }
+
+          const cycleSize = 100;
+let inserted = 0;
+let cycle = 1;
+
+while (inserted < total_posts) {
+    const limit = Math.min(cycleSize, total_posts - inserted);
+
+    await client.query(`
+        INSERT INTO roster_points (cadre_post_id, point_no, caste_id,cycle_no, zp_id)
+        SELECT $1, point_no + $4, caste_id, $5, $2
+        FROM roster_template
+        WHERE status = 1
+        ORDER BY point_no
+        LIMIT $3
+    `, [cadre_post_id, zp_id, limit, cycle * 100, cycle]);
+
+    inserted += limit;
+    cycle++;
+}
+
+            await logAudit("ROSTER_GENERATED", cadre_post_id, zp_id, null, client);
+
+            resultSummary.push({
+                cadre_post_id,
+                status: "generated"
+            });
+        }
 
         await client.query("COMMIT");
 
-        return result.rows;
+        return resultSummary;
 
     } catch (err) {
         await client.query("ROLLBACK");
@@ -387,22 +410,21 @@ LIMIT (
 };
 
 
-
 //  Create Vacancy
-exports.createVacancies = async (cadre_post_id, zp_id) => {
+exports.createVacanciesByZP = async (zp_id) => {
     const client = await pool.connect();
 
     try {
         await client.query("BEGIN");
 
         const points = await client.query(`
-            SELECT * FROM roster_points
-            WHERE cadre_post_id = $1
-              AND is_filled = FALSE
-              AND vacancy_id IS NULL AND zp_id = $2
-            ORDER BY point_no
-        `, [cadre_post_id, zp_id]);
-
+            SELECT *
+            FROM roster_points
+            WHERE is_filled = FALSE
+              AND vacancy_id IS NULL
+              AND zp_id = $1
+            ORDER BY cadre_post_id, point_no
+        `, [zp_id]);
         if (points.rows.length === 0) {
             throw new Error("No available roster points");
         }
@@ -412,10 +434,10 @@ exports.createVacancies = async (cadre_post_id, zp_id) => {
         for (const rp of points.rows) {
 
             const vacancy = await client.query(`
-                INSERT INTO vacancies (cadre_post_id, roster_point, caste_id, status, zp_id )
+                INSERT INTO vacancies (cadre_post_id, roster_point, caste_id, status, zp_id)
                 VALUES ($1, $2, $3, 'OPEN', $4)
                 RETURNING *;
-            `, [cadre_post_id, rp.point_no, rp.caste_id, zp_id]);
+            `, [rp.cadre_post_id, rp.point_no, rp.caste_id, zp_id]);
 
             await client.query(`
                 UPDATE roster_points
@@ -425,7 +447,13 @@ exports.createVacancies = async (cadre_post_id, zp_id) => {
 
             created.push(vacancy.rows[0]);
 
-            await logAudit("VACANCY_CREATED", cadre_post_id, zp_id,vacancy.rows[0].vacancy_id, client);
+            await logAudit(
+                "VACANCY_CREATED",
+                rp.cadre_post_id,   
+                zp_id,
+                vacancy.rows[0].vacancy_id,
+                client
+            );
         }
 
         await client.query("COMMIT");

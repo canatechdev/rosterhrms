@@ -1,18 +1,18 @@
 const zpService = require('../../services/zp/zp.service.js');
 const asyncHandler = require('../../middlewares/async_handler.js');
 
-const createZp = asyncHandler(async (req, res) => {
+exports.createZp = asyncHandler(async (req, res) => {
     const { name, district_id } = req.body;
     const zp = await zpService.createZp(name, district_id);
     res.status(201).json({ success: true, data: zp });
 });
 
-const getZps = asyncHandler(async (req, res) => {
+exports.getZps = asyncHandler(async (req, res) => {
     const zps = await zpService.getZps();
     res.status(200).json({ success: true, data: zps });
 });
 
-const getZpById = asyncHandler(async (req, res) => {
+exports.getZpById = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const zp = await zpService.getZpById(id);
     if (!zp) {
@@ -21,7 +21,7 @@ const getZpById = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, data: zp });
 });
 
-const updateZp = asyncHandler(async (req, res) => {
+exports.updateZp = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { name, district_id, status } = req.body;
     const zp = await zpService.updateZp(id, name, district_id, status);
@@ -31,20 +31,12 @@ const updateZp = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, data: zp });
 });
 
-const deleteZp = asyncHandler(async (req, res) => {
+exports.deleteZp = asyncHandler(async (req, res) => {
     const { id } = req.params;
     await zpService.deleteZp(id);
     res.status(200).json({ success: true, message: 'Zp deleted successfully' });
 });
 
-module.exports = {
-    createZp,
-    getZps,
-    getZpById,
-    updateZp,
-    deleteZp,
-};
-const authService=require("../../services/zp/zp.service");
 
 // add zp wise cadre 
 exports.addCadre = async (req, res) => {
@@ -56,7 +48,7 @@ exports.addCadre = async (req, res) => {
         }
         const zp_id = req.user.user_id;
 
-        const cadre = await authService.addCadre(
+        const cadre = await zpService.addCadre(
             department_id,
             description,
             cadre_name,
@@ -78,7 +70,7 @@ exports.getCadre = async (req, res) => {
     try {
         const zp_id = req.user.user_id;
 
-        const cadre = await authService.getCadre(zp_id);
+        const cadre = await zpService.getCadre(zp_id);
 if(!cadre || cadre.length === 0) {
             return res.status(404).json({ message: "No cadre found" });
         }
@@ -97,7 +89,7 @@ exports.getCadreById = async (req, res) => {
     try {
         const cadre_id = req.params.cadre_id;
 
-        const cadre = await authService.getCadreById(cadre_id);
+        const cadre = await zpService.getCadreById(cadre_id);
 
         if (!cadre) {
             return res.status(404).json({ message: "Cadre not found" });
@@ -123,7 +115,7 @@ exports.updateCadre = async (req, res) => {
                 message: "At least one field is required to update"
             });
         }
-        const cadre = await authService.updateCadre(
+        const cadre = await zpService.updateCadre(
             cadre_id,
             department_id,
             description,
@@ -149,7 +141,7 @@ exports.deleteCadre = async (req, res) => {
     try {
         const cadre_id = req.params.cadre_id;
 
-        const cadre = await authService.deleteCadre(cadre_id);
+        const cadre = await zpService.deleteCadre(cadre_id);
 
         if (!cadre) {
             return res.status(404).json({ message: "Cadre not found" });
@@ -173,7 +165,7 @@ exports.addPost = async (req, res) => {
             return res.status(400).json({ message: "All fields are required" });
         }
         const zp_id = req.user.user_id;
-        const post = await authService.addPost(designation, department_id, zp_id);
+        const post = await zpService.addPost(designation, department_id, zp_id);
         return res.status(201).json({
             message: "Post added successfully",
             post
@@ -187,7 +179,7 @@ exports.addPost = async (req, res) => {
 exports.getPostByZP = async (req, res) => {
     try {
         const zp_id = req.user.user_id;
-        const posts = await authService.getPostByZP(zp_id);
+        const posts = await zpService.getPostByZP(zp_id);
             if(!posts || posts.length === 0) {
             return res.status(404).json({ message: "No posts found" });
         }
@@ -204,7 +196,7 @@ exports.getPostByZP = async (req, res) => {
 exports.getPostById = async (req, res) => {
     try {
         const post_id = req.params.post_id;
-        const post = await authService.getPostById(post_id);
+        const post = await zpService.getPostById(post_id);
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
@@ -227,7 +219,7 @@ exports.updatePost = async (req, res) => {
             return res.status(400).json({ message: "All fields are required" });
         }
 
-        const post = await authService.updatePost(post_id, designation, department_id);
+        const post = await zpService.updatePost(post_id, designation, department_id);
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
@@ -246,7 +238,7 @@ exports.deletePost = async (req, res) => {
     try {
         const post_id = req.params.post_id;
 
-        const post = await authService.deletePost(post_id);
+        const post = await zpService.deletePost(post_id);
 
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
@@ -270,7 +262,7 @@ exports.addCadrePost = async (req, res) => {
             return res.status(400).json({ message: "All fields are required" });
         }
         const zp_id = req.user.user_id;
-        const cadre_post = await authService.addCadrePost(cadre_id, post_id, zp_id, level_order, total_posts);
+        const cadre_post = await zpService.addCadrePost(cadre_id, post_id, zp_id, level_order, total_posts);
         return res.status(201).json({
             message: "Cadre Post added successfully",
             cadre_post
@@ -284,7 +276,7 @@ exports.addCadrePost = async (req, res) => {
 exports.getCadrePostByZP = async (req, res) => {
     try {
         const zp_id = req.user.user_id;
-        const cadre_posts = await authService.getCadrePostByZP(zp_id);
+        const cadre_posts = await zpService.getCadrePostByZP(zp_id);
         console.log("Fetched cadre posts for ZP ID", zp_id, ":", cadre_posts);
         if(!cadre_posts || cadre_posts.length === 0) {
             return res.status(404).json({ message: "No cadre posts found " });
@@ -302,7 +294,7 @@ exports.getCadrePostByZP = async (req, res) => {
 exports.getCadrePostByCadreId = async (req, res) => {
     try {
         const cadre_id = req.params.cadre_id;
-        const cadre_posts = await authService.getCadrePostByCadreId(cadre_id);
+        const cadre_posts = await zpService.getCadrePostByCadreId(cadre_id);
         if(!cadre_posts || cadre_posts.length === 0) {
             return res.status(404).json({ message: "Cadre Posts not found for this Cadre ID" });
         }
@@ -338,7 +330,7 @@ exports.updateCadrePost = async (req, res) => {
         if (cadre_id !== undefined && cadre_id === "") {
             return res.status(400).json({ message: "cadre_id cannot be empty" });
         }
-        const cadre_post = await authService.updateCadrePost(
+        const cadre_post = await zpService.updateCadrePost(
             cadre_post_id,
             cadre_id,
             post_id,
@@ -365,7 +357,7 @@ exports.deleteCadrePost = async (req, res) => {
     try {
         const cadre_post_id = req.params.cadre_post_id;
 
-        const cadre_post = await authService.deleteCadrePost(cadre_post_id);
+        const cadre_post = await zpService.deleteCadrePost(cadre_post_id);
 
         if (!cadre_post) {
             return res.status(404).json({ message: "Cadre Post not found" });
@@ -388,7 +380,7 @@ try{
         return res.status(400).json({message:"All fields are required"});
     }
     const zp_id = req.user.user_id;
-    const roster_template = await authService.addRosterTemplate(point_no,caste_id,zp_id);
+    const roster_template = await zpService.addRosterTemplate(point_no,caste_id,zp_id);
     return res.status(201).json({
         message:"Roster Template added successfully",
         roster_template
@@ -406,7 +398,7 @@ exports.getRosterTemplateByZP = async (req, res) => {
         console.log("zp id", zp_id);
         console.log("user id", req.user.user_id);
 
-        const roster_templates = await authService.getRosterTemplateByZP(zp_id);
+        const roster_templates = await zpService.getRosterTemplateByZP(zp_id);
 
         if (!roster_templates || roster_templates.length === 0) {
             return res.status(404).json({ message: "No roster templates found" });
@@ -426,7 +418,7 @@ exports.getRosterTemplateByZP = async (req, res) => {
 exports.getRosterTemplateById = async (req, res) => {
     try{
         const template_id = req.params.template_id;
-        const roster_template = await authService.getRosterTemplateById(template_id);
+        const roster_template = await zpService.getRosterTemplateById(template_id);
         if (!roster_template) {
             return res.status(404).json({ message: "Roster Template not found" });
         }
@@ -447,7 +439,7 @@ exports.updateRosterTemplate = async (req, res) => {
         if (!point_no || !caste_id) {
             return res.status(400).json({ message: "All fields are required" });
         }
-        const roster_template = await authService.updateRosterTemplate(template_id, point_no, caste_id);
+        const roster_template = await zpService.updateRosterTemplate(template_id, point_no, caste_id);
         if (!roster_template) {
             return res.status(404).json({ message: "Roster Template not found" });
         }
@@ -464,7 +456,7 @@ exports.updateRosterTemplate = async (req, res) => {
 exports.deleteRosterTemplate = async (req, res) => {
     try{
         const template_id = req.params.template_id;
-        const roster_template = await authService.deleteRosterTemplate(template_id);
+        const roster_template = await zpService.deleteRosterTemplate(template_id);
         if (!roster_template) {
             return res.status(404).json({ message: "Roster Template not found" });
         }
@@ -481,29 +473,30 @@ exports.deleteRosterTemplate = async (req, res) => {
 }
 
 
-exports.generateRoster = async (req, res) => {
+// Generate roster by ZP id 
+exports.generateRosterByZP = async (req, res) => {
     try {
-        const { cadre_post_id } = req.params;
         const zp_id = req.user.user_id;
-        console.log("Generating roster for cadre_post_id:", cadre_post_id, "by ZP ID:", zp_id);
-        console.log("User details from request:", req.user.user_id);
 
-        const data = await authService.generateRoster(cadre_post_id, zp_id);
+        console.log("Generating roster for FULL ZP:", zp_id);
 
-        res.json({ message: "Roster generated", data });
+        const data = await zpService.generateRosterByZP(zp_id);
+
+        res.json({ message: "Roster generated for all cadre posts", data });
+
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
-exports.createVacancy = async (req, res) => {
+exports.createVacancyByZP = async (req, res) => {
     try {
-        const { cadre_post_id } = req.params;
         const zp_id = req.user.user_id;
 
-        const data = await authService.createVacancies(cadre_post_id, zp_id);
+        const data = await zpService.createVacanciesByZP(zp_id);
 
-        res.json({ message: "Vacancies created", data });
+        res.json({ message: "Vacancies created for full ZP", data });
+
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -517,7 +510,7 @@ exports.fillVacancy = async (req, res) => {
             return res.status(400).json({ message: "user_id is required" });
         }
         const zp_id = req.user.user_id;
-        const data = await authService.fillVacancy(vacancy_id, user_id, zp_id);
+        const data = await zpService.fillVacancy(vacancy_id, user_id, zp_id);
 
         res.json({ message: "Vacancy filled", data });
     } catch (err) {
@@ -525,7 +518,7 @@ exports.fillVacancy = async (req, res) => {
     }
 };
 
-    
+  
 
 
 

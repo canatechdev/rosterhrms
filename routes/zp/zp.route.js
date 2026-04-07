@@ -3,7 +3,6 @@ const zpController = require('../../controllers/zp/zp.controller');
 const { reqBody } = require('../../middlewares/req_body.middleware');
 const authMiddleware = require('../../middlewares/auth.middleware');
 const router = (require('express')).Router();
-const zpController = require('../../controllers/zp/zp.controller.js');
 
 // ZP CRUD
 router.post('/', authMiddleware, reqBody, zpController.createZp);
@@ -41,8 +40,8 @@ router.put('/update_roster_template/:template_id', authMiddleware, reqBody, zpCo
 router.delete('/delete_roster_template/:template_id', authMiddleware, zpController.deleteRosterTemplate);
 
 // roster generation 
-router.post("/generate-roster/:cadre_post_id",authMiddleware, zpController.generateRoster);
-router.post("/create-vacancy/:cadre_post_id", authMiddleware, zpController.createVacancy);
+router.post('/generate-roster',authMiddleware, zpController.generateRosterByZP);
+router.post("/create-vacancy", authMiddleware, zpController.createVacancyByZP);
 router.post("/fill-vacancy/:vacancy_id", authMiddleware, zpController.fillVacancy);
  
 
