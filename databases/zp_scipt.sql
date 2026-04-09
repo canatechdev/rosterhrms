@@ -71,7 +71,8 @@ BEGIN;
 		status INT NOT NULL DEFAULT 1,
 		created_by BIGINT REFERENCES users(user_id) ON DELETE SET NULL,
 		created_at TIMESTAMP DEFAULT NOW(),
-		updated_at TIMESTAMP DEFAULT NOW()
+		updated_at TIMESTAMP DEFAULT NOW(),
+		current_vacancy_id BIGINT REFERENCES vacancies(vacancy_id) ON DELETE SET NULL
 	);
 
 	CREATE TABLE permissions (
@@ -219,4 +220,19 @@ CREATE TABLE audit_logs (
     vacancy_id INT,
     created_at TIMESTAMP DEFAULT NOW(),
     zp_id INT
+);
+
+ CREATE TABLE employee_movements (
+    movement_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    movement_type VARCHAR(20), 
+    from_zp INT,
+    to_zp INT,
+    from_post_id INT,
+    to_post_id INT,
+    from_vacancy_id INT,
+    to_vacancy_id INT,
+    reason TEXT,
+    effective_date DATE DEFAULT CURRENT_DATE,
+    created_at TIMESTAMP DEFAULT NOW()
 );

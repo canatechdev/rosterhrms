@@ -51,6 +51,63 @@ exports.addCadre = async (department_id, description, cadre_name, zp_id) => {
         throw error;
     }
 };
+// add department zp wise 
+exports.addDepartment = async(name,zp_id)=>{
+    try{
+const result = await pool.query(
+    `INSERT INTO departments (name, zp_id) VALUES ($1, $2) RETURNING *`,
+    [name,zp_id]
+);
+return result.rows[0];
+    }catch(error){
+        console.error("Error in addDepartment service:", error);
+        throw error;
+    }
+}
+// get department by zp wise
+exports.getDepartmentByZP = async (zp_id) => {
+    try {
+        console.log("service Hit for getDepartmentByZP with zp_id:", zp_id);
+        const result = await pool.query(`SELECT name FROM departments WHERE zp_id = $1 AND status = 1`, [zp_id]);
+        return result.rows;
+    } catch (error) {
+        console.error("Error in getDepartmentByZP service:", error);
+        throw error;
+    }
+};
+// get department by id
+exports.getDepartmentById = async(department_id)=>{
+    try {  
+        const result = await pool.query(`SELECT name FROM 
+            departments WHERE department_id = $1 AND status = 1`, [department_id]);
+        return result.rows[0];
+} catch (error) {
+    console.error("Error in getDepartmentById service:", error);
+    throw error;
+}
+}
+// update department
+exports.updateDepartment = async(department_id,name)=>{
+    try{
+        const result = await pool.query(`UPDATE departments SET name = $2 WHERE department_id = $1 AND status = 1 RETURNING *`,[department_id,name]);
+        return result.rows[0];
+    }catch(error){
+        console.error("Error in updateDepartment service:", error);
+        throw error;
+    }
+}
+// delete department 
+exports.deleteDepartment = async(department_id)=>{
+    try{
+        const result = await pool.query(`UPDATE departments SET 
+            status = 0 WHERE department_id = $1`,[department_id]);
+        return result.rows[0];
+    }catch(error){
+        console.error("Error in deleteDepartment service:", error);
+        throw error;
+
+    }
+}
 // get cadre zp wise
 exports.getCadre = async (zp_id) => {
     try {
@@ -369,21 +426,19 @@ exports.generateRosterByZP = async (zp_id) => {
                 continue;
             }
 
-          const cycleSize = 100;
-let inserted = 0;
-let cycle = 1;
+         const cycleSize = post.cycle_size || 100;
 
 while (inserted < total_posts) {
     const limit = Math.min(cycleSize, total_posts - inserted);
 
     await client.query(`
-        INSERT INTO roster_points (cadre_post_id, point_no, caste_id,cycle_no, zp_id)
+        INSERT INTO roster_points (cadre_post_id, point_no, caste_id, cycle_no, zp_id)
         SELECT $1, point_no + $4, caste_id, $5, $2
         FROM roster_template
         WHERE status = 1
         ORDER BY point_no
         LIMIT $3
-    `, [cadre_post_id, zp_id, limit, cycle * 100, cycle]);
+    `, [cadre_post_id, zp_id, limit, (cycle - 1) * cycleSize, cycle]);
 
     inserted += limit;
     cycle++;
@@ -471,18 +526,19 @@ exports.createVacanciesByZP = async (zp_id) => {
 
 
 //  Fill Vacancy
-exports.fillVacancy = async (vacancy_id, user_id = null, zp_id ) => {
+exports.fillVacancy = async (vacancy_id, user_id, zp_id) => {
     const client = await pool.connect();
 
     try {
         await client.query("BEGIN");
 
+        //  find vacancy
         const vacancyRes = await client.query(`
             SELECT * FROM vacancies 
-            WHERE vacancy_id = $1  AND zp_id = $2
+            WHERE vacancy_id = $1 AND zp_id = $2
             FOR UPDATE
         `, [vacancy_id, zp_id]);
-
+// console.log("zp id",zp_id);
         if (vacancyRes.rows.length === 0) {
             throw new Error("Vacancy not found");
         }
@@ -493,6 +549,22 @@ exports.fillVacancy = async (vacancy_id, user_id = null, zp_id ) => {
             throw new Error("Vacancy already filled");
         }
 
+        // Check user 
+        const userCheck = await client.query(`
+            SELECT up.current_vacancy_id,u.zp_id FROM user_profile up
+JOIN users u ON up.user_id = u.user_id
+            WHERE up.user_id = $1 AND u.zp_id = $2
+        `, [user_id, zp_id]);
+
+        if (userCheck.rows.length === 0) {
+            throw new Error("User not found in this ZP");
+        }
+
+        if (userCheck.rows[0].current_vacancy_id) {
+            throw new Error("User already assigned to another vacancy");
+        }
+
+        // Fill vacancy
         await client.query(`
             UPDATE vacancies
             SET status = 'FILLED',
@@ -501,21 +573,242 @@ exports.fillVacancy = async (vacancy_id, user_id = null, zp_id ) => {
             WHERE vacancy_id = $1
         `, [vacancy_id, user_id]);
 
+        //  Update roster_points 
         await client.query(`
             UPDATE roster_points
             SET is_filled = TRUE
-            WHERE cadre_post_id = $1
-              AND point_no = $2
-              AND zp_id = $3
-        `, [v.cadre_post_id, v.roster_point, zp_id]);
+            WHERE vacancy_id = $1
+        `, [vacancy_id]);
 
+        //  Update user_profile 
+        await client.query(`
+            UPDATE user_profile
+            SET current_vacancy_id = $2
+            WHERE user_id = $1
+        `, [user_id, vacancy_id]);
+
+        //  Update filled count
         await client.query(`
             UPDATE cadre_posts
             SET filled_posts = filled_posts + 1
             WHERE cadre_post_id = $1
         `, [v.cadre_post_id]);
 
-        await logAudit("VACANCY_FILLED", v.cadre_post_id, vacancy_id,zp_id, client);
+        // Log movement 
+        await client.query(`
+            INSERT INTO employee_movements (
+                user_id, movement_type, to_vacancy_id
+            ) VALUES ($1, 'JOIN', $2)
+        `, [user_id, vacancy_id]);
+
+        await logAudit("VACANCY_FILLED", v.cadre_post_id, zp_id, vacancy_id, client);
+
+        await client.query("COMMIT");
+
+        return { success: true };
+
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
+    }
+};
+
+exports.retireEmployee = async (user_id, zp_id) => {
+    const client = await pool.connect();
+
+    try {
+        await client.query("BEGIN");
+
+        // Get user 
+        const userRes = await client.query(`
+            SELECT current_vacancy_id,
+                   retirement_date,
+                   (retirement_date IS NOT NULL AND retirement_date <= NOW()) AS can_retire
+            FROM user_profile 
+            WHERE user_id = $1 AND zp_id = $2
+            FOR UPDATE
+        `, [user_id, zp_id]);
+
+        if (userRes.rows.length === 0) {
+            throw new Error("User not found in this ZP");
+        }
+
+        const user = userRes.rows[0];
+
+        const vacancy_id = user.current_vacancy_id;
+        if (!vacancy_id) {
+            throw new Error("User not assigned to any vacancy");
+        }
+
+        if (!user.can_retire) {
+            throw new Error(`User cannot be retired before retirement date: ${user.retirement_date}`);
+        }
+        
+        //  open vacancy
+        await client.query(`
+            UPDATE vacancies
+            SET status = 'OPEN',
+                user_id = NULL,
+                filled_at = NULL
+            WHERE vacancy_id = $1 AND zp_id = $2
+        `, [vacancy_id, zp_id]);
+
+        //  Update roster 
+        await client.query(`
+            UPDATE roster_points
+            SET is_filled = FALSE
+            WHERE vacancy_id = $1
+        `, [vacancy_id]);
+
+        //  Update user
+        await client.query(`
+            UPDATE user_profile
+            SET status = 0,
+                current_vacancy_id = NULL
+            WHERE user_id = $1
+        `, [user_id]);
+
+        await client.query(`
+            UPDATE cadre_posts cp
+            JOIN vacancies v ON cp.cadre_post_id = v.cadre_post_id
+            SET filled_posts = filled_posts - 1
+            WHERE v.vacancy_id = $1 AND v.zp_id = $2
+        `, [vacancy_id, zp_id]);
+        //  Log movement
+        await client.query(`
+            INSERT INTO employee_movements (
+                user_id, movement_type, from_vacancy_id,zp_id
+            ) VALUES ($1, 'RETIREMENT', $2, $3)
+        `, [user_id, vacancy_id, zp_id]);
+
+        await client.query("COMMIT");
+
+        return { success: true };
+
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
+    }
+};
+
+exports.promoteEmployee = async (user_id, new_vacancy_id, zp_id) => {
+    const client = await pool.connect();
+
+    try {
+        await client.query("BEGIN");
+
+        // Get user current vacancy
+        const userRes = await client.query(`
+            SELECT current_vacancy_id FROM user_profile
+            WHERE user_id = $1
+        `, [user_id]);
+
+        const old_id = userRes.rows[0]?.current_vacancy_id;
+        if (!old_id) throw new Error("User has no current vacancy");
+
+        // open old vacancy
+        await client.query(`
+            UPDATE vacancies SET status='OPEN', user_id=NULL WHERE vacancy_id=$1
+        `, [old_id]);
+
+        await client.query(`
+            UPDATE roster_points SET is_filled=FALSE WHERE vacancy_id=$1
+        `, [old_id]);
+
+        //  Assign new vacancy
+        await client.query(`
+            UPDATE vacancies 
+            SET status='FILLED', user_id=$2, filled_at=NOW()
+            WHERE vacancy_id=$1 AND zp_id=$3
+        `, [new_vacancy_id, user_id, zp_id]);
+
+        await client.query(`
+            UPDATE roster_points SET is_filled=TRUE WHERE vacancy_id=$1
+        `, [new_vacancy_id]);
+
+        //  Update user set new vacancy
+        await client.query(`
+            UPDATE user_profile
+            SET current_vacancy_id = $2
+            WHERE user_id = $1
+        `, [user_id, new_vacancy_id]);
+
+        //  log movement
+        await client.query(`
+            INSERT INTO employee_movements (
+                user_id, movement_type, from_vacancy_id, to_vacancy_id,zp_id
+            ) VALUES ($1, 'PROMOTION', $2, $3, $4)
+        `, [user_id, old_id, new_vacancy_id, zp_id]);
+
+        await client.query("COMMIT");
+
+        return { success: true };
+
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
+    }
+};
+
+exports.transferEmployee = async (user_id, new_vacancy_id, new_zp_id) => {
+    const client = await pool.connect();
+
+    try {
+        await client.query("BEGIN");
+
+        //  Get user
+        const userRes = await client.query(`
+            SELECT current_vacancy_id, zp_id FROM user_profile
+            WHERE user_id = $1
+        `, [user_id]);
+
+        const old_id = userRes.rows[0]?.current_vacancy_id;
+        const old_zp = userRes.rows[0]?.zp_id;
+
+        if (!old_id) throw new Error("User has no current vacancy");
+
+        // open old ZP vacancy
+        await client.query(`
+            UPDATE vacancies SET status='OPEN', user_id=NULL WHERE vacancy_id=$1
+        `, [old_id]);
+
+        await client.query(`
+            UPDATE roster_points SET is_filled=FALSE WHERE vacancy_id=$1
+        `, [old_id]);
+
+        // Assign new ZP vacancy
+        await client.query(`
+            UPDATE vacancies 
+            SET status='FILLED', user_id=$2, filled_at=NOW()
+            WHERE vacancy_id=$1
+        `, [new_vacancy_id, user_id]);
+
+        await client.query(`
+            UPDATE roster_points SET is_filled=TRUE WHERE vacancy_id=$1
+        `, [new_vacancy_id]);
+
+        //  Update user
+        await client.query(`
+            UPDATE user_profile
+            SET zp_id = $2,
+                current_vacancy_id = $3
+            WHERE user_id = $1
+        `, [user_id, new_zp_id, new_vacancy_id]);
+
+        // log movement
+        await client.query(`
+            INSERT INTO employee_movements (
+                user_id, movement_type,
+                from_zp, to_zp,
+                from_vacancy_id, to_vacancy_id
+            ) VALUES ($1, 'TRANSFER', $2, $3, $4, $5)
+        `, [user_id, old_zp, new_zp_id, old_id, new_vacancy_id]);
 
         await client.query("COMMIT");
 

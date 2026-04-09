@@ -37,6 +37,103 @@ exports.deleteZp = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, message: 'Zp deleted successfully' });
 });
 
+// add department by zp 
+exports.addDepartment = async(req,res)=>{
+    try{
+        const{name} = req.body;
+        if(!name){
+            return res.status(400).json({message:"Department name is required"});
+        }
+        const zp_id = req.user.zp_id;
+        console.log("zp_id",zp_id);
+        if(!zp_id){
+            return res.status(400).json({message:"Invalid ZP ID ZP ID is required to add department"});
+        }
+        const department = await zpService.addDepartment(name,zp_id);
+        return res.status(201).json({
+            message:"Department added successfully",
+            department
+        });
+    }catch(error){
+        console.log("Error in addDepartment:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+}
+// get department by zp wise
+exports.getDepartmentByZP = async(req,res)=>{
+    try{
+        const zp_id = req.user.zp_id;
+        console.log("zp_id",zp_id);
+        console.log("GET DEPARTMENT HIT");
+        const departments = await zpService.getDepartmentByZP(zp_id);
+        if(!departments || departments.length === 0){
+            return res.status(404).json({message:"No departments found"});
+        }
+        return res.status(200).json({
+            message:"Departments fetched successfully",
+            departments
+        });
+    }catch(error){
+        console.log("Error in getDepartmentByZP:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+    }   
+// get department by id
+exports.getDepartmentById = async(req,res)=>{
+    try{
+        const department_id = req.params.id;
+        const department = await zpService.getDepartmentById(department_id);
+        if(!department){
+            return res.status(404).json({message:"Department not found"});
+        }
+        return res.status(200).json({
+            message:"Department fetched successfully",
+            department
+        });
+    }catch(error){
+        console.log("Error in getDepartmentById:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+}
+// update department
+exports.updateDepartment = async(req,res)=>{
+    try{
+        const department_id = req.params.id;
+        const {name} = req.body;
+        if(!name){
+            return res.status(400).json({message:"Department name is required"});
+        
+        }
+        const department = await zpService.updateDepartment(department_id,name);
+        if(!department){
+            return res.status(404).json({message:"Department not found"});
+        }
+        return res.status(200).json({
+            message:"Department updated successfully",
+            department
+        });
+    }catch(error){
+        console.log("Error in updateDepartment:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+}
+// delete department
+exports.deleteDepartment = async(req,res)=>{
+    try{
+        const department_id = req.params.id;
+        const department = await zpService.deleteDepartment(department_id);
+        if(!department_id){
+            return res.status(404).json({message:"Department Not Found"});
+        }
+        return res.status(200).json({
+            message:"Department deleted successfully",
+            department
+        });
+    }catch(error){
+        console.log("Error in deleteDepartment:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+}
 
 // add zp wise cadre 
 exports.addCadre = async (req, res) => {
@@ -46,7 +143,8 @@ exports.addCadre = async (req, res) => {
         if (!department_id || !description || !cadre_name) {
             return res.status(400).json({ message: "All fields are required" });
         }
-        const zp_id = req.user.user_id;
+        const zp_id = req.user.zp_id;
+        console.log("zp_id",zp_id);
 
         const cadre = await zpService.addCadre(
             department_id,
@@ -68,7 +166,7 @@ exports.addCadre = async (req, res) => {
 // get cadre zp wise
 exports.getCadre = async (req, res) => {
     try {
-        const zp_id = req.user.user_id;
+        const zp_id = req.user.zp_id;
 
         const cadre = await zpService.getCadre(zp_id);
 if(!cadre || cadre.length === 0) {
@@ -164,7 +262,7 @@ exports.addPost = async (req, res) => {
         if (!designation || !department_id) {
             return res.status(400).json({ message: "All fields are required" });
         }
-        const zp_id = req.user.user_id;
+        const zp_id = req.user.zp_id;
         const post = await zpService.addPost(designation, department_id, zp_id);
         return res.status(201).json({
             message: "Post added successfully",
@@ -178,7 +276,7 @@ exports.addPost = async (req, res) => {
 // get post by zp wise
 exports.getPostByZP = async (req, res) => {
     try {
-        const zp_id = req.user.user_id;
+        const zp_id = req.user.zp_id;
         const posts = await zpService.getPostByZP(zp_id);
             if(!posts || posts.length === 0) {
             return res.status(404).json({ message: "No posts found" });
@@ -261,12 +359,12 @@ exports.addCadrePost = async (req, res) => {
         if (!cadre_id || !post_id || !level_order || !total_posts) {
             return res.status(400).json({ message: "All fields are required" });
         }
-        const zp_id = req.user.user_id;
+        const zp_id = req.user.zp_id;
         const cadre_post = await zpService.addCadrePost(cadre_id, post_id, zp_id, level_order, total_posts);
         return res.status(201).json({
             message: "Cadre Post added successfully",
             cadre_post
-        });
+        }); 
     } catch (error) {
         console.error("Error in addCadrePost:", error);
         return res.status(500).json({ message: "Internal Server Error" });
@@ -275,7 +373,7 @@ exports.addCadrePost = async (req, res) => {
 // get cadre post by zp wise
 exports.getCadrePostByZP = async (req, res) => {
     try {
-        const zp_id = req.user.user_id;
+        const zp_id = req.user.zp_id;
         const cadre_posts = await zpService.getCadrePostByZP(zp_id);
         console.log("Fetched cadre posts for ZP ID", zp_id, ":", cadre_posts);
         if(!cadre_posts || cadre_posts.length === 0) {
@@ -379,7 +477,7 @@ try{
     if(!point_no || !caste_id){
         return res.status(400).json({message:"All fields are required"});
     }
-    const zp_id = req.user.user_id;
+    const zp_id = req.user.zp_id;
     const roster_template = await zpService.addRosterTemplate(point_no,caste_id,zp_id);
     return res.status(201).json({
         message:"Roster Template added successfully",
@@ -393,7 +491,7 @@ try{
 // get roster template by zp wise
 exports.getRosterTemplateByZP = async (req, res) => {
     try {
-        const zp_id = req.user.user_id;
+        const zp_id = req.user.zp_id;
 
         console.log("zp id", zp_id);
         console.log("user id", req.user.user_id);
@@ -476,7 +574,7 @@ exports.deleteRosterTemplate = async (req, res) => {
 // Generate roster by ZP id 
 exports.generateRosterByZP = async (req, res) => {
     try {
-        const zp_id = req.user.user_id;
+        const zp_id = req.user.zp_id;
 
         console.log("Generating roster for FULL ZP:", zp_id);
 
@@ -491,7 +589,7 @@ exports.generateRosterByZP = async (req, res) => {
 
 exports.createVacancyByZP = async (req, res) => {
     try {
-        const zp_id = req.user.user_id;
+        const zp_id = req.user.zp_id;
 
         const data = await zpService.createVacanciesByZP(zp_id);
 
@@ -509,10 +607,49 @@ exports.fillVacancy = async (req, res) => {
         if (!user_id) {
             return res.status(400).json({ message: "user_id is required" });
         }
-        const zp_id = req.user.user_id;
+        const zp_id = req.user.zp_id;
         const data = await zpService.fillVacancy(vacancy_id, user_id, zp_id);
 
         res.json({ message: "Vacancy filled", data });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.retireEmployee = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+        const zp_id = req.user.zp_id;
+
+        const data = await zpService.retireEmployee(user_id, zp_id);
+
+        res.json({ message: "Employee retired successfully", data });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.promoteEmployee = async (req, res) => {
+    try {
+        const { user_id, new_vacancy_id } = req.body;
+        const zp_id = req.user.zp_id;
+
+        const data = await zpService.promoteEmployee(user_id, new_vacancy_id, zp_id);
+
+        res.json({ message: "Employee promoted successfully", data });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.transferEmployee = async (req, res) => {
+    try {
+        const { user_id, new_vacancy_id, new_zp_id } = req.body;
+        const zp_id = req.user.zp_id;
+
+        const data = await zpService.transferEmployee(user_id, new_vacancy_id, new_zp_id);
+
+        res.json({ message: "Employee transferred successfully", data });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

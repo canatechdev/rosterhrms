@@ -36,6 +36,33 @@ exports.register_dept_head = async (req, res) => {
     res.status(201).json(result)
 };
 
+exports.addEmployee = async (req, res) => {
+    try {
+        const data = {
+            ...req.body,
+            user: req.user
+        };
+
+        if (!data.email || !data.phone || !data.first_name) {
+            return res.status(400).json({
+                message: "Required fields missing"
+            });
+        }
+
+        const result = await zpService.addEmployee(data);
+
+        res.status(201).json({
+            message: "Employee registered successfully",
+            data: result
+        });
+
+    } catch (err) {
+        res.status(err.status || 500).json({
+            error: err.message || "Internal Server Error"
+        });
+    }
+};
+
 exports.login = async (req, res) => {
     const result = await authService.loginUser(req.body);
     res.cookie("refreshToken", result.refreshToken, {

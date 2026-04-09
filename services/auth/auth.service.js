@@ -226,10 +226,10 @@ exports.registerUser = async (data) => {
 
     // All fields mandatory for a proper employee record
     if (!email || !phone || !password || !caste_id || !role_id || !gender_id ||
-        !first_name || !zp_id || !department_id || !post_id || !joining_date ) {
+        !first_name || !zp_id || !department_id || !joining_date ) {
         throw {
             status: 400,
-            message: "Required: email, phone, password, caste_id, role_id, gender_id, first_name, zp_id, department_id, post_id, joining_date"
+            message: "Required: email, phone, password, caste_id, role_id, gender_id, first_name, zp_id, department_id, joining_date"
         };
     }
 
@@ -275,9 +275,9 @@ exports.registerUser = async (data) => {
         // Insert profile — zp_id stored directly per your schema
         await client.query(
             `INSERT INTO user_profile
-                (user_id, first_name, last_name, zp_id, department_id, post_id, joining_date, gender_id,created_by)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-            [userId, first_name, last_name || "", zp_id, department_id, post_id, joining_date, gender_id, data.user ? data.user.user_id : null]
+                (user_id, first_name, last_name, zp_id, department_id, joining_date, gender_id,created_by)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [userId, first_name, last_name || "", zp_id, department_id, joining_date, gender_id, data.user ? data.user.user_id : null]
         );
 
 
@@ -288,6 +288,69 @@ exports.registerUser = async (data) => {
     } catch (err) {
         await client.query("ROLLBACK");
         throw { status: err.status || 500, message: err.message || "Registration failed" };
+    } finally {
+        client.release();
+    }
+};
+
+exports.addEmployee = async (data) => {
+    const client = await pool.connect();
+
+    try {
+        await client.query("BEGIN");
+
+        // Check permission (Department Head only)
+        const check = await client.query(`
+            SELECT 1 FROM users u
+            JOIN roles r ON u.role_id = r.role_id
+            JOIN role_permissions rp ON r.role_id = rp.role_id
+            JOIN permissions p ON p.permission_id = rp.permission_id
+            WHERE u.user_id = $1 
+            AND r.name = 'Department Head'
+            AND p.name = 'Add Employee'
+        `, [data.user.user_id]);
+
+        if (check.rowCount === 0) {
+            throw { status: 403, message: "Only Department Head can add employee" };
+        }
+
+        //  Insert into users table
+        const userRes = await client.query(`
+            INSERT INTO users (email, phone, password, zp_id, caste_id, role_id)
+            VALUES ($1, $2, $3, $4, $5, 5)  
+            RETURNING user_id
+        `, [
+            data.email,
+            data.phone,
+            data.password, 
+            data.zp_id,
+            data.caste_id
+        ]);
+
+        const newUserId = userRes.rows[0].user_id;
+
+        // Insert into user_profile
+        await client.query(`
+            INSERT INTO user_profile 
+            (user_id, first_name, last_name, zp_id, department_id, joining_date, created_by)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `, [
+            newUserId,
+            data.first_name,
+            data.last_name,
+            data.zp_id,
+            data.department_id,
+           data.joining_date,
+            data.user.user_id
+        ]);
+
+        await client.query("COMMIT");
+
+        return { message: "Employee added successfully" };
+
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
     } finally {
         client.release();
     }

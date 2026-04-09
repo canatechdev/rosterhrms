@@ -5,12 +5,18 @@ const authMiddleware = require('../../middlewares/auth.middleware');
 const router = (require('express')).Router();
 
 // ZP CRUD
-router.post('/', authMiddleware, reqBody, zpController.createZp);
-router.get('/', authMiddleware, zpController.getZps);
-router.get('/:id', authMiddleware, zpController.getZpById);
-router.put('/:id', authMiddleware, reqBody, zpController.updateZp);
-router.delete('/:id', authMiddleware, zpController.deleteZp);
+router.post('/add_zp', authMiddleware, reqBody, zpController.createZp);
+router.get('/get_all_zps', authMiddleware, zpController.getZps);
+router.get('/get_zp/:id', authMiddleware, zpController.getZpById);
+router.put('/update_zp/:id', authMiddleware, reqBody, zpController.updateZp);
+router.delete('/delete_zp/:id', authMiddleware, zpController.deleteZp);
 
+// department crud 
+router.post('/add_department',authMiddleware,reqBody,zpController.addDepartment);
+router.get("/get_department",authMiddleware,zpController.getDepartmentByZP);
+router.get('/get_department/:id',authMiddleware,zpController.getDepartmentById);
+router.put('/update_department/:id',authMiddleware,reqBody,zpController.updateDepartment);
+router.delete('/delete_department/:id',authMiddleware,zpController.deleteDepartment);
 // cadre crud 
 router.post('/add_cadre',authMiddleware, reqBody, zpController.addCadre);
 router.get('/get_cadre', authMiddleware, zpController.getCadre);
@@ -43,7 +49,11 @@ router.delete('/delete_roster_template/:template_id', authMiddleware, zpControll
 router.post('/generate-roster',authMiddleware, zpController.generateRosterByZP);
 router.post("/create-vacancy", authMiddleware, zpController.createVacancyByZP);
 router.post("/fill-vacancy/:vacancy_id", authMiddleware, zpController.fillVacancy);
- 
+// manage employee movements
+router.post("/retire-employee/:user_id", authMiddleware, zpController.retireEmployee);
+router.post("/promote-employee",authMiddleware,reqBody,zpController.promoteEmployee);
+router.post("/transfer-employee/:user_id",authMiddleware,reqBody,zpController.transferEmployee);
+
 
 
 module.exports = router;
