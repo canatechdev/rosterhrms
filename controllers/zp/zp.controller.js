@@ -3,8 +3,8 @@ const asyncHandler = require('../../middlewares/async_handler.js');
 
 // ZP CRUD
 exports.createZp = asyncHandler(async (req, res) => {
-    const { name, district_id } = req.body;
-    const zp = await zpService.createZp(name, district_id);
+    const { name, district_id,name_mr } = req.body;
+    const zp = await zpService.createZp(name, district_id,name_mr);
     res.status(201).json({ success: true, data: zp });
 });
 
@@ -24,8 +24,8 @@ exports.getZpById = asyncHandler(async (req, res) => {
 
 exports.updateZp = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { name, district_id, status } = req.body;
-    const zp = await zpService.updateZp(id, name, district_id, status);
+    const { name, district_id, status,name_mr } = req.body;
+    const zp = await zpService.updateZp(id, name, district_id, status,name_mr);
     if (!zp) {
         return res.status(404).json({ success: false, message: 'Zp not found' });
     }
@@ -264,7 +264,7 @@ exports.deleteCadre = async (req, res) => {
 // add zp wise post 
 exports.addPost = async (req, res) => {
     try {
-        const { designation,designation_mr, department_id,cadre_id,level_order,total_posts } = req.body;
+        const {designation,designation_mr, department_id,cadre_id,level_order,total_posts } = req.body;
         if (!designation || !department_id || !cadre_id || !level_order || !total_posts ) {
             return res.status(400).json({ message: "All fields are required" });
         }

@@ -1,17 +1,17 @@
 const pool = require('../../config/database');
 const { logAudit } = require("../../config/logAudit");
 
- exports.createZp = async (name, district_id) => {
+ exports.createZp = async (name, district_id,name_mr) => {
     const result = await pool.query(
-        'INSERT INTO zp (name, district_id) VALUES ($1, $2) RETURNING *',
-        [name, district_id]
+        'INSERT INTO zp (name, district_id,name_mr) VALUES ($1, $2,$3) RETURNING *',
+        [name, district_id,name_mr]
     );
     return result.rows[0];
 };
 
 exports.getZps = async () => {
     const result = await pool.query(`
-        SELECT z.*, d.name as district_name 
+        SELECT z.*, d.name,d.name_mr 
         FROM zp z
         LEFT JOIN districts d ON z.district_id = d.district_id
         ORDER BY z.zp_id ASC
@@ -24,10 +24,10 @@ exports.getZpById = async (id) => {
     return result.rows[0];
 };
 
-exports.updateZp = async (id, name, district_id, status) => {
+exports.updateZp = async (id, name, district_id, status,name_mr) => {
     const result = await pool.query(
-        'UPDATE zp SET name = $1, district_id = $2, status = $3, updated_at = NOW() WHERE zp_id = $4 RETURNING *',
-        [name, district_id, status, id]
+        'UPDATE zp SET name = $1, district_id = $2, status = $3, name_mr = $4, updated_at = NOW() WHERE zp_id = $5 RETURNING *',
+        [name, district_id, status, name_mr, id]
     );
     return result.rows[0];
 };
@@ -326,7 +326,6 @@ exports.deletePost = async (post_id) => {
     try {
         await client.query("BEGIN");
 
-        // Check  post exists
         const check = await client.query(`
             SELECT post_id FROM posts 
             WHERE post_id = $1 AND status = 1
@@ -337,24 +336,34 @@ exports.deletePost = async (post_id) => {
             return null;
         }
 
-        //  Check post is in use 
-        const used = await client.query(`
-            SELECT 1 FROM vacancies 
-            WHERE post_id = $1 LIMIT 1
+        const cadrePosts = await client.query(`
+            SELECT cadre_post_id 
+            FROM cadre_posts 
+            WHERE post_id = $1 AND status = 1
         `, [post_id]);
 
-        if (used.rows.length > 0) {
-            throw new Error("Cannot delete: Post is already used in vacancies");
+        const cadrePostIds = cadrePosts.rows.map(r => r.cadre_post_id);
+
+        console.log("cadrePostIds:", cadrePostIds);
+
+        if (cadrePostIds.length > 0) {
+            const used = await client.query(`
+                SELECT 1 FROM vacancies 
+                WHERE cadre_post_id = ANY($1::int[]) 
+                LIMIT 1
+            `, [cadrePostIds]);
+
+            if (used.rows.length > 0) {
+                throw new Error("Cannot delete: Post is already used in vacancies");
+            }
         }
 
-        // Soft delete from cadre_posts
         await client.query(`
             UPDATE cadre_posts
             SET status = 0
             WHERE post_id = $1
         `, [post_id]);
 
-        // Soft delete from posts
         const postRes = await client.query(`
             UPDATE posts
             SET status = 0

@@ -2,6 +2,7 @@ BEGIN;
 	CREATE TABLE districts (
 		district_id BIGSERIAL PRIMARY KEY,
 		name VARCHAR(100) NOT NULL,
+		name_mr VARCHAR(200),
 		status INT NOT NULL DEFAULT 1
 	);
 	alter table districts add column name_mr VARCHAR(200);
@@ -9,6 +10,7 @@ BEGIN;
 	CREATE TABLE genders(
 		gender_id BIGSERIAL PRIMARY KEY,
 		name VARCHAR(50) NOT NULL,
+		name_mr VARCHAR(200),
 		status INT NOT NULL DEFAULT 1
 	);
 	CREATE TABLE roles (
@@ -19,7 +21,10 @@ BEGIN;
 	CREATE TABLE castes (
 		caste_id BIGSERIAL PRIMARY KEY,
 		name VARCHAR(100) NOT NULL,
+		name_mr VARCHAR(200),
 		full_name VARCHAR(100) NOT NULL,
+		full_name_mr VARCHAR(200),
+		status INT NOT NULL DEFAULT 1,
 		priority INT NOT NULL,
 		status INT NOT NULL DEFAULT 1
 	);
@@ -29,6 +34,7 @@ BEGIN;
 	create table zp (
 		zp_id BIGSERIAL PRIMARY KEY,
 		name VARCHAR(100) NOT NULL,
+		name_mr VARCHAR(200),
 		district_id BIGINT REFERENCES districts(district_id) ON DELETE SET NULL,
 		status INT NOT NULL DEFAULT 1,
 		created_at TIMESTAMP DEFAULT NOW(),
