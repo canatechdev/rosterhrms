@@ -27,7 +27,7 @@ const getDistrictById = asyncHandler(async (req, res) => {
 const updateDistrict = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { name,name_mr } = req.body;
-    const district = await districtService.updateDistrict(id, name, status,name_mr);
+    const district = await districtService.updateDistrict(id, name,name_mr);
     if (!district) {
         return res.status(404).json({ success: false, message: 'District not found' });
     }
