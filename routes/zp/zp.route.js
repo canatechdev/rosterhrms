@@ -31,13 +31,6 @@ router.get('/get_post/:post_id', authMiddleware, zpController.getPostById);
 router.put('/update_post/:post_id', authMiddleware, reqBody, zpController.updatePost);
 router.delete('/delete_post/:post_id', authMiddleware, zpController.deletePost);
 
-// cadre post crud
-router.post('/add_cadre_post', authMiddleware, reqBody, zpController.addCadrePost);
-router.get('/get_cadre_post', authMiddleware, zpController.getCadrePostByZP);
-router.get('/get_cadre_post/:cadre_id', authMiddleware, zpController.getCadrePostByCadreId);
-router.put('/update_cadre_post/:cadre_post_id', authMiddleware, reqBody, zpController.updateCadrePost);
-router.delete('/delete_cadre_post/:cadre_post_id', authMiddleware, zpController.deleteCadrePost);
-
 // roster templates/point crud
 router.post('/add_roster_template', authMiddleware, reqBody, zpController.addRosterTemplate);
 router.get('/get_roster_template', authMiddleware, zpController.getRosterTemplateByZP);
@@ -49,11 +42,11 @@ router.delete('/delete_roster_template/:template_id', authMiddleware, zpControll
 router.post('/generate-roster',authMiddleware, zpController.generateRosterByZP);
 router.post("/create-vacancy", authMiddleware, zpController.createVacancyByZP);
 router.post("/fill-vacancy/:vacancy_id", authMiddleware, zpController.fillVacancy);
+router.get("/get_roster_cadre_post/:cadre_post_id",authMiddleware,zpController.getRosterByCadrePost);
 // manage employee movements
-router.post("/retire-employee/:user_id", authMiddleware, zpController.retireEmployee);
+router.post("/retire-employee/:user_id", authMiddleware, zpController.retireAllZPsEmployees);
 router.post("/promote-employee",authMiddleware,reqBody,zpController.promoteEmployee);
 router.post("/transfer-employee/:user_id",authMiddleware,reqBody,zpController.transferEmployee);
 
-
-
+ 
 module.exports = router;

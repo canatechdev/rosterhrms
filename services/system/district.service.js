@@ -1,9 +1,9 @@
 const pool = require('../../config/database');
 
-const createDistrict = async (name) => {
+const createDistrict = async (name,name_mr) => {
     const result = await pool.query(
-        'INSERT INTO districts (name) VALUES ($1) RETURNING *',
-        [name]
+        'INSERT INTO districts (name,name_mr) VALUES ($1, $2) RETURNING *',
+        [name,name_mr]
     );
     return result.rows[0];
 };
@@ -18,10 +18,10 @@ const getDistrictById = async (id) => {
     return result.rows[0];
 };
 
-const updateDistrict = async (id, name, status) => {
+const updateDistrict = async (id, name, status,name_mr) => {
     const result = await pool.query(
-        'UPDATE districts SET name = $1 WHERE district_id = $2 RETURNING *',
-        [name, id]
+        'UPDATE districts SET name = $1, name_mr = $2 WHERE district_id = $3 RETURNING *',
+        [name,name_mr, id]
     );
     return result.rows[0];
 };

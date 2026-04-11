@@ -3,6 +3,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const responseLogger = require('./config/response.logger')
 const fs = require("fs");
+const cron = require("node-cron");
 
 const authMiddleware = require("./middlewares/auth.middleware");
 const app = express();
@@ -11,6 +12,7 @@ app.use((req, res, next) => {
     next();
 });
 app.use(cors());
+require("./cron/retirementCron");
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));

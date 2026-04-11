@@ -4,6 +4,8 @@ BEGIN;
 		name VARCHAR(100) NOT NULL,
 		status INT NOT NULL DEFAULT 1
 	);
+	alter table districts add column name_mr VARCHAR(200);
+	
 	CREATE TABLE genders(
 		gender_id BIGSERIAL PRIMARY KEY,
 		name VARCHAR(50) NOT NULL,
@@ -21,6 +23,9 @@ BEGIN;
 		priority INT NOT NULL,
 		status INT NOT NULL DEFAULT 1
 	);
+	alter table castes add column full_name_mr TEXT;
+	alter table castes add column name_mr VARCHAR(200);
+
 	create table zp (
 		zp_id BIGSERIAL PRIMARY KEY,
 		name VARCHAR(100) NOT NULL,
@@ -154,7 +159,8 @@ CREATE TABLE cadre (
     status INT DEFAULT 1,
     created_at TIMESTAMP DEFAULT NOW()
 );
-
+alter table cadre add column description_mr TEXT;
+alter table cadre add column cadre_name_mr VARCHAR(200);
 
 CREATE TABLE cadre_posts (
     cadre_post_id SERIAL PRIMARY KEY,
