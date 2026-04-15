@@ -22,11 +22,11 @@ app.use('/auth', require('./routes/auth/auth.route'));
 app.use('/system', require('./routes/system/system.route'));
 app.use('/system/districts', require('./routes/system/district.route.js'));
 app.use('/zps', require('./routes/zp/zp.route.js'));
-app.use('/system/departments', require('./routes/system/department.route.js'));
-app.use('/system/posts', require('./routes/system/post.route.js'));
-app.use('/system/castes', require('./routes/system/caste.route.js'));
-app.use('/system/roles', require('./routes/system/role.route.js'));
-app.use('/zp',require('./routes/zp/zp.route'));
+app.use('/profile', require('./routes/system/profile.route.js'));
+app.use('/masters', require('./routes/system/master.route.js'));
+// app.use('/system/castes', require('./routes/system/caste.route.js'));
+// app.use('/system/roles', require('./routes/system/role.route.js'));
+// app.use('/zp',require('./routes/zp/zp.route'));
 
 
 

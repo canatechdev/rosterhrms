@@ -36,7 +36,17 @@ exports.register_dept_head = async (req, res) => {
     res.status(201).json(result)
 };
 
+exports.register_employee = async (req, res) => {
+    req.body.user = req.user;
+    const result = await authService.registerEmployee(req.body);
+    res.status(201).json(result)
+};
+
 exports.login = async (req, res) => {
+    if (!req.params.zp_name) {
+        return res.status(400).json({ message: "ZP name is required in URL" });
+    }
+    req.body.zp_name = req.params.zp_name;
     const result = await authService.loginUser(req.body);
     res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,

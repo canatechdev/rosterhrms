@@ -3,7 +3,6 @@ const zpController = require('../../controllers/zp/zp.controller');
 const { reqBody } = require('../../middlewares/req_body.middleware');
 const authMiddleware = require('../../middlewares/auth.middleware');
 const router = (require('express')).Router();
-const zpController = require('../../controllers/zp/zp.controller.js');
 
 // ZP CRUD
 router.post('/', authMiddleware, reqBody, zpController.createZp);

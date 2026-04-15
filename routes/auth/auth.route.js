@@ -5,10 +5,12 @@ const authMiddleware = require('../../middlewares/auth.middleware');
 
 const router = (require('express')).Router();
 
-router.post('/register_zp_admin',authMiddleware, reqBody, authController.register_zp_admin);
-router.post("/login", reqBody, authController.login);
+router.post('/register_zp_admin', authMiddleware, reqBody, authController.register_zp_admin);
+router.post('/register_dept_head', authMiddleware, reqBody, authController.register_dept_head);
+router.post('/register_employee', authMiddleware, reqBody, authController.register_employee);
 
-router.post('/register_dept_head',authMiddleware, reqBody, authController.register_dept_head);
+router.post("/login/:zp_name", reqBody, authController.login);
+
 // router.post("/request_otp", reqBody, authController.requestOTP);
 // router.post("/resend_otp", reqBody, authController.resendOTP);
 // router.post("/verify_otp", reqBody, authController.verifyOTP);

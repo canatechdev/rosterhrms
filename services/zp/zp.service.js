@@ -42,7 +42,7 @@ module.exports = {
     updateZp,
     deleteZp,
 };
-const pool = require("../../config/database");
+// const pool = require("../../config/database");
 const { logAudit } = require("../../config/logAudit");
 
 // add cadre zp wise 

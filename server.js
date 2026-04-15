@@ -13,8 +13,8 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`
 ╔══════════════════════════════════╗
 ║   🚀 ZP Backend Server           ║
-║   📍 Port: ${PORT}
-║   🌍 Environment: ${process.env.NODE_ENV || "development"}
+║   📍 Port: ${PORT}                  ║
+║   🌍 Environment: ${process.env.NODE_ENV || "development"}            ║
 ╚══════════════════════════════════╝
   `);
 });

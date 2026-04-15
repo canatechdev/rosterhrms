@@ -14,7 +14,7 @@ router.get('/posts/:department_id',authMiddleware, authController.getPosts);
 
 
 router.get("/departments/head", authMiddleware, authController.getDepartmentHead);
-router.get("/zp/admins", authMiddleware, authController.getZPAdmins);
+router.get("/zp/admins/:zp_name", authMiddleware, authController.getZPAdmins);
 
 
 

@@ -38,7 +38,7 @@ exports.getDepartmentHead=async(req,res)=>{
 
 // get all getZPAdmins
 exports.getZPAdmins=async(req,res)=>{
-    const zp_id=req.user.user_id;
-    const zpAdmins = await systemService.getZPAdmins(zp_id);
+    const zp_name=req.params.zp_name;
+    const zpAdmins = await systemService.getZPAdmins(zp_name);
     res.json(zpAdmins);
 }

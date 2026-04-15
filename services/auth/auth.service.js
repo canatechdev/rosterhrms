@@ -6,25 +6,6 @@ const { v7: uuid7 } = require("uuid");
 
 const SALT_ROUNDS = 10;
 
-
-// const _sendEmailOTP = async (email, otp) => {
-//     await sendEmail(
-//         email,
-//         "Your OTP — ZP Employee System",
-//         `Your OTP is ${otp}. It expires in 10 minutes.`,
-//         `
-//         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;
-//                     padding: 28px; border: 1px solid #ddd; border-radius: 10px;">
-//             <h2 style="color: #1a3c6e;">ZP Employee Management</h2>
-//             <p>Use the OTP below to verify your identity. It expires in <b>10 minutes</b>.</p>
-//             <h1 style="text-align:center; letter-spacing:6px; color:#1a73e8;">${otp}</h1>
-//             <p>If you did not request this, please ignore this email.</p>
-//             <hr/>
-//             <p style="font-size:12px; color:#888;">© 2026 ZP Employee System. All rights reserved.</p>
-//         </div>`
-//     );
-// };
-
 const _issueTokens = async (client, user_id, email) => {
     // console.log('Deva', userId, email)
     const accessToken = jwt.sign(
@@ -48,188 +29,90 @@ const _issueTokens = async (client, user_id, email) => {
     return { accessToken, refreshToken };
 };
 
-
-// exports.requestOTP = async ({ email }) => {
-//     if (!email) throw { status: 400, message: "Email is required" };
-// 
-//     // Count OTPs requested in the last 10 minutes
-//     const recent = await pool.query(
-//         `SELECT id FROM auth_otp
-//          WHERE email = $1 AND created_at > NOW() - INTERVAL '10 minutes'
-//          ORDER BY created_at DESC`,
-//         [email]
-//     );
-
-//     if (recent.rowCount >= 3) {
-//         throw { status: 429, message: "Too many OTP requests. Please wait 10 minutes." };
-//     }
-
-//     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-//     const otp_hash = await bcrypt.hash(otp, SALT_ROUNDS);
-//     const id = uuid7();
-
-//     // Invalidate any existing unexpired OTPs for this email
-//     await pool.query(`DELETE FROM auth_otp WHERE email = $1`, [email]);
-
-//     await pool.query(
-//         `INSERT INTO auth_otp (id, email, otp_hash)
-//          VALUES ($1, $2, $3)`,
-//         [id, email, otp_hash]
-//     );
-
-//     await _sendEmailOTP(email, otp);
-//     return { message: "OTP sent", id };
-// };
-
-
-// exports.resendOTP = async ({ id, email }) => {
-//     if (!id || !email) throw { status: 400, message: "ID and email are required" };
-
-//     const result = await pool.query(
-//         `SELECT otp_hash, attempts, expires_at
-//          FROM auth_otp WHERE id = $1 AND email = $2`,
-//         [id, email]
-//     );
-
-//     if (result.rowCount === 0) {
-//         // OTP doesn't exist or expired — issue a fresh one
-//         return exports.requestOTP({ email });
-//     }
-
-//     const record = result.rows[0];
-
-//     if (new Date(record.expires_at) < new Date()) {
-//         await pool.query(`DELETE FROM auth_otp WHERE id = $1`, [id]);
-//         return exports.requestOTP({ email });
-//     }
-
-//     if (record.attempts >= 2) {
-//         throw { status: 429, message: "Resend limit reached. Please request a new OTP." };
-//     }
-
-//     await pool.query(
-//         `UPDATE auth_otp SET attempts = attempts + 1 WHERE id = $1`,
-//         [id]
-//     );
-
-//     // Re-send the same hashed OTP — we don't store plaintext so we regenerate
-//     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-//     const otp_hash = await bcrypt.hash(otp, SALT_ROUNDS);
-
-//     await pool.query(
-//         `UPDATE auth_otp SET otp_hash = $1, expires_at = NOW() + INTERVAL '10 minutes'
-//          WHERE id = $2`,
-//         [otp_hash, id]
-//     );
-
-//     await _sendEmailOTP(email, otp);
-//     return { message: "OTP resent", id };
-// };
-
-// exports.verifyOTP = async ({ id, otp }) => {
-//     if (!id || !otp) throw { status: 400, message: "ID and OTP are required" };
-
-//     // Increment attempts first (prevents brute force even on valid OTP)
-//     const result = await pool.query(
-//         `UPDATE auth_otp
-//          SET attempts = attempts + 1
-//          WHERE id = $1
-//          RETURNING email, otp_hash, attempts, expires_at`,
-//         [id]
-//     );
-
-//     if (result.rowCount === 0) {
-//         throw { status: 404, message: "OTP not found or already used" };
-//     }
-
-//     const record = result.rows[0];
-
-//     if (record.attempts > 6) {
-//         throw { status: 429, message: "Max OTP attempts exceeded. Request a new OTP." };
-//     }
-
-//     if (new Date(record.expires_at) < new Date()) {
-//         await pool.query(`DELETE FROM auth_otp WHERE id = $1`, [id]);
-//         throw { status: 401, message: "OTP expired. Please request a new one." };
-//     }
-
-//     const isMatch = await bcrypt.compare(otp, record.otp_hash);
-//     if (!isMatch) {
-//         throw { status: 401, message: "Invalid OTP" };
-//     }
-
-//     // OTP is valid — clean up
-//     await pool.query(`DELETE FROM auth_otp WHERE email = $1`, [record.email]);
-
-//     // Mark user as verified if they already exist
-//     const user = await pool.query(
-//         `UPDATE users SET is_verified = TRUE WHERE email = $1 RETURNING id`,
-//         [record.email]
-//     );
-
-//     return {
-//         verified: true,
-//         isNewUser: user.rowCount === 0,
-//         email: record.email,
-//     };
-// };
-
-// {
-//   email, phone, password,
-//   caste_id, role_id,
-//   first_name, last_name,
-//   zp_id, department_id, post_id, joining_date
-// }
+const _checkPermission = async (userId, permissionName) => {
+    const res = await pool.query(
+        `SELECT 1 FROM users u
+         JOIN roles r ON u.role_id = r.role_id
+         JOIN role_permissions rp ON r.role_id = rp.role_id
+         JOIN permissions p ON rp.permission_id = p.permission_id
+         WHERE u.user_id = $1 AND p.name = $2`,
+        [userId, permissionName]
+    );
+    if (res.rowCount === 0) throw { status: 403, message: "Forbidden" };
+};
 
 exports.addZPAdmin = async (data) => {
-    // and PERMISSIONS.name = 'manage_users'
-    console.log("Deva", data.user)
-    const isAllowed = await pool.query(`SELECT*FROM ROLES JOIN ROLE_PERMISSIONS ON ROLES.ROLE_ID=ROLE_PERMISSIONS.ROLE_ID JOIN PERMISSIONS ON PERMISSIONS.PERMISSION_ID = ROLE_PERMISSIONS.PERMISSION_ID
-        join users u on u.ROLE_ID=ROLES.ROLE_ID where u.user_id=$1 AND PERMISSIONS.name = 'Add ZP Admin'`, [data.user.user_id]);
-    if (isAllowed.rowCount === 0) {
-        throw { status: 403, message: "Forbidden" }
-    }
-    return this.registerUser(data);
+    await _checkPermission(data.user.user_id, "add_zp_admin");
 
+    const isZPAdmin = await pool.query(`SELECT 1 FROM ROLES r WHERE r.role_id=$1 and r.name='zp_admin'`, [data.role_id]);
+    if (isZPAdmin.rowCount === 0) {
+        throw { status: 400, message: "Invalid role_id for ZP admin" }
+    }
+    return registerUser(data);
 }
 exports.addDeptHead = async (data) => {
-    // and PERMISSIONS.name = 'manage_users'
-    console.log("Deva", data.user)
-    const isAllowed = await pool.query(`SELECT * FROM ROLES r 
-        JOIN ROLE_PERMISSIONS rp ON r.role_id=rp.role_id
-        JOIN PERMISSIONS p ON p.permission_id = rp.permission_id
-        JOIN users u ON u.role_id = r.role_id
-        WHERE u.user_id=$1 AND p.name = 'Add Department Head'
-        `, [data.user.user_id]);
-    if (isAllowed.rowCount === 0) {
-        throw { status: 403, message: "Forbidden" }
-    }
+    await _checkPermission(data.user.user_id, "add_department_head");
 
-    const isDeptHead = await pool.query(`SELECT * FROM ROLES r WHERE r.role_id=$1 and r.name='Department Head'`, [data.role_id]);
+    if (!data.department_id) {
+        throw { status: 400, message: "department_id is required for department head" }
+    }
+    const isDept = await pool.query("select 1 from departments where department_id=$1 and status=1", [data.department_id]);
+    if (isDept.rowCount === 0) {
+        throw { status: 400, message: "Invalid department_id" }
+    }
+    const isDeptHead = await pool.query(`SELECT 1 FROM ROLES r WHERE r.role_id=$1 and r.name='dept_head'`, [data.role_id]);
     if (isDeptHead.rowCount === 0) {
         throw { status: 400, message: "Invalid role_id for department head" }
     }
 
-    return this.registerUser(data);
+    return registerUser(data);
 
 }
-// exports.checkVacancies = async (data) => {
-//         // const vacancies = await pool.query(`SELECT p.post_id, p.designation, d.name AS department_name,
-// }
-exports.registerUser = async (data) => {
+exports.registerEmployee = async (data) => {
+    await _checkPermission(data.user.user_id, "add_employee");
+
+    if (!data.department_id) {
+        throw { status: 400, message: "department_id is required for Employee" }
+    }
+    if (!data.aadhar_number || data.aadhar_number.length !== 12) {
+        throw { status: 400, message: "Invalid aadhar_number" }
+    }
+
+    const [isDept, isDuplicate, isEmpRole] = await Promise.all([
+        await pool.query("SELECT 1 FROM departments WHERE department_id=$1 AND status=1", [data.department_id]),
+        await pool.query(`SELECT 1 FROM users u JOIN employee_profiles ep ON u.user_id=ep.user_id WHERE ep.aadhar_number=$1`, [data.aadhar_number]),
+        await pool.query(`SELECT 1 FROM roles r WHERE r.role_id=$1 AND r.name='employee'`, [data.role_id])
+    ]);
+
+    switch (true) {
+        case isDept.rowCount === 0:
+            throw { status: 400, message: "Invalid department_id" }
+        case isEmpRole.rowCount === 0:
+            throw { status: 400, message: "Invalid role_id for Employee" }
+        case isDuplicate.rowCount !== 0:
+            throw { status: 400, message: "Aadhar Number Exists" }
+        default:
+            break;
+    }
+
+    return registerUser(data);
+}
+
+// MAIN FUNCTION
+const registerUser = async (data) => {
     const {
         email, phone, password,
-        caste_id, role_id,gender_id,
-        first_name, last_name,
-        zp_id, department_id, post_id, joining_date,
+        role_id,
+        first_name, last_name, aadhar_number,
+        zp_id, department_id, user
     } = data;
 
     // All fields mandatory for a proper employee record
-    if (!email || !phone || !password || !caste_id || !role_id || !gender_id ||
-        !first_name || !zp_id || !department_id || !post_id || !joining_date ) {
+    if (!email || !phone || !password || !role_id ||
+        !first_name || !zp_id) {
         throw {
             status: 400,
-            message: "Required: email, phone, password, caste_id, role_id, gender_id, first_name, zp_id, department_id, post_id, joining_date"
+            message: "Required: email, phone, password, role_id, first_name & zp_id"
         };
     }
 
@@ -244,47 +127,40 @@ exports.registerUser = async (data) => {
         if (existing.rowCount > 0) {
             throw { status: 409, message: "User with this email already exists" };
         }
-        console.warn("Registration data:", data); // Debug log to verify incoming data structure
+        // console.warn("Registration data:", data); // Debug log to verify incoming data structure
 
         // Validate foreign keys exist (fail fast with clear messages)
-        const [casteCheck, zpCheck, deptCheck, postCheck, roleCheck] = await Promise.all([
-            client.query(`SELECT caste_id FROM castes WHERE caste_id = $1 AND status = 1`, [caste_id]),
+        const [zpCheck, roleCheck] = await Promise.all([
             client.query(`SELECT zp_id FROM zp WHERE zp_id = $1 AND status = 1`, [zp_id]),
-            client.query(`SELECT department_id FROM departments WHERE department_id = $1 AND status = 1`, [department_id]),
-            client.query(`SELECT post_id FROM posts WHERE post_id = $1 AND status = 1`, [post_id]),
-            client.query(`SELECT role_id, name FROM roles WHERE role_id = $1`, [role_id]),
+            client.query(`SELECT role_id, name FROM roles WHERE role_id = $1`, [role_id])
         ]);
 
-        if (casteCheck.rowCount === 0) throw { status: 400, message: "Invalid caste_id" };
         if (zpCheck.rowCount === 0) throw { status: 400, message: "Invalid zp_id" };
-        if (deptCheck.rowCount === 0) throw { status: 400, message: "Invalid department_id" };
-        if (postCheck.rowCount === 0) throw { status: 400, message: "Invalid post_id" };
         if (roleCheck.rowCount === 0) throw { status: 400, message: "Invalid role_id" };
 
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
         // Insert user
         const userResult = await client.query(
-            `INSERT INTO users (email, phone, password, caste_id, role_id, zp_id)
-             VALUES ($1, $2, $3, $4,$5,$6)
+            `INSERT INTO users (email, phone, password, role_id, zp_id)
+             VALUES ($1, $2, $3, $4, $5)
              RETURNING user_id, email`,
-            [email, phone, hashedPassword, caste_id, role_id, zp_id]
+            [email, phone, hashedPassword, role_id, zp_id]
         );
         const userId = userResult.rows[0].user_id;
 
         // Insert profile — zp_id stored directly per your schema
         await client.query(
-            `INSERT INTO user_profile
-                (user_id, first_name, last_name, zp_id, department_id, post_id, joining_date, gender_id,created_by)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-            [userId, first_name, last_name || "", zp_id, department_id, post_id, joining_date, gender_id, data.user ? data.user.user_id : null]
+            `INSERT INTO employee_profiles
+                (user_id, first_name, last_name, aadhar_number, created_by)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [userId, first_name, last_name, aadhar_number, user.user_id]
         );
 
-
         await client.query("COMMIT");
-
+        return userResult.rows;
         // Return login session immediately
-        return exports.loginUser({ email, password });
+        // return exports.loginUser({ email, password });
     } catch (err) {
         await client.query("ROLLBACK");
         throw { status: err.status || 500, message: err.message || "Registration failed" };
@@ -293,36 +169,52 @@ exports.registerUser = async (data) => {
     }
 };
 
-exports.loginUser = async ({ email, password }) => {
+exports.loginUser = async ({ email, password, zp_name }) => {
     if (!email || !password) {
         throw { status: 400, message: "Email and password are required" };
     }
 
     const client = await pool.connect();
     try {
+        await client.query("BEGIN");
+
+        const zpDetails = await client.query(`SELECT zp_id FROM zp WHERE name = $1`, [zp_name]);
+        if (zpDetails.rowCount === 0) {
+            throw { status: 400, message: "Invalid ZP in URL" };
+        }
+
         // Fetch user + profile + roles in one go
+        const isValidEmail = await client.query(`SELECT password FROM users WHERE email=$1 AND zp_id=$2`, [email, zpDetails.rows[0].zp_id]);
+        if (isValidEmail.rowCount === 0) {
+            throw { status: 401, message: "Invalid credentials" };
+        }
+
+        const isMatch = await bcrypt.compare(password, isValidEmail.rows[0].password);
+        if (!isMatch) {
+            throw { status: 401, message: "Invalid credentials" };
+        }
+
         const result = await client.query(
             `SELECT
                 u.user_id,
                 u.email,
-                u.password,
                 u.phone,
-                u.status,
                 u.is_verified,
+                u.status,
+                z.name ZP_name,
                 up.first_name,
+                up.middle_name,
                 up.last_name,
-                up.zp_id,
-                up.department_id,
-                up.post_id,
                 up.joining_date,
                 ARRAY_AGG(DISTINCT r.name) AS roles
              FROM users u
-             LEFT JOIN user_profile up ON u.user_id = up.user_id
+             LEFT JOIN employee_profiles up ON u.user_id = up.user_id
              LEFT JOIN roles r ON u.role_id = r.role_id
-             WHERE u.email = $1
-             GROUP BY u.user_id, up.first_name, up.last_name,
-                      up.zp_id, up.department_id, up.post_id, up.joining_date`,
-            [email]
+             LEFT JOIN zp z ON u.zp_id = z.zp_id
+             WHERE u.email = $1 AND u.zp_id=$2
+             GROUP BY u.user_id, up.first_name, up.last_name,up.middle_name,
+                      z.name, u.zp_id, up.department_id, up.post_id, up.joining_date`,
+            [email, zpDetails.rows[0].zp_id]
         );
 
         if (result.rowCount === 0) {
@@ -339,18 +231,14 @@ exports.loginUser = async ({ email, password }) => {
             throw { status: 403, message: "Account is inactive. Contact administrator." };
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            throw { status: 401, message: "Invalid credentials" };
-        }
-
         const { accessToken, refreshToken } = await _issueTokens(client, user.user_id, user.email);
 
         // Never send password hash to client
-        const { password: _pwd, ...safeUser } = user;
-
+        const { password: _pwd, status: status, ...safeUser } = user;
+        await client.query("COMMIT");
         return { accessToken, refreshToken, user: safeUser };
     } catch (err) {
+        await client.query("ROLLBACK");
         throw { status: err.status || 500, message: err.message || "Login failed" };
     } finally {
         client.release();
@@ -364,7 +252,7 @@ exports.refreshToken = async (cookies) => {
     const client = await pool.connect();
     try {
         const stored = await client.query(
-            `SELECT rt.user_id
+            `SELECT rt.user_id, u.email
              FROM refresh_tokens rt
              JOIN users u ON rt.user_id = u.user_id
              WHERE rt.token = $1 AND rt.expires_at > NOW()`,
@@ -404,15 +292,15 @@ exports.logoutUser = async (cookies) => {
     return { message: "Logged out successfully" };
 };
 
-exports.initiateAuth = async ({ email }) => {
-    if (!email) throw { status: 400, message: "Email is required" };
+// exports.initiateAuth = async ({ email }) => {
+//     if (!email) throw { status: 400, message: "Email is required" };
 
-    const result = await pool.query(
-        `SELECT is_verified FROM users WHERE email = $1`, [email]
-    );
+//     const result = await pool.query(
+//         `SELECT is_verified FROM users WHERE email = $1`, [email]
+//     );
 
-    return {
-        isNewUser: result.rowCount === 0,
-        isVerified: result.rowCount > 0 ? result.rows[0].is_verified : false,
-    };
-};
+//     return {
+//         isNewUser: result.rowCount === 0,
+//         isVerified: result.rowCount > 0 ? result.rows[0].is_verified : false,
+//     };
+// };
