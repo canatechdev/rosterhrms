@@ -1,9 +1,8 @@
 const jwt = require("jsonwebtoken");
+const pool = require("../config/database"); 
 
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-
-  // console.log("AUTH HEADER:", authHeader); 
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ message: "Token missing or invalid format" });
@@ -11,16 +10,24 @@ module.exports = (req, res, next) => {
 
   const token = authHeader.split(" ")[1];
 
-  // console.log("TOKEN:", token); 
-
-  if (!token) {
-    return res.status(401).json({ message: "Token not provided" });
-  }
-
   try {
     const payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-    req.user = payload;
+
+    const userRes = await pool.query(
+      `SELECT user_id, zp_id, role_id 
+       FROM users 
+       WHERE user_id = $1`,
+      [payload.user_id]
+    );
+console.log("AUTH MIDDLEWARE HIT");
+    if (userRes.rowCount === 0) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    req.user = userRes.rows[0]; 
+console.log("Authenticated user:", req.user);
     next();
+
   } catch (err) {
     console.log("JWT ERROR:", err.message);
     return res.status(401).json({ message: "Invalid or expired token" });

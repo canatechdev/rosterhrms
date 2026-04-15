@@ -3,11 +3,16 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const responseLogger = require('./config/response.logger')
 const fs = require("fs");
+const cron = require("node-cron");
 
 const authMiddleware = require("./middlewares/auth.middleware");
 const app = express();
-
+app.use((req, res, next) => {
+    console.log("URL HIT:", req.originalUrl);
+    next();
+});
 app.use(cors());
+require("./cron/retirementCron");
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
@@ -19,14 +24,18 @@ app.use(responseLogger);
 
 // ROUTES
 app.use('/auth', require('./routes/auth/auth.route'));
+app.use('/zp',require('./routes/zp/zp.route'));
+app.use('/zps', require('./routes/zp/zp.route.js'));
 app.use('/system', require('./routes/system/system.route'));
 app.use('/system/districts', require('./routes/system/district.route.js'));
-app.use('/zps', require('./routes/zp/zp.route.js'));
 app.use('/profile', require('./routes/system/profile.route.js'));
 app.use('/masters', require('./routes/system/master.route.js'));
-// app.use('/system/castes', require('./routes/system/caste.route.js'));
-// app.use('/system/roles', require('./routes/system/role.route.js'));
-// app.use('/zp',require('./routes/zp/zp.route'));
+app.use('/zps', require('./routes/zp/zp.route.js'));
+app.use('/system/departments', require('./routes/system/department.route.js'));
+app.use('/system/posts', require('./routes/system/post.route.js'));
+app.use('/system/castes', require('./routes/system/caste.route.js'));
+app.use('/system/roles', require('./routes/system/role.route.js'));
+app.use('/zp',require('./routes/zp/zp.route'));
 
 
 

@@ -10,6 +10,7 @@ router.post('/register_dept_head', authMiddleware, reqBody, authController.regis
 router.post('/register_employee', authMiddleware, reqBody, authController.register_employee);
 
 router.post("/login/:zp_name", reqBody, authController.login);
+// router.post("/register_employee",authMiddleware,reqBody,authController.registerEmployee);
 
 // router.post("/request_otp", reqBody, authController.requestOTP);
 // router.post("/resend_otp", reqBody, authController.resendOTP);
