@@ -48,5 +48,6 @@ router.post("/retire-employee/:user_id", authMiddleware, zpController.retireAllZ
 router.post("/promote-employee",authMiddleware,reqBody,zpController.promoteEmployee);
 router.post("/transfer-employee/:user_id",authMiddleware,reqBody,zpController.transferEmployee);
 
+router.get("/admins/:zp_name", authMiddleware, zpController.getZPAdmins);
  
 module.exports = router;

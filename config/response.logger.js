@@ -2,7 +2,7 @@ const logger = require("./winston.logger");
 
 function responseLogger(req, res, next) {
     const oldJson = res.json;
-console.log("RESPONSE LOGGER HIT");
+// console.log("RESPONSE LOGGER HIT");
     res.json = function (data) {
         logger.info({
             route: req.originalUrl,

@@ -36,15 +36,6 @@ exports.deleteZp = async (id) => {
     await pool.query('DELETE FROM zp WHERE zp_id = $1', [id]);
 };
 
-module.exports = {
-    createZp,
-    getZps,
-    getZpById,
-    updateZp,
-    deleteZp,
-};
-const { logAudit } = require("../../config/logAudit");
-
 // add cadre zp wise 
 exports.addCadre = async (department_id, description, cadre_name, cadre_name_mr, description_mr, zp_id) => {
     try {
@@ -1027,7 +1018,24 @@ exports.transferEmployee = async (user_id, new_vacancy_id, new_zp_id) => {
 
 
 
-
+exports.getZPAdmins = async (zp_name) => {
+    const admins = await pool.query(`SELECT u.user_id,u.email,up.first_name,up.last_name,r.name as Role,zp.name as ZP,
+        jsonb_agg(
+        jsonb_build_object(
+            'permission_id', p.permission_id,
+            'name', p.name
+        )
+    ) AS permissions
+        FROM users u
+        JOIN roles r ON u.role_id = r.role_id
+        JOIN employee_profiles up ON u.user_id=up.user_id
+        JOIN zp ON u.zp_id=zp.zp_id
+        JOIN role_permissions rp ON rp.role_id = r.role_id
+        JOIN permissions p ON p.permission_id = rp.permission_id
+        WHERE r.name='zp_admin' AND zp.name=$1
+        GROUP BY u.user_id,u.email,up.first_name,up.last_name,r.name,zp.name`, [zp_name]);
+    return admins.rows;
+}
 
 
 

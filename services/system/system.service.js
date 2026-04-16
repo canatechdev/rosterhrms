@@ -14,10 +14,10 @@ exports.getRoles = async (user) => {
 }
 
 
-exports.getDepartments = async (zp_id) => {
-    const departments = await pool.query("SELECT department_id,name FROM DEPARTMENTS where status=1 AND zp_id=$1", [zp_id]);
-    return departments.rows;
-}
+// exports.getDepartments = async (zp_id) => {
+//     const departments = await pool.query("SELECT department_id,name FROM DEPARTMENTS where status=1 AND zp_id=$1", [zp_id]);
+//     return departments.rows;
+// }
 
 exports.getPosts = async ({ department_id }, zp_id) => {
     const departments = await pool.query("SELECT department_id FROM DEPARTMENTS where status=1 AND department_id=$1 AND zp_id=$2", [department_id, zp_id]);
@@ -26,55 +26,55 @@ exports.getPosts = async ({ department_id }, zp_id) => {
     return posts.rows;
 }
 
-exports.getDepartmentHead = async (zp_id ) => {
-    const heads = await pool.query(`SELECT 
-    u.user_id,
-    u.email,
-    up.first_name,
-    up.last_name,
-    r.name AS role,
-    d.name AS department,
-    jsonb_agg(
-        jsonb_build_object(
-            'permission_id', p.permission_id,
-            'name', p.name
-        )
-    ) AS permissions
+// exports.getDepartmentHead = async (zp_id ) => {
+//     const heads = await pool.query(`SELECT 
+//     u.user_id,
+//     u.email,
+//     up.first_name,
+//     up.last_name,
+//     r.name AS role,
+//     d.name AS department,
+//     jsonb_agg(
+//         jsonb_build_object(
+//             'permission_id', p.permission_id,
+//             'name', p.name
+//         )
+//     ) AS permissions
 
-FROM users u 
-JOIN roles r ON u.role_id = r.role_id
-JOIN employee_profiles up ON u.user_id = up.user_id
-JOIN departments d ON up.department_id = d.department_id
-JOIN role_permissions rp ON rp.role_id = r.role_id
-JOIN permissions p ON p.permission_id = rp.permission_id
+// FROM users u 
+// JOIN roles r ON u.role_id = r.role_id
+// JOIN employee_profiles up ON u.user_id = up.user_id
+// JOIN departments d ON up.department_id = d.department_id
+// JOIN role_permissions rp ON rp.role_id = r.role_id
+// JOIN permissions p ON p.permission_id = rp.permission_id
 
-WHERE r.name = 'Department Head' AND d.zp_id = $1
+// WHERE r.name = 'Department Head' AND d.zp_id = $1
 
-GROUP BY 
-    u.user_id,
-    u.email,
-    up.first_name,
-    up.last_name,
-    r.name,
-    d.name;`);
-    return heads.rows;
-}
+// GROUP BY 
+//     u.user_id,
+//     u.email,
+//     up.first_name,
+//     up.last_name,
+//     r.name,
+//     d.name;`);
+//     return heads.rows;
+// }
 
-exports.getZPAdmins = async (zp_name) => {
-    const admins = await pool.query(`SELECT u.user_id,u.email,up.first_name,up.last_name,r.name as Role,zp.name as ZP,
-        jsonb_agg(
-        jsonb_build_object(
-            'permission_id', p.permission_id,
-            'name', p.name
-        )
-    ) AS permissions
-        FROM users u
-        JOIN roles r ON u.role_id = r.role_id
-        JOIN employee_profiles up ON u.user_id=up.user_id
-        JOIN zp ON u.zp_id=zp.zp_id
-        JOIN role_permissions rp ON rp.role_id = r.role_id
-        JOIN permissions p ON p.permission_id = rp.permission_id
-        WHERE r.name='zp_admin' AND zp.name=$1
-        GROUP BY u.user_id,u.email,up.first_name,up.last_name,r.name,zp.name`, [zp_name]);
-    return admins.rows;
-}
+// exports.getZPAdmins = async (zp_name) => {
+//     const admins = await pool.query(`SELECT u.user_id,u.email,up.first_name,up.last_name,r.name as Role,zp.name as ZP,
+//         jsonb_agg(
+//         jsonb_build_object(
+//             'permission_id', p.permission_id,
+//             'name', p.name
+//         )
+//     ) AS permissions
+//         FROM users u
+//         JOIN roles r ON u.role_id = r.role_id
+//         JOIN employee_profiles up ON u.user_id=up.user_id
+//         JOIN zp ON u.zp_id=zp.zp_id
+//         JOIN role_permissions rp ON rp.role_id = r.role_id
+//         JOIN permissions p ON p.permission_id = rp.permission_id
+//         WHERE r.name='zp_admin' AND zp.name=$1
+//         GROUP BY u.user_id,u.email,up.first_name,up.last_name,r.name,zp.name`, [zp_name]);
+//     return admins.rows;
+// }

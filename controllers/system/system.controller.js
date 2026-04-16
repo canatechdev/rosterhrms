@@ -28,13 +28,13 @@ exports.getPosts=async(req,res)=>{
     res.json(posts);
 }
 
-// get all getDepartmentHead
-exports.getDepartmentHead=async(req,res)=>{
-    // if(!req.params) throw {status:400,message:"Department id is required"};
-    const zp_id=req.user.user_id;
-    const posts = await systemService.getDepartmentHead(zp_id);
-    res.json(posts);
-}
+// // get all getDepartmentHead
+// exports.getDepartmentHead=async(req,res)=>{
+//     // if(!req.params) throw {status:400,message:"Department id is required"};
+//     const zp_id=req.user.user_id;
+//     const posts = await systemService.getDepartmentHead(zp_id);
+//     res.json(posts);
+// }
 
 // get all getZPAdmins
 exports.getZPAdmins=async(req,res)=>{

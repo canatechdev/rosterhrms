@@ -5,6 +5,7 @@ const authMiddleware = require('../../middlewares/auth.middleware.js');
 
 router.post('/', authMiddleware, reqBody, departmentController.createDepartment);
 router.get('/', authMiddleware, departmentController.getDepartments);
+router.get('/head', authMiddleware, departmentController.getDepartmentHead);
 router.get('/:id', authMiddleware, departmentController.getDepartmentById);
 router.put('/:id', authMiddleware, reqBody, departmentController.updateDepartment);
 router.delete('/:id', authMiddleware, departmentController.deleteDepartment);

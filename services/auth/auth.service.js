@@ -108,11 +108,11 @@ const registerUser = async (data) => {
     } = data;
 
     // All fields mandatory for a proper employee record
-    if (!email || !phone || !password || !caste_id || !role_id || !gender_id ||
-        !first_name || !zp_id || !department_id || !joining_date ) {
+    if (!email || !phone || !password || !role_id ||
+        !first_name || !zp_id || !department_id ) {
         throw {
             status: 400,
-            message: "Required: email, phone, password, caste_id, role_id, gender_id, first_name, zp_id, department_id, joining_date"
+            message: "Required: email, phone, password, role_id, first_name, zp_id, department_id"
         };
     }
 
@@ -127,9 +127,7 @@ const registerUser = async (data) => {
         if (existing.rowCount > 0) {
             throw { status: 409, message: "User with this email already exists" };
         }
-        // console.warn("Registration data:", data); // Debug log to verify incoming data structure
 
-        // Validate foreign keys exist (fail fast with clear messages)
         const [zpCheck, roleCheck] = await Promise.all([
             client.query(`SELECT zp_id FROM zp WHERE zp_id = $1 AND status = 1`, [zp_id]),
             client.query(`SELECT role_id, name FROM roles WHERE role_id = $1`, [role_id])
@@ -142,25 +140,23 @@ const registerUser = async (data) => {
 
         // Insert user
         const userResult = await client.query(
-            `INSERT INTO users (email, phone, password, role_id, zp_id)
-             VALUES ($1, $2, $3, $4, $5)
+            `INSERT INTO users (email, phone, password, role_id, zp_id, aadhar_number)
+             VALUES ($1, $2, $3, $4, $5, $6)
              RETURNING user_id, email`,
-            [email, phone, hashedPassword, role_id, zp_id]
+            [email, phone, hashedPassword, role_id, zp_id, aadhar_number || null]
         );
         const userId = userResult.rows[0].user_id;
 
         // Insert profile — zp_id stored directly per your schema
         await client.query(
             `INSERT INTO employee_profiles
-                (user_id, first_name, last_name, aadhar_number, created_by)
+                (user_id, first_name, last_name,department_id, created_by)
              VALUES ($1, $2, $3, $4, $5)`,
-            [userId, first_name, last_name, aadhar_number, user.user_id]
+            [userId, first_name, last_name,department_id, user.user_id]
         );
 
         await client.query("COMMIT");
         return userResult.rows;
-        // Return login session immediately
-        // return exports.loginUser({ email, password });
     } catch (err) {
         await client.query("ROLLBACK");
         throw { status: err.status || 500, message: err.message || "Registration failed" };

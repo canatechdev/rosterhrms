@@ -604,6 +604,13 @@ exports.getVacanciesByZP = async(req,res)=>{
 
 
   
+  
+  // get all getZPAdmins
+  exports.getZPAdmins=async(req,res)=>{
+      const zp_name=req.params.zp_name;
+      const zpAdmins = await zpService.getZPAdmins(zp_name);
+      res.json(zpAdmins);
+  }
 
 
 

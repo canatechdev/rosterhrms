@@ -4,7 +4,7 @@ BEGIN;
     (1, 'श्री','salutations',1),
     (2, 'कु','salutations',2),
     (3, 'सौ','salutations',3),
-    (3, 'श्रीमती','salutations',3),
+    (4, 'श्रीमती','salutations',4),
     (1, 'सरळसेवा','appointment_type',1),
     (2, 'पदोन्नती','appointment_type',2),
     (3, 'अनुकंपा तत्वावर','appointment_type',3),
@@ -37,12 +37,12 @@ BEGIN;
     (2, 'निमशासकीय','service_type',2),
     (1, 'current','address_type',1),
     (2, 'permanent','address_type',2),
-    (1, 'गट विमा योजना ','nominee_type',1),
+    (1, 'गट विमा योजना','nominee_type',1),
     (2, 'भविष्य निर्वाह निधी नामनिर्देशन','nominee_type',2),
     (3, 'निवृत्तीवेतन नामनिर्देशन','nominee_type',3),
     (4, 'मृत्य नि सेवा उपदानाची नामनिर्देशन','nominee_type',4),
-    (5, 'DCPS/NPS नामनिर्देशन','nominee_type',5)
-    (6, 'अपघात विमा योजना नामनिर्देशन','nominee_type',6)
+    (5, 'DCPS/NPS नामनिर्देशन','nominee_type',5),
+    (6, 'अपघात विमा योजना नामनिर्देशन','nominee_type',6),
     (7, 'कुटुंब निवृत्तीवेतन नामनिर्देशन','nominee_type',7),
     (1, 'बीमा निर्वाह','contingency_events',1),
     (2, 'निवृत्तीवेतन','contingency_events',2),
@@ -65,8 +65,10 @@ BEGIN;
     (2, 'पदोन्नती', 'appointment_route',2),
     (3, 'अनुकंपा तत्वावर', 'appointment_route',3),
     (1, 'महिला', 'parallel_reservation',1),
+    (2, 'अत्यंत मागासवर्ग', 'parallel_reservation',2),
+    (3, 'दुर्बल गट', 'parallel_reservation',3),
     (1, 'कायमस्वरूपी', 'employment_type',1),
-    (2, 'कंत्राटी', 'employment_type',2),
+    (2, 'कंत्राटी', 'employment_type',2)
 
 
     ;
@@ -142,7 +144,7 @@ BEGIN;
     (5, 'Medical Officer', 15),
     (5, 'District Health Officer', 1);
 
-    INSERT INTO cadres (zp_id, department_id, name, cadre_group) VALUES
+    INSERT INTO cadres (zp_id, department_id, cadre_name, cadre_group) VALUES
     (1, 1, 'General Administration - Junior Clerk', 'A'),
     (1, 1, 'General Administration - Senior Clerk', 'B'),
     (1, 1, 'General Administration - Accountant', 'C'),
@@ -157,22 +159,22 @@ BEGIN;
     (1, 5, 'Health - Medical Officer', 'B'),
     (1, 5, 'Health - District Health Officer', 'C');
 
-    INSERT INTO cadre_posts(cadre_id, post_id, level_order, sanctioned_strength) VALUES
-    (1, 1, 1, 50),
-    (2, 2, 2, 30),
-    (3, 3, 3, 10),
-    (4, 4, 4, 5),
-    (5, 5, 1, 20),
-    (6, 6, 2, 10),
-    (7, 7, 3, 2),
-    (8, 8, 1, 200),
-    (9, 9, 2, 50),
-    (10, 10, 3, 5),
-    (11, 11, 1, 40),
-    (12, 12, 2, 15),
-    (13, 13, 3, 1);
+    INSERT INTO cadre_posts(cadre_id, post_id, level_order, total_posts,zp_id) VALUES
+    (1, 1, 1, 50,1),
+    (2, 2, 2, 30,1),
+    (3, 3, 3, 10,1),
+    (4, 4, 4, 5,1),
+    (5, 5, 1, 20,1),
+    (6, 6, 2, 10,1),
+    (7, 7, 3, 2,1),
+    (8, 8, 1, 200,1),
+    (9, 9, 2, 50,1),
+    (10, 10, 3, 5,1),
+    (11, 11, 1, 40,1),
+    (12, 12, 2, 15,1),
+    (13, 13, 3, 1,1);
 
     INSERT INTO users(email, phone, password, role_id, zp_id) 
-    VALUES ('super.admin@gmail.com','7498605559','sarthak', 1, 1);
+    VALUES ('super.admin@gmail.com','7498605559','$2b$10$tBg5OhMSEqM4c836POg/puecA6W8uxLUSAuNrLdqeymd.jXsDz.FW', 1, 1);
     
 COMMIT;

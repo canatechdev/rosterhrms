@@ -90,6 +90,7 @@ exports.savePersonalInfoStep3 = async ({ user_id, is_ex_serviceman, has_domicile
 }
 
 exports.savePersonalInfoStep4 = async ({ user_id, marriage_cert, birth_cert, aadhar, pan, caste_validity, gazette_name_change, photo, signature }) => {
+    console.log({ user_id, marriage_cert, birth_cert, aadhar, pan, caste_validity, gazette_name_change, photo, signature },"meva")
     if (!user_id || !marriage_cert || !birth_cert || !aadhar || !pan || !caste_validity || !gazette_name_change || !photo || !signature) {
         throw { status: 400, message: "All fields are required" };
     }
@@ -105,20 +106,20 @@ exports.savePersonalInfoStep4 = async ({ user_id, marriage_cert, birth_cert, aad
     }
 
     const [marriage_cert_res, birth_cert_res, aadhar_res, pan_res, caste_validity_res, gazette_name_change_res, photo_res, signature_res] = await Promise.all([
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3)`, [user_id, 'marriage_cert', marriage_cert]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3)`, [user_id, 'birth_cert', birth_cert]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3)`, [user_id, 'aadhar', aadhar]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3)`, [user_id, 'pan', pan]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3)`, [user_id, 'caste_validity', caste_validity]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3)`, [user_id, 'gazette_name_change', gazette_name_change]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3)`, [user_id, 'photo', photo]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3)`, [user_id, 'signature', signature])
+        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'marriage_cert', marriage_cert]),
+        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'birth_cert', birth_cert]),
+        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'aadhar', aadhar]),
+        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'pan', pan]),
+        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'caste_validity', caste_validity]),
+        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'gazette_name_change', gazette_name_change]),
+        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'photo', photo]),
+        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'signature', signature])
     ]);
     await pool.query(
         `UPDATE employee_profiles SET current_step = 5,current_section=1  WHERE user_id = $1`,
         [user_id]
     );
-    return result.rows[0] || [];
+    return [marriage_cert_res.rows[0], birth_cert_res.rows[0], aadhar_res.rows[0], pan_res.rows[0], caste_validity_res.rows[0], gazette_name_change_res.rows[0], photo_res.rows[0], signature_res.rows[0]] || [];
 }
 exports.savePersonalInfoStep5 = async ({ user_id, permanent, current }) => {
     // console.log(current, current.length, current)

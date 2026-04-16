@@ -19,13 +19,13 @@ module.exports = async (req, res, next) => {
        WHERE user_id = $1`,
       [payload.user_id]
     );
-console.log("AUTH MIDDLEWARE HIT");
+// console.log("AUTH MIDDLEWARE HIT");
     if (userRes.rowCount === 0) {
       return res.status(401).json({ message: "User not found" });
     }
 
     req.user = userRes.rows[0]; 
-console.log("Authenticated user:", req.user);
+// console.log("Authenticated user:", req.user);
     next();
 
   } catch (err) {
