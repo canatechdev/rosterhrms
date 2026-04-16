@@ -33,7 +33,7 @@ app.use('/zp',require('./routes/zp/zp.route'));
 app.use('/districts', require('./routes/system/district.route.js'));
 app.use('/profile', require('./routes/system/profile.route.js'));
 // app.use('/zps', require('./routes/zp/zp.route.js'));
-// app.use('/system', require('./routes/system/system.route'));
+app.use('/system', require('./routes/system/system.route'));
 // app.use('/masters', require('./routes/system/master.route.js'));
 // app.use('/zps', require('./routes/zp/zp.route.js'));
 // app.use('/zp',require('./routes/zp/zp.route'));

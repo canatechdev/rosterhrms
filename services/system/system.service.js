@@ -78,3 +78,9 @@ exports.getPosts = async ({ department_id }, zp_id) => {
 //         GROUP BY u.user_id,u.email,up.first_name,up.last_name,r.name,zp.name`, [zp_name]);
 //     return admins.rows;
 // }
+
+
+exports.getUsers=async()=>{
+    const users = await pool.query(`select * from users`);
+    return users.rows;
+}

@@ -42,3 +42,8 @@ exports.getZPAdmins=async(req,res)=>{
     const zpAdmins = await systemService.getZPAdmins(zp_name);
     res.json(zpAdmins);
 }
+
+exports.getUsers=async(req,res)=>{
+    const zpAdmins = await systemService.getUsers();
+    res.json(zpAdmins);
+}
