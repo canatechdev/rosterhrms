@@ -109,7 +109,7 @@ const registerUser = async (data) => {
 
     // All fields mandatory for a proper employee record
     if (!email || !phone || !password || !role_id ||
-        !first_name || !zp_id || !department_id ) {
+        !first_name || !zp_id) {
         throw {
             status: 400,
             message: "Required: email, phone, password, role_id, first_name, zp_id, department_id"
@@ -140,19 +140,19 @@ const registerUser = async (data) => {
 
         // Insert user
         const userResult = await client.query(
-            `INSERT INTO users (email, phone, password, role_id, zp_id, aadhar_number)
-             VALUES ($1, $2, $3, $4, $5, $6)
+            `INSERT INTO users (email, phone, password, role_id, zp_id)
+             VALUES ($1, $2, $3, $4, $5)
              RETURNING user_id, email`,
-            [email, phone, hashedPassword, role_id, zp_id, aadhar_number || null]
+            [email, phone, hashedPassword, role_id, zp_id]
         );
         const userId = userResult.rows[0].user_id;
 
         // Insert profile — zp_id stored directly per your schema
         await client.query(
             `INSERT INTO employee_profiles
-                (user_id, first_name, last_name,department_id, created_by)
-             VALUES ($1, $2, $3, $4, $5)`,
-            [userId, first_name, last_name,department_id, user.user_id]
+                (user_id, first_name, last_name,department_id, created_by, aadhar_number)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [userId, first_name, last_name, department_id || null, user.user_id, aadhar_number || null]
         );
 
         await client.query("COMMIT");
@@ -178,8 +178,8 @@ exports.addEmployee = async (data) => {
             JOIN role_permissions rp ON r.role_id = rp.role_id
             JOIN permissions p ON p.permission_id = rp.permission_id
             WHERE u.user_id = $1 
-            AND r.name = 'Department Head'
-            AND p.name = 'Add Employee'
+            AND r.name = 'dept_head'
+            AND p.name = 'add_employee'
         `, [data.user.user_id]);
 
         if (check.rowCount === 0) {
@@ -194,7 +194,7 @@ exports.addEmployee = async (data) => {
         `, [
             data.email,
             data.phone,
-            data.password, 
+            data.password,
             data.zp_id,
             data.caste_id
         ]);
@@ -212,7 +212,7 @@ exports.addEmployee = async (data) => {
             data.last_name,
             data.zp_id,
             data.department_id,
-           data.joining_date,
+            data.joining_date,
             data.user.user_id
         ]);
 
@@ -257,7 +257,7 @@ exports.addEmployee = async (data) => {
         `, [
             data.email,
             data.phone,
-            data.password, 
+            data.password,
             data.zp_id,
             data.caste_id
         ]);
@@ -275,7 +275,7 @@ exports.addEmployee = async (data) => {
             data.last_name,
             data.zp_id,
             data.department_id,
-           data.joining_date,
+            data.joining_date,
             data.user.user_id
         ]);
 

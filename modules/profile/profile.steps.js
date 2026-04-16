@@ -83,14 +83,12 @@ export const PROFILE_STEPS = {
         },
         {
             step: 3, // 3 iterations 10-12/20-24/30
-            fields: ["years_required", "benefit_no", "service_completion_date", "benefit_received","benefit_date", "due_date", "order_number", "order_date"],
+            fields: [
+                'services: [{ "years_required", "benefit_no", "service_completion_date", "benefit_received", "benefit_date", "due_date", "order_number", "order_date"}*3]',
+                "chattopadhyay_granted", "chattopadhyay_order_no", "chattopadhyay_order_date", "nivadshreeni_order_no", "nivadshreeni_order_date", "year", "submitted", "submitted_date", "asset_liability_cert"
+            ],
             required: []
-        },
-        {
-            step: 4,
-            fields: ["chattopadhyay_granted", "chattopadhyay_order_no", "chattopadhyay_order_date", "nivadshreeni_order_no", "nivadshreeni_order_date", "year", "submitted", "submitted_date", "asset_liability_cert"],
-            required: []
-        },
+        }
     ],
     "TRANSFER_INFO": [  // बदली बदल माहिती १९
         {

@@ -12,6 +12,12 @@ const getRoles = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, data: roles });
 });
 
+const getRolePermissions= asyncHandler(async (req, res) => {
+
+    const roles = await roleService.getRolePermissions(req.params);
+    res.status(200).json({ success: true, data: roles });
+});
+
 const getRoleById = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const role = await roleService.getRoleById(id);
@@ -43,4 +49,5 @@ module.exports = {
     getRoleById,
     updateRole,
     deleteRole,
+    getRolePermissions
 };

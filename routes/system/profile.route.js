@@ -40,4 +40,22 @@ router.post("/service_info/2", authMiddleware, upload.fields([
 router.post("/service_info/3", authMiddleware, upload.fields([
     { name:'asset_liability_cert'}
 ]), reqBody, profileController.saveServiceInfoStep3);
+
+
+// बदली बदल माहिती  |   TRANSFER_INFO
+
+router.post("/transfer_info/1", authMiddleware, reqBody, profileController.saveTransferInfostep1);
+router.post("/promotion_info/1", authMiddleware, reqBody, profileController.savePromotionInfostep1);
+router.post("/service_extension_info/1", authMiddleware, upload.fields([{
+    name: 'withheld_order_cert'
+}]), reqBody, profileController.saveServiceExtensionInfostep1);
+
+router.post("/disability_info/1", authMiddleware, upload.fields([{
+    name: 'disability_cert'
+}]), reqBody, profileController.saveDisabilityInfostep1);
+
+
+
+
+
 module.exports = router;

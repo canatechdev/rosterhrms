@@ -55,9 +55,8 @@ exports.savePersonalInfoStep8 = asyncHandler(async (req, res) => {
 // CONTROLLER FUNCTIONS FOR EDUCATION STEPS
 exports.saveEducationStep1 = asyncHandler(async (req, res) => {
 
-
-    req.body.passing_cert = req.files ? req.files["passing_cert"][0].filename : null;
-    req.body.training_cert = req.files ? req.files["training_cert"][0].filename : null;
+    req.body.training_cert = req.files ? req.files["training_cert"] ? req.files["training_cert"][0].filename : null : null;
+    req.body.passing_cert = req.files ? req.files["passing_cert"] ? req.files["passing_cert"][0].filename : null : null;
 
     const result = await profileService.saveEducationStep1(req.body);
     res.status(201).json({ success: true, data: result });
@@ -75,7 +74,6 @@ exports.saveEducationStep2 = asyncHandler(async (req, res) => {
 
 });
 exports.saveServiceInfoStep1 = asyncHandler(async (req, res) => {
-
     req.body.appointment_order_cert = req.files ? req.files["appointment_order_cert"] ? req.files["appointment_order_cert"][0].filename : null : null;
     const result = await profileService.saveServiceInfoStep1(req.body);
     res.status(201).json({ success: true, data: result });
@@ -98,6 +96,29 @@ exports.saveServiceInfoStep3 = asyncHandler(async (req, res) => {
     const result = await profileService.saveServiceInfoStep3(req.body);
     res.status(201).json({ success: true, data: result });
 
+});
+
+exports.saveTransferInfostep1 = asyncHandler(async (req, res) => {
+    const result = await profileService.saveTransferInfostep1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+exports.savePromotionInfostep1 = asyncHandler(async (req, res) => {
+    const result = await profileService.savePromotionInfostep1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+exports.saveServiceExtensionInfostep1 = asyncHandler(async (req, res) => {
+    req.body.withheld_order_cert = req.files ? req.files["withheld_order_cert"] ? req.files["withheld_order_cert"][0].filename : null : null;
+
+    const result = await profileService.saveServiceExtensionInfostep1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+exports.saveDisabilityInfostep1 = asyncHandler(async (req, res) => {
+    req.body.disability_cert = req.files ? req.files["disability_cert"] ? req.files["disability_cert"][0].filename : null : null;
+
+    const result = await profileService.saveDisabilityInfostep1(req.body);
+    res.status(201).json({ success: true, data: result });
 });
 
 exports.getCurrentStep = asyncHandler(async (req, res) => {

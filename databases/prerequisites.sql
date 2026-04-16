@@ -68,7 +68,11 @@ BEGIN;
     (2, 'अत्यंत मागासवर्ग', 'parallel_reservation',2),
     (3, 'दुर्बल गट', 'parallel_reservation',3),
     (1, 'कायमस्वरूपी', 'employment_type',1),
-    (2, 'कंत्राटी', 'employment_type',2)
+    (2, 'कंत्राटी', 'employment_type',2),
+    (1, 'समायोजन', 'transfer_type',1),
+    (2, 'प्रशासकीय', 'transfer_type',2),
+    (3, 'प्रतिनियुक्ती', 'transfer_type',3),
+    (4, 'विनंती बदली', 'transfer_type',4),
 
 
     ;
