@@ -415,7 +415,7 @@ BEGIN;
 		user_id                 BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
 		duplicate_received      BOOLEAN DEFAULT FALSE,
 		is_updated              BOOLEAN DEFAULT FALSE,
-		service_book			TEXT,
+		service_book_cert		TEXT,
 		created_at              TIMESTAMP DEFAULT NOW()
 		-- file_url stored in employee_documents with doc_type='service_book'
 	);
@@ -718,14 +718,14 @@ BEGIN;
 		cert_status_id              BIGSERIAL PRIMARY KEY,
 		user_id                     BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
 		-- all boolean flags for whether each cert has been uploaded
-		character_antecedents       BOOLEAN DEFAULT FALSE,
-		constitution_oath           BOOLEAN DEFAULT FALSE,
-		home_village_decl           BOOLEAN DEFAULT FALSE,
-		medical_cert                BOOLEAN DEFAULT FALSE,
-		small_family_pledge         BOOLEAN DEFAULT FALSE,
-		undertaking                 BOOLEAN DEFAULT FALSE,
-		medical_reimbursement_option BOOLEAN DEFAULT FALSE,  -- for women after marriage
-		nps_family_pension_option   BOOLEAN DEFAULT FALSE,
+		character_antecedents       TEXT,
+		constitution_oath           TEXT,
+		home_village_decl           TEXT,
+		medical_cert                TEXT,
+		small_family_pledge         TEXT,
+		undertaking                 TEXT,
+		medical_reimbursement_option TEXT,  -- for women after marriage
+		nps_family_pension_option   TEXT,
 		created_at                  TIMESTAMP DEFAULT NOW()
 	);
 
@@ -832,6 +832,7 @@ BEGIN;
 		court_name      VARCHAR(200),
 		order_number    VARCHAR(100),
 		order_date      DATE,
+		order_cert		TEXT,
 		created_at      TIMESTAMP DEFAULT NOW()
 	);
 

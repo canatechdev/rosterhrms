@@ -38,7 +38,7 @@ router.post("/service_info/2", authMiddleware, upload.fields([
     { name: "probation_cert" }, { name: "permanent_benefit_cert" }
 ]), reqBody, profileController.saveServiceInfoStep2);
 router.post("/service_info/3", authMiddleware, upload.fields([
-    { name:'asset_liability_cert'}
+    { name: 'asset_liability_cert' }
 ]), reqBody, profileController.saveServiceInfoStep3);
 
 
@@ -54,6 +54,36 @@ router.post("/disability_info/1", authMiddleware, upload.fields([{
     name: 'disability_cert'
 }]), reqBody, profileController.saveDisabilityInfostep1);
 
+// गटविमा माहिती २७
+router.post("/group_insurance/1", authMiddleware, upload.fields([{ name: 'group_insurance_cert' }]), reqBody, profileController.saveGroupInsurance1);
+
+// चौकशी माहिती २८,३०,३१,३२
+router.post("/discussion_info/1", authMiddleware, upload.fields([
+    { name: 'absence_cert' }, { name: 'penalty_order_cert' }
+]), reqBody, profileController.saveDiscussionInfo1);
+
+router.post("/discussion_info/2", authMiddleware, upload.fields([
+    { name: 'order_cert' }
+]), reqBody, profileController.saveDiscussionInfo2);
+
+router.post("/discussion_info/3", authMiddleware, upload.fields([
+    { name: 'order_cert' }
+]), reqBody, profileController.saveDiscussionInfo3);
+
+// अग्रिम माहिती ३५ 
+router.post("/advances_info/1", authMiddleware, reqBody, profileController.saveAdvancesInfo1);
+
+//  आजार बदल व इतर माहिती ३४
+router.post("/medical_conditions/1", authMiddleware, reqBody, profileController.saveMedicalCondition1);
+
+// सेवापुस्तक माहिती १४,३३
+router.post("/service_book/1", authMiddleware, upload.fields([
+    { name: 'service_book_cert' }, { name: 'verification_cert' }
+]), reqBody, profileController.saveServiceBook1);
+
+// प्रमाणपत्रे माहिती २६
+router.post("/certificate_info/1", authMiddleware, upload.fields([
+    { name: "character_antecedents" }, { name: "constitution_oath" }, { name: "home_village_decl" }, { name: "medical_cert" }, { name: "small_family_pledge" }, { name: "undertaking" }, { name: "medical_reimbursement_option" }, { name: "nps_family_pension_option" }]), reqBody, profileController.saveCertificateInfo1);
 
 
 

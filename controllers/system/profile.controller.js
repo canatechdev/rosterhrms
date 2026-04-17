@@ -121,6 +121,69 @@ exports.saveDisabilityInfostep1 = asyncHandler(async (req, res) => {
     res.status(201).json({ success: true, data: result });
 });
 
+exports.saveGroupInsurance1 = asyncHandler(async (req, res) => {
+    // console.log(req.files)
+    req.body.group_insurance_cert = req.files ? req.files["group_insurance_cert"] ? req.files["group_insurance_cert"][0].filename : null : null;
+
+    const result = await profileService.saveGroupInsurance1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+exports.saveDiscussionInfo1 = asyncHandler(async (req, res) => {
+    // console.log(req.files)
+    req.body.absence_cert = req.files ? req.files["absence_cert"] ? req.files["absence_cert"][0].filename : null : null;
+    req.body.penalty_order_cert = req.files ? req.files["penalty_order_cert"] ? req.files["penalty_order_cert"][0].filename : null : null;
+
+    const result = await profileService.saveDiscussionInfo1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+exports.saveDiscussionInfo2 = asyncHandler(async (req, res) => {
+    req.body.order_cert = req.files ? req.files["order_cert"] ? req.files["order_cert"][0].filename : null : null;
+
+    const result = await profileService.saveDiscussionInfo2(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+exports.saveDiscussionInfo3 = asyncHandler(async (req, res) => {
+    req.body.order_cert = req.files ? req.files["order_cert"] ? req.files["order_cert"][0].filename : null : null;
+    
+    const result = await profileService.saveDiscussionInfo3(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+exports.saveAdvancesInfo1 = asyncHandler(async (req, res) => {
+    const result = await profileService.saveAdvancesInfo1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+exports.saveMedicalCondition1 = asyncHandler(async (req, res) => {
+    const result = await profileService.saveMedicalCondition1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+exports.saveServiceBook1 = asyncHandler(async (req, res) => {
+    req.body.service_book_cert = req.files ? req.files["service_book_cert"] ? req.files["service_book_cert"][0].filename : null : null;
+    req.body.verification_cert = req.files ? req.files["verification_cert"] ? req.files["verification_cert"][0].filename : null : null;
+    
+    const result = await profileService.saveServiceBook1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+exports.saveCertificateInfo1 = asyncHandler(async (req, res) => {
+    req.body.character_antecedents=req.files ? req.files["character_antecedents"]?req.files["character_antecedents"][0].filename:null:null;
+    req.body.constitution_oath=req.files ? req.files["constitution_oath"]?req.files["constitution_oath"][0].filename:null:null;
+    req.body.home_village_decl=req.files ? req.files["home_village_decl"]?req.files["home_village_decl"][0].filename:null:null;
+    req.body.medical_cert=req.files ? req.files["medical_cert"]?req.files["medical_cert"][0].filename:null:null;
+    req.body.small_family_pledge=req.files ? req.files["small_family_pledge"]?req.files["small_family_pledge"][0].filename:null:null;
+    req.body.undertaking=req.files ? req.files["undertaking"]?req.files["undertaking"][0].filename:null:null;
+    req.body.medical_reimbursement_option=req.files ? req.files["medical_reimbursement_option"]?req.files["medical_reimbursement_option"][0].filename:null:null;
+    req.body.nps_family_pension_option=req.files ? req.files["nps_family_pension_option"]?req.files["nps_family_pension_option"][0].filename:null:null;
+
+    const result = await profileService.saveCertificateInfo1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
 exports.getCurrentStep = asyncHandler(async (req, res) => {
     const result = await profileService.getCurrentStep(req.body);
     res.status(200).json({ success: true, data: result });

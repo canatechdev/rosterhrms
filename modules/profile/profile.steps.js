@@ -141,8 +141,13 @@ export const PROFILE_STEPS = {
         {
             step: 2,
             fields: [
-                "was_suspended", "suspension_date", "suspension_duration", "suspension_reason", "criminal_case_filed", "subsistence_allowance_pct", "disciplinary_action_date", "inquiry_officer_date", "reinstatement_order_date", "reinstatement_joining_date", "suspension_period_decision", "order_number", "order_date", "order_cert",
-                "case_active", "court_name", "order_number", "order_date", "order_cert"],
+                "was_suspended", "suspension_date", "suspension_duration", "suspension_reason", "criminal_case_filed", "subsistence_allowance_pct", "disciplinary_action_date", "inquiry_officer_date", "reinstatement_order_date", "reinstatement_joining_date", "suspension_period_decision", "order_number", "order_date", "order_cert"
+            ],
+            required: []
+        },
+        {
+            step: 3,
+            fields: ["case_active", "court_name", "order_number", "order_date", "order_cert"],
             required: []
         },
 
@@ -178,7 +183,7 @@ export const PROFILE_STEPS = {
         {
             step: 1,
             fields: [
-                "character_antecedents", "constitution_oath", "home_village_decl", "medical_cert", "small_family_pledge", "undertaking", "medical_reimbursement_option", "nps_family_pension_option"
+                "character_antecedents_cert", "constitution_oath", "home_village_decl", "medical_cert", "small_family_pledge", "undertaking", "medical_reimbursement_option", "nps_family_pension_option"
             ],
             required: []
         },
