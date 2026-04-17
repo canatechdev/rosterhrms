@@ -43,11 +43,21 @@ const deleteRole = async (id) => {
     await pool.query('DELETE FROM roles WHERE role_id = $1', [id]);
 };
 
+const mapPermissions = async (data) => {
+    const { role_id, permissions } = data;
+    for (let i of permissions) {
+        await pool.query(`INSERT INTO role_permissions(role_id, permission_id) VALUES($1,$2) ON CONFLICT (role_id, permission_id) DO UPDATE SET role_id=EXCLUDED.role_id, permission_id=EXCLUDED.permission_id
+            `, [role_id, i])
+    }
+    return { message: "Permissions set successfully" };
+};
+
 module.exports = {
     createRole,
     getRoles,
     getRoleById,
     updateRole,
     deleteRole,
-    getRolePermissions
+    getRolePermissions,
+    mapPermissions
 };

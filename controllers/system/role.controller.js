@@ -12,7 +12,7 @@ const getRoles = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, data: roles });
 });
 
-const getRolePermissions= asyncHandler(async (req, res) => {
+const getRolePermissions = asyncHandler(async (req, res) => {
 
     const roles = await roleService.getRolePermissions(req.params);
     res.status(200).json({ success: true, data: roles });
@@ -43,11 +43,17 @@ const deleteRole = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, message: 'Role deleted successfully' });
 });
 
+const mapPermissions = asyncHandler(async (req, res) => {
+    await roleService.mapPermissions(req.body);
+    res.status(200).json({ success: true, message: "Permissions set successfully" });
+});
+
 module.exports = {
     createRole,
     getRoles,
     getRoleById,
     updateRole,
     deleteRole,
-    getRolePermissions
+    getRolePermissions,
+    mapPermissions
 };

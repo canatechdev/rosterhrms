@@ -165,131 +165,130 @@ const registerUser = async (data) => {
     }
 };
 
-exports.addEmployee = async (data) => {
-    const client = await pool.connect();
+// exports.addEmployee = async (data) => {
+//     const client = await pool.connect();
+//     try {
+//         await client.query("BEGIN");
 
-    try {
-        await client.query("BEGIN");
+//         // Check permission (Department Head only)
+//         const check = await client.query(`
+//             SELECT 1 FROM users u
+//             JOIN roles r ON u.role_id = r.role_id
+//             JOIN role_permissions rp ON r.role_id = rp.role_id
+//             JOIN permissions p ON p.permission_id = rp.permission_id
+//             WHERE u.user_id = $1 
+//             AND r.name = 'dept_head'
+//             AND p.name = 'add_employee'
+//         `, [data.user.user_id]);
 
-        // Check permission (Department Head only)
-        const check = await client.query(`
-            SELECT 1 FROM users u
-            JOIN roles r ON u.role_id = r.role_id
-            JOIN role_permissions rp ON r.role_id = rp.role_id
-            JOIN permissions p ON p.permission_id = rp.permission_id
-            WHERE u.user_id = $1 
-            AND r.name = 'dept_head'
-            AND p.name = 'add_employee'
-        `, [data.user.user_id]);
+//         if (check.rowCount === 0) {
+//             throw { status: 403, message: "Only Department Head can add employee" };
+//         }
 
-        if (check.rowCount === 0) {
-            throw { status: 403, message: "Only Department Head can add employee" };
-        }
+//         //  Insert into users table
+//         const userRes = await client.query(`
+//             INSERT INTO users (email, phone, password, zp_id, caste_id, role_id)
+//             VALUES ($1, $2, $3, $4, $5, 5)  
+//             RETURNING user_id
+//         `, [
+//             data.email,
+//             data.phone,
+//             data.password,
+//             data.zp_id,
+//             data.caste_id
+//         ]);
 
-        //  Insert into users table
-        const userRes = await client.query(`
-            INSERT INTO users (email, phone, password, zp_id, caste_id, role_id)
-            VALUES ($1, $2, $3, $4, $5, 5)  
-            RETURNING user_id
-        `, [
-            data.email,
-            data.phone,
-            data.password,
-            data.zp_id,
-            data.caste_id
-        ]);
+//         const newUserId = userRes.rows[0].user_id;
 
-        const newUserId = userRes.rows[0].user_id;
+//         // Insert into user_profile
+//         await client.query(`
+//             INSERT INTO user_profile 
+//             (user_id, first_name, last_name, zp_id, department_id, joining_date, created_by)
+//             VALUES ($1, $2, $3, $4, $5, $6, $7)
+//         `, [
+//             newUserId,
+//             data.first_name,
+//             data.last_name,
+//             data.zp_id,
+//             data.department_id,
+//             data.joining_date,
+//             data.user.user_id
+//         ]);
 
-        // Insert into user_profile
-        await client.query(`
-            INSERT INTO user_profile 
-            (user_id, first_name, last_name, zp_id, department_id, joining_date, created_by)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `, [
-            newUserId,
-            data.first_name,
-            data.last_name,
-            data.zp_id,
-            data.department_id,
-            data.joining_date,
-            data.user.user_id
-        ]);
+//         await client.query("COMMIT");
 
-        await client.query("COMMIT");
+//         return { message: "Employee added successfully" };
 
-        return { message: "Employee added successfully" };
+//     } catch (err) {
+//         await client.query("ROLLBACK");
+//         throw err;
+//     } finally {
+//         client.release();
+//     }
+// };
 
-    } catch (err) {
-        await client.query("ROLLBACK");
-        throw err;
-    } finally {
-        client.release();
-    }
-};
+// exports.addEmployee = async (data) => {
+//     const client = await pool.connect();
 
-exports.addEmployee = async (data) => {
-    const client = await pool.connect();
+//     try {
+//         await client.query("BEGIN");
 
-    try {
-        await client.query("BEGIN");
+//         // Check permission (Department Head only)
+//         const check = await client.query(`
+//             SELECT 1 FROM users u
+//             JOIN roles r ON u.role_id = r.role_id
+//             JOIN role_permissions rp ON r.role_id = rp.role_id
+//             JOIN permissions p ON p.permission_id = rp.permission_id
+//             WHERE u.user_id = $1 
+//             AND r.name = 'Department Head'
+//             AND p.name = 'Add Employee'
+//         `, [data.user.user_id]);
 
-        // Check permission (Department Head only)
-        const check = await client.query(`
-            SELECT 1 FROM users u
-            JOIN roles r ON u.role_id = r.role_id
-            JOIN role_permissions rp ON r.role_id = rp.role_id
-            JOIN permissions p ON p.permission_id = rp.permission_id
-            WHERE u.user_id = $1 
-            AND r.name = 'Department Head'
-            AND p.name = 'Add Employee'
-        `, [data.user.user_id]);
+//         if (check.rowCount === 0) {
+//             throw { status: 403, message: "Only Department Head can add employee" };
+//         }
 
-        if (check.rowCount === 0) {
-            throw { status: 403, message: "Only Department Head can add employee" };
-        }
+//         //  Insert into users table
+//         const userRes = await client.query(`
+//             INSERT INTO users (email, phone, password, zp_id, caste_id, role_id)
+//             VALUES ($1, $2, $3, $4, $5, 5)  
+//             RETURNING user_id
+//         `, [
+//             data.email,
+//             data.phone,
+//             data.password,
+//             data.zp_id,
+//             data.caste_id
+//         ]);
 
-        //  Insert into users table
-        const userRes = await client.query(`
-            INSERT INTO users (email, phone, password, zp_id, caste_id, role_id)
-            VALUES ($1, $2, $3, $4, $5, 5)  
-            RETURNING user_id
-        `, [
-            data.email,
-            data.phone,
-            data.password,
-            data.zp_id,
-            data.caste_id
-        ]);
+//         const newUserId = userRes.rows[0].user_id;
 
-        const newUserId = userRes.rows[0].user_id;
+//         // Insert into user_profile
+//         await client.query(`
+//             INSERT INTO user_profile 
+//             (user_id, first_name, last_name, zp_id, department_id, joining_date, created_by)
+//             VALUES ($1, $2, $3, $4, $5, $6, $7)
+//         `, [
+//             newUserId,
+//             data.first_name,
+//             data.last_name,
+//             data.zp_id,
+//             data.department_id,
+//             data.joining_date,
+//             data.user.user_id
+//         ]);
 
-        // Insert into user_profile
-        await client.query(`
-            INSERT INTO user_profile 
-            (user_id, first_name, last_name, zp_id, department_id, joining_date, created_by)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `, [
-            newUserId,
-            data.first_name,
-            data.last_name,
-            data.zp_id,
-            data.department_id,
-            data.joining_date,
-            data.user.user_id
-        ]);
+//         await client.query("COMMIT");
 
-        await client.query("COMMIT");
+//         return { message: "Employee added successfully" };
 
-        return { message: "Employee added successfully" };
-
-    } catch (err) {
-        await client.query("ROLLBACK");
-        throw err;
-    } finally {
-        client.release();
-    }
-};
+//     } catch (err) {
+//         await client.query("ROLLBACK");
+//         throw err;
+//     } finally {
+//         client.release();
+//     }
+// };
 
 exports.loginUser = async ({ email, password, zp_name }) => {
     if (!email || !password) {
@@ -426,3 +425,31 @@ exports.logoutUser = async (cookies) => {
 //         isVerified: result.rowCount > 0 ? result.rows[0].is_verified : false,
 //     };
 // };
+
+exports.changePassword = async ({ old_password, new_password, user }) => {
+    if (old_password == new_password) throw { status: 400, message: "New password cannot be same as current password" };
+
+    if (!old_password || !new_password) {
+        throw { status: 400, message: "Old and new passwords are required" };
+    }
+    const client = await pool.connect();
+    try {
+        const res = await client.query(`SELECT password FROM users WHERE user_id = $1`, [user.user_id]);
+        if (res.rowCount === 0) {
+            throw { status: 404, message: "User not found" };
+        }
+
+        const isMatch = await bcrypt.compare(old_password, res.rows[0].password);
+        if (!isMatch) {
+            throw { status: 401, message: "Old password is incorrect" };
+        }
+        const hashedPassword = await bcrypt.hash(new_password, SALT_ROUNDS);
+        await client.query(`UPDATE users SET password = $1 WHERE user_id = $2`, [hashedPassword, user.user_id]);
+        return { message: "Password changed successfully" };
+
+    } catch (err) {
+        throw { status: err.status || 500, message: err.message || "Password change failed" };
+    } finally {
+        client.release();
+    }
+}

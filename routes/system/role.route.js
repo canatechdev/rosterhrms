@@ -5,11 +5,12 @@ const authMiddleware = require('../../middlewares/auth.middleware.js');
 
 router.post('/', authMiddleware, reqBody, roleController.createRole);
 router.get('/', authMiddleware, roleController.getRoles);
-router.get('/permissions/:id', authMiddleware, roleController.getRolePermissions);
 router.get('/:id', authMiddleware, roleController.getRoleById);
 router.put('/:id', authMiddleware, reqBody, roleController.updateRole);
 router.delete('/:id', authMiddleware, roleController.deleteRole);
+router.get('/permissions/:id', authMiddleware, roleController.getRolePermissions);
 
+router.post('/map_permissions', authMiddleware, reqBody, roleController.mapPermissions);
 
 
 module.exports = router;

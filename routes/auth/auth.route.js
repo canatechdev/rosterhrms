@@ -21,4 +21,6 @@ router.post("/refresh", authController.refresh);
 
 router.post("/initiate", reqBody, authController.initiateAuth);
 
+
+router.post("/change_password", authMiddleware, reqBody, authController.changePassword);
 module.exports = router;

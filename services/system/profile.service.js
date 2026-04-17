@@ -835,7 +835,7 @@ user_id, extension_granted, extension_order_no, extension_order_date, increment_
 exports.saveDisabilityInfostep1 = async ({
     user_id, is_disabled, examiner_name, has_udid, udid_number, disability_type, disability_percentage, exam_date, is_permanent, temp_from, temp_to, transport_allowance, profession_tax_exempt, equipment_provided, equipment_name, cert_date, disability_cert
 }) => {
-    
+
     if (!user_id || !is_disabled || !examiner_name || !has_udid || !udid_number || !disability_type || !disability_percentage || !exam_date || !is_permanent || !temp_from || !temp_to || !transport_allowance || !profession_tax_exempt || !equipment_provided || !equipment_name || !cert_date || !disability_cert) {
         throw { status: 400, message: "All fields are required" };
     }
@@ -885,12 +885,12 @@ exports.getCurrentStep = async ({ aadhar_number }) => {
     if (!aadhar_number) {
         throw { status: 400, message: "aadhar_number must be provided" };
     }
-    console.log(aadhar_number)
+    // console.log(aadhar_number)
     const result = await pool.query(
-        `select u.user_id, em.name current_section,ep.current_step from users u
-        join employee_profiles ep on u.user_id = ep.user_id
+        `SELECT u.user_id, ep.first_name, ep.last_name, u.phone, ep.department_id,u.zp_id, u.role_id, em.name current_section,ep.current_step from users u
+        JOIN employee_profiles ep on u.user_id = ep.user_id
         JOIN enum_master em ON ep.current_section=em.enum_id AND em.master_name='employee_sections'
-        where ep.aadhar_number = $1`,
+        WHERE ep.aadhar_number = $1`,
         [aadhar_number]
     );
     return result.rows[0] || [];

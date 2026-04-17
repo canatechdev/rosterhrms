@@ -1,10 +1,10 @@
 const pool = require('../../config/database');
 const { logAudit } = require("../../config/logAudit");
 
- exports.createZp = async (name, district_id,name_mr) => {
+exports.createZp = async (name, district_id, name_mr) => {
     const result = await pool.query(
         'INSERT INTO zp (name, district_id,name_mr) VALUES ($1, $2,$3) RETURNING *',
-        [name, district_id,name_mr]
+        [name, district_id, name_mr]
     );
     return result.rows[0];
 };
@@ -24,7 +24,7 @@ exports.getZpById = async (id) => {
     return result.rows[0];
 };
 
-exports.updateZp = async (id, name, district_id, status,name_mr) => {
+exports.updateZp = async (id, name, district_id, status, name_mr) => {
     const result = await pool.query(
         'UPDATE zp SET name = $1, district_id = $2, status = $3, name_mr = $4, updated_at = NOW() WHERE zp_id = $5 RETURNING *',
         [name, district_id, status, name_mr, id]
@@ -52,15 +52,15 @@ exports.addCadre = async (department_id, description, cadre_name, cadre_name_mr,
     }
 };
 // add department zp wise 
-exports.addDepartment = async(name,zp_id,name_mr)=>{
-    try{
-const result = await pool.query(
-    `INSERT INTO departments (name,name_mr, zp_id) VALUES ($1, $2, $3) RETURNING *`,
-    [name, name_mr, zp_id]
-);
-console.log(name,name_mr,zp_id);
-return result.rows[0];
-    }catch(error){
+exports.addDepartment = async (name, zp_id, name_mr) => {
+    try {
+        const result = await pool.query(
+            `INSERT INTO departments (name,name_mr, zp_id) VALUES ($1, $2, $3) RETURNING *`,
+            [name, name_mr, zp_id]
+        );
+        console.log(name, name_mr, zp_id);
+        return result.rows[0];
+    } catch (error) {
         console.error("Error in addDepartment service:", error);
         throw error;
     }
@@ -77,33 +77,33 @@ exports.getDepartmentByZP = async (zp_id) => {
     }
 };
 // get department by id
-exports.getDepartmentById = async(department_id)=>{
-    try {  
+exports.getDepartmentById = async (department_id) => {
+    try {
         const result = await pool.query(`SELECT name,name_mr FROM 
             departments WHERE department_id = $1 AND status = 1`, [department_id]);
         return result.rows[0];
-} catch (error) {
-    console.error("Error in getDepartmentById service:", error);
-    throw error;
-}
+    } catch (error) {
+        console.error("Error in getDepartmentById service:", error);
+        throw error;
+    }
 }
 // update department
-exports.updateDepartment = async(department_id,name,name_mr)=>{
-    try{
-        const result = await pool.query(`UPDATE departments SET name = $2, name_mr = $3 WHERE department_id = $1 AND status = 1 RETURNING *`,[department_id,name,name_mr]);
+exports.updateDepartment = async (department_id, name, name_mr) => {
+    try {
+        const result = await pool.query(`UPDATE departments SET name = $2, name_mr = $3 WHERE department_id = $1 AND status = 1 RETURNING *`, [department_id, name, name_mr]);
         return result.rows[0];
-    }catch(error){
+    } catch (error) {
         console.error("Error in updateDepartment service:", error);
         throw error;
     }
 }
 // delete department 
-exports.deleteDepartment = async(department_id)=>{
-    try{
+exports.deleteDepartment = async (department_id) => {
+    try {
         const result = await pool.query(`UPDATE departments SET 
-            status = 0 WHERE department_id = $1`,[department_id]);
+            status = 0 WHERE department_id = $1`, [department_id]);
         return result.rows[0];
-    }catch(error){
+    } catch (error) {
         console.error("Error in deleteDepartment service:", error);
         throw error;
 
@@ -169,7 +169,7 @@ exports.deleteCadre = async (cadre_id) => {
 };
 
 // add post zp wise
-exports.addPost = async ( designation, designation_mr, department_id, zp_id, cadre_id, level_order, total_posts) => {
+exports.addPost = async (designation, designation_mr, department_id, zp_id, cadre_id, level_order, total_posts) => {
     const client = await pool.connect();
 
     try {
@@ -471,7 +471,7 @@ exports.generateRosterByZP = async (zp_id) => {
             FROM cadre_posts
             WHERE zp_id = $1 AND status = 1
         `, [zp_id]);
-console.log("Posts for roster generation:", postsRes.rows);
+        console.log("Posts for roster generation:", postsRes.rows);
 
         if (postsRes.rows.length === 0) {
             throw new Error("No cadre posts found for this ZP");
@@ -494,14 +494,14 @@ console.log("Posts for roster generation:", postsRes.rows);
                 console.log(`Skipping ${cadre_post_id} (already generated)`);
                 continue;
             }
-let inserted = 0;
-let cycle = 1;
-const cycleSize = post.cycle_size || 100;
+            let inserted = 0;
+            let cycle = 1;
+            const cycleSize = post.cycle_size || 100;
 
-while (inserted < total_posts) {
-    const limit = Math.min(cycleSize, total_posts - inserted);
+            while (inserted < total_posts) {
+                const limit = Math.min(cycleSize, total_posts - inserted);
 
-    await client.query(`
+                await client.query(`
         INSERT INTO roster_points (cadre_post_id, point_no, caste_id, cycle_no, zp_id)
         SELECT $1, point_no + $4, caste_id, $5, $2
         FROM roster_template
@@ -510,9 +510,9 @@ while (inserted < total_posts) {
         LIMIT $3
     `, [cadre_post_id, zp_id, limit, (cycle - 1) * cycleSize, cycle]);
 
-    inserted += limit;
-    cycle++;
-}
+                inserted += limit;
+                cycle++;
+            }
 
             await logAudit("ROSTER_GENERATED", cadre_post_id, zp_id, null, client);
 
@@ -574,7 +574,7 @@ exports.createVacanciesByZP = async (zp_id) => {
 
             await logAudit(
                 "VACANCY_CREATED",
-                rp.cadre_post_id,   
+                rp.cadre_post_id,
                 zp_id,
                 vacancy.rows[0].vacancy_id,
                 client
@@ -608,7 +608,7 @@ exports.fillVacancy = async (vacancy_id, user_id, zp_id) => {
             WHERE vacancy_id = $1 AND zp_id = $2
             FOR UPDATE
         `, [vacancy_id, zp_id]);
-// console.log("zp id",zp_id);
+        // console.log("zp id",zp_id);
         if (vacancyRes.rows.length === 0) {
             throw new Error("Vacancy not found");
         }
@@ -618,40 +618,40 @@ exports.fillVacancy = async (vacancy_id, user_id, zp_id) => {
         if (v.status === 'FILLED') {
             throw new Error("Vacancy already filled");
         }
-const caste = await client.query(`
+        const caste = await client.query(`
     SELECT c.caste_id, c.name
     FROM vacancies v
     JOIN castes c ON v.caste_id = c.caste_id
     WHERE v.vacancy_id = $1
 `, [vacancy_id]);
 
-if (caste.rows.length === 0) {
-    throw new Error("Vacancy not found");
-}
+        if (caste.rows.length === 0) {
+            throw new Error("Vacancy not found");
+        }
 
-const vacancyCaste = caste.rows[0];
-console.log("Vacancy caste:", vacancyCaste);
+        const vacancyCaste = caste.rows[0];
+        console.log("Vacancy caste:", vacancyCaste);
 
-const userRes = await client.query(`
+        const userRes = await client.query(`
     SELECT caste_id
     FROM users
     WHERE user_id = $1
 `, [user_id]);
 
-if (userRes.rows.length === 0) {
-    throw new Error("User not found");
-}
+        if (userRes.rows.length === 0) {
+            throw new Error("User not found");
+        }
 
-const userCaste = userRes.rows[0].caste_id;
-console.log("User caste:", userCaste);
+        const userCaste = userRes.rows[0].caste_id;
+        console.log("User caste:", userCaste);
 
 
-if (vacancyCaste.name !== "General") {
+        if (vacancyCaste.name !== "General") {
 
-    if (userCaste !== vacancyCaste.caste_id) {
-        throw new Error("Only reserved category candidate allowed vacancy caste not matched:", vacancyCaste.name,"User Caste:");
-    }
-}
+            if (userCaste !== vacancyCaste.caste_id) {
+                throw new Error("Only reserved category candidate allowed vacancy caste not matched:", vacancyCaste.name, "User Caste:");
+            }
+        }
         // Check user 
         const userCheck = await client.query(`
             SELECT up.current_vacancy_id,u.zp_id FROM user_profile up
@@ -1017,7 +1017,7 @@ exports.transferEmployee = async (user_id, new_vacancy_id, new_zp_id) => {
 };
 
 
-
+// working
 exports.getZPAdmins = async (zp_name) => {
     const admins = await pool.query(`SELECT u.user_id,u.email,up.first_name,up.last_name,r.name as Role,zp.name as ZP,
         jsonb_agg(

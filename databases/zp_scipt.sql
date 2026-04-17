@@ -57,7 +57,7 @@ BEGIN;
 	);
 
 	CREATE TABLE permissions (
-		permission_id BIGSERIAL PRIMARY KEY,
+		permission_id BIGSERIAL PRIMARY KEY UNIQUE,
 		name          VARCHAR(100) NOT NULL
 	);
 

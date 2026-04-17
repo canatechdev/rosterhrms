@@ -100,3 +100,9 @@ exports.initiateAuth = async (req, res) => {
     // res.clearCookie("refreshToken");
     res.status(200).json(result);
 };
+
+exports.changePassword = async (req, res) => {
+    req.body.user = req.user;
+    const result = await authService.changePassword(req.body);
+    res.status(200).json(result);
+};

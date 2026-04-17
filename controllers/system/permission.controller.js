@@ -2,11 +2,11 @@ const permissionService = require('../../services/system/permission.service.js')
 const asyncHandler = require('../../middlewares/async_handler.js');
 
 exports.createPermission = asyncHandler(async (req, res) => {
-    const { name, role_id } = req.body;
-    if (!name || !role_id) {
-        return res.status(400).json({ success: false, message: 'Name and Role ID are required' });
+    const { name } = req.body;
+    if (!name) {
+        return res.status(400).json({ success: false, message: 'Permission Name is required' });
     }
-    const role = await permissionService.createPermission(name, role_id);
+    const role = await permissionService.createPermission(name);
     res.status(201).json({ success: true, data: role });
 });
 
