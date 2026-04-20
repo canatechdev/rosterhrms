@@ -1,5 +1,5 @@
 export const PROFILE_STEPS = {
-    "PERSONAL_INFO": [ //भाग १,२,३,४,५,६,१४(रहिवासी पत्ता),१५,१६,१७,१८
+    "PERSONAL_INFO": [ //1. भाग १,२,३,४,५,६,१४(रहिवासी पत्ता),१५,१६,१७,१८
         {
             step: 1,
             fields: ["salutation", "first_name", "middle_name", "last_name", "full_name_marathi", "father_full_name", "mother_full_name", "name_changed", "previous_name", "blood_group", "gender", "dob", "phone", "pan_number", "aadhar_number", "email", "govt_email", "religion", "caste_id", "caste_validity_cert", "caste_validity_date", "mother_tongue"],
@@ -54,7 +54,7 @@ export const PROFILE_STEPS = {
 
     ],
 
-    "EDUCATION": [ //अर्हता माहिती ७.शैक्षणिक अर्हता २१,२२,२३,२५(इतर परीक्षा)  + FILE UPLOAD 7
+    "EDUCATION": [ // 2. अर्हता माहिती ७.शैक्षणिक अर्हता २१,२२,२३,२५(इतर परीक्षा)  + FILE UPLOAD 7
         {
             step: 1,
             fields: ["edu_type", "institution", "qualification", "pass_year", "obtained_at",
@@ -70,7 +70,7 @@ export const PROFILE_STEPS = {
         },
     ],
 
-    "SERVICE_INFO": [   // सेवाविषयक महिती ८,९,१०,२४
+    "SERVICE_INFO": [   // 3. सेवाविषयक महिती ८,९,१०,२४
         {
             step: 1,
             fields: ["appointment_route", "social_reservation", "parallel_reservation", "order_number", "order_date", "is_district_transfer", "posting_location_type", "panchayat_samiti", "dept_level", "office_name", "post_name", "post_group", "joining_date", "pay_commission", "pay_scale", "grade_pay", "basic_pay", "appointment_category", "medical_done", "medical_date", "assets_submitted", "assets_submitted_date", "appointment_order_cert"],
@@ -90,7 +90,33 @@ export const PROFILE_STEPS = {
             required: []
         }
     ],
-    "TRANSFER_INFO": [  // बदली बदल माहिती १९
+    "PAYMENT_INFO": [  // 4. वेतन माहिती ११,१२,१२,१३,२९
+        {
+            step: 1,
+            fields: [
+                "pay_commission", "band_pay_level", "grade_pay_matrix", "pay_in_band", "commission_date", "effective_date", "current_basic_pay"],
+            required: []
+        },
+        {
+            step: 2,
+            fields: [
+                "allowance_type", "effective_from", "effective_to", "amount"],
+            required: []
+        },
+        {
+            step: 3,
+            fields: [
+                "is_applicable", "scheme_type", "approved_date", "revised_pay", "effective_date"],
+            required: []
+        },
+        {
+            step: 4,
+            fields: [
+                "recovery_done", "from_date", "to_date", "amount", "reason", "cert_number", "cert_date"],
+            required: []
+        },
+    ],
+    "TRANSFER_INFO": [  // 5. बदली बदल माहिती १९
         {
             step: 1,
             fields: [
@@ -99,7 +125,7 @@ export const PROFILE_STEPS = {
         },
 
     ],
-    "PROMOTION_INFO": [  // बदली बदल माहिती २०
+    "PROMOTION_INFO": [  // 6. promo माहिती २०
         {
             step: 1,
             fields: ["promotion_type", "promotion_category", "order_date", "is_current_posting", "is_district_transfer", "posting_location_type", "panchayat_samiti", "dept_level", "office_name", "post_name", "is_gazetted", "joining_date", "end_date"],
@@ -107,7 +133,7 @@ export const PROFILE_STEPS = {
         },
 
     ],
-    "SERVICE_EXTENSION_INFO": [  // सेवा मुदतवाढ माहिती २०
+    "SERVICE_EXTENSION_INFO": [  // 7. सेवा मुदतवाढ माहिती २1
         {
             step: 1,
             fields: ["extension_granted", "extension_order_no", "extension_order_date", "increment_withheld", "withheld_from", "withheld_to", "withheld_order_date", "withheld_order_no", "withheld_order_cert"],
@@ -115,7 +141,7 @@ export const PROFILE_STEPS = {
         },
 
     ],
-    "DISABILITY_INFO": [  // दिव्यांग कर्मचारी माहीती २५
+    "DISABILITY_INFO": [  // 8. दिव्यांग कर्मचारी माहीती २५
         {
             step: 1,
             fields: ["is_disabled", "examiner_name", "has_udid", "udid_number", "disability_type", "disability_percentage", "exam_date", "is_permanent", "temp_from", "temp_to", "transport_allowance", "profession_tax_exempt", "equipment_provided", "equipment_name", "cert_date", "disability_cert"],
@@ -123,7 +149,7 @@ export const PROFILE_STEPS = {
         },
 
     ],
-    "GROUP_INSURANCE": [  // गटविमा माहिती २७
+    "GROUP_INSURANCE": [  // 9. गटविमा माहिती २७
         {
             step: 1,
             fields: ["year", "entry_date", "amount", "group_insurance_cert"],
@@ -131,7 +157,7 @@ export const PROFILE_STEPS = {
         },
 
     ],
-    "DISCUSSION_INFO": [  // चौकशी माहिती २८,३०,३१,३२
+    "DISCUSSION_INFO": [  // 10. चौकशी माहिती २८,३०,३१,३२
         {
             step: 1,
             fields: ["from_date", "to_date", "action_taken", "absence_cert", "inquiry_active", "inquiry_from", "final_decision", "decision_details", "disciplinary_start_date", "inquiry_officer_date", "penalty_order_number", "penalty_type", "penalty_order_date", "penalty_order_cert"
@@ -152,7 +178,7 @@ export const PROFILE_STEPS = {
         },
 
     ],
-    "ADVANCES_INFO": [  // अग्रिम माहिती ३५ 
+    "ADVANCES_INFO": [  // 11. अग्रिम माहिती ३५ 
         {
             step: 1,
             fields: ["advance_type", "advance_details", "amount", "fully_repaid", "repaid_cert_no", "repaid_cert_date"],
@@ -160,7 +186,7 @@ export const PROFILE_STEPS = {
         },
 
     ],
-    "MEDICAL_CONDITIONS": [  // आजार बदल व इतर माहिती ३४
+    "MEDICAL_CONDITIONS": [  // 12. आजार बदल व इतर माहिती ३४
         {
             step: 1,
             fields: [
@@ -169,7 +195,7 @@ export const PROFILE_STEPS = {
         },
 
     ],
-    "SERVICE_BOOK_INFO": [  // सेवापुस्तक माहिती १४,३३
+    "SERVICE_BOOK_INFO": [  // 13. सेवापुस्तक माहिती १४,३३
         {
             step: 1,
             fields: [
@@ -179,7 +205,7 @@ export const PROFILE_STEPS = {
         },
 
     ],
-    "CERTIFICATE_INFO": [  // प्रमाणपत्रे माहिती २६
+    "CERTIFICATE_INFO": [  // 14. प्रमाणपत्रे माहिती २६
         {
             step: 1,
             fields: [

@@ -1,4 +1,4 @@
-const profileService = require('../../services/system/profile.service.js');
+const profileService = require('../../services/employee/profile.service.js');
 const asyncHandler = require('../../middlewares/async_handler.js');
 
 exports.savePersonalInfoStep1 = asyncHandler(async (req, res) => {
@@ -96,6 +96,23 @@ exports.saveServiceInfoStep3 = asyncHandler(async (req, res) => {
     const result = await profileService.saveServiceInfoStep3(req.body);
     res.status(201).json({ success: true, data: result });
 
+});
+
+exports.savePaymentInfoStep1 = asyncHandler(async (req, res) => {
+    const result = await profileService.savePaymentInfoStep1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+exports.savePaymentInfoStep2 = asyncHandler(async (req, res) => {
+    const result = await profileService.savePaymentInfoStep2(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+exports.savePaymentInfoStep3 = asyncHandler(async (req, res) => {
+    const result = await profileService.savePaymentInfoStep3(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+exports.savePaymentInfoStep4 = asyncHandler(async (req, res) => {
+    const result = await profileService.savePaymentInfoStep4(req.body);
+    res.status(201).json({ success: true, data: result });
 });
 
 exports.saveTransferInfostep1 = asyncHandler(async (req, res) => {

@@ -1,30 +1,34 @@
-const systemService=require("../../services/system/system.service");
+const systemService = require("../../services/system/system.service");
 
+exports.getEmployees = async (req, res) => {
+    const employees = await systemService.getEmployees();
+    res.json(employees);
+}
 
 // get all casts
-exports.getCasts=async(req,res)=>{
-    const casts=await systemService.getCasts();
+exports.getCasts = async (req, res) => {
+    const casts = await systemService.getCasts();
     res.json(casts);
 }
 
 // get all roles
-exports.getRoles=async(req,res)=>{
-    const roles=await systemService.getRoles(req.user);
+exports.getRoles = async (req, res) => {
+    const roles = await systemService.getRoles(req.user);
     res.json(roles);
 }
 
 // get all departments
-exports.getDepartments=async(req,res)=>{
-    const zp_id=req.user.user_id;
-    const departments=await systemService.getDepartments(zp_id);
+exports.getDepartments = async (req, res) => {
+    const zp_id = req.user.user_id;
+    const departments = await systemService.getDepartments(zp_id);
     res.json(departments);
 }
 
 // get all posts
-exports.getPosts=async(req,res)=>{
-    if(!req.params) throw {status:400,message:"Department id is required"};
-    const zp_id=req.user.user_id;
-    const posts=await systemService.getPosts(req.params,zp_id);
+exports.getPosts = async (req, res) => {
+    if (!req.params) throw { status: 400, message: "Department id is required" };
+    const zp_id = req.user.user_id;
+    const posts = await systemService.getPosts(req.params, zp_id);
     res.json(posts);
 }
 
@@ -37,13 +41,9 @@ exports.getPosts=async(req,res)=>{
 // }
 
 // get all getZPAdmins
-exports.getZPAdmins=async(req,res)=>{
-    const zp_name=req.params.zp_name;
+exports.getZPAdmins = async (req, res) => {
+    const zp_name = req.params.zp_name;
     const zpAdmins = await systemService.getZPAdmins(zp_name);
     res.json(zpAdmins);
 }
 
-exports.getUsers=async(req,res)=>{
-    const zpAdmins = await systemService.getUsers();
-    res.json(zpAdmins);
-}

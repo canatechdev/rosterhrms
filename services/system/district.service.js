@@ -2,7 +2,9 @@ const pool = require('../../config/database');
 
 const createDistrict = async (name,name_mr) => {
     const result = await pool.query(
-        'INSERT INTO districts (name,name_mr) VALUES ($1, $2) RETURNING *',
+        `INSERT INTO districts (name,name_mr) VALUES ($1, $2)
+        ON CONFLICT(name) DO UPDATE SET name = EXCLUDED.name, name_mr=EXCLUDED.name_mr
+        RETURNING *`,
         [name,name_mr]
     );
     return result.rows[0];

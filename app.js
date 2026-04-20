@@ -58,7 +58,7 @@ app.use('/api/castes', require('./routes/system/caste.route.js'));
 app.use('/api/posts', require('./routes/system/post.route.js'));
 app.use('/api/zp', require('./routes/zp/zp.route'));
 app.use('/api/districts', require('./routes/system/district.route.js'));
-app.use('/api/profile', require('./routes/system/profile.route.js'));
+app.use('/api/employee', require('./routes/employee/profile.route.js'));
 app.use('/api/system', require('./routes/system/system.route'));
 app.use('/api/masters', require('./routes/system/master.route.js'));
 // app.use('/zps', require('./routes/zp/zp.route.js'));
