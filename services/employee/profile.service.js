@@ -62,8 +62,8 @@ exports.savePersonalInfoStep2 = async ({ user_id, first_appointment_type, cadre_
     return udpated.rows[0] || [];
 }
 
-exports.savePersonalInfoStep3 = async ({ user_id, is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date, marital_status }) => {
-    if (!user_id || !is_ex_serviceman || !has_domicile_cert || !spouse_in_service || !spouse_service_type || !spouse_office_type || !spouse_office_details || !spouse_employee_no || !has_pran || !pran_number || !gpf_number || !ppo_number || !ppo_date || !marital_status) {
+exports.savePersonalInfoStep3 = async ({ user_id, is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date }) => {
+    if (!user_id || !is_ex_serviceman || !has_domicile_cert || !spouse_in_service || !spouse_service_type || !spouse_office_type || !spouse_office_details || !spouse_employee_no || !has_pran || !pran_number || !gpf_number || !ppo_number || !ppo_date) {
         throw { status: 400, message: "All fields are required" };
     }
     // console.log(aadhar_number, user_id)
@@ -79,19 +79,20 @@ exports.savePersonalInfoStep3 = async ({ user_id, is_ex_serviceman, has_domicile
     _id = stepCheck.rows[0].user_id;
     const udpated = await pool.query(
         `UPDATE employee_profiles SET
-        is_ex_serviceman=$1, has_domicile_cert=$2, spouse_in_service=$3, spouse_service_type=$4, spouse_office_type=$5, spouse_office_details=$6, spouse_employee_no=$7, has_pran=$8, pran_number=$9, gpf_number=$10, ppo_number=$11, ppo_date=$12, marital_status=$13,
+        is_ex_serviceman=$1, has_domicile_cert=$2, spouse_in_service=$3, spouse_service_type=$4, spouse_office_type=$5, spouse_office_details=$6, spouse_employee_no=$7, has_pran=$8, pran_number=$9, gpf_number=$10, ppo_number=$11, ppo_date=$12,
         current_step = 4,current_section=1
-        WHERE user_id = $14
-        RETURNING user_id, is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date, marital_status
+        WHERE user_id = $13
+        RETURNING user_id, is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date
         `,
-        [is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date, marital_status, _id]
+        [is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date, _id]
     );
     return udpated.rows[0] || [];
 }
 
-exports.savePersonalInfoStep4 = async ({ user_id, marriage_cert, birth_cert, aadhar, pan, caste_validity, gazette_name_change, photo, signature }) => {
-    console.log({ user_id, marriage_cert, birth_cert, aadhar, pan, caste_validity, gazette_name_change, photo, signature }, "meva")
-    if (!user_id || !marriage_cert || !birth_cert || !aadhar || !pan || !caste_validity || !gazette_name_change || !photo || !signature) {
+exports.savePersonalInfoStep4 = async ({ user_id,
+    marital_status, marriage_cert, birth_cert, aadhar, pan, caste_validity, gazette_name_change, photo, signature }) => {
+
+    if (!user_id || !marriage_cert || !birth_cert || !aadhar || !pan || !caste_validity || !gazette_name_change || !photo || !signature || !marital_status) {
         throw { status: 400, message: "All fields are required" };
     }
     // console.log(aadhar_number, user_id)
@@ -116,8 +117,8 @@ exports.savePersonalInfoStep4 = async ({ user_id, marriage_cert, birth_cert, aad
         await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'signature', signature])
     ]);
     await pool.query(
-        `UPDATE employee_profiles SET current_step = 5,current_section=1  WHERE user_id = $1`,
-        [user_id]
+        `UPDATE employee_profiles SET marital_status=$2, current_step = 5,current_section=1  WHERE user_id = $1`,
+        [user_id, marital_status]
     );
     return [marriage_cert_res.rows[0], birth_cert_res.rows[0], aadhar_res.rows[0], pan_res.rows[0], caste_validity_res.rows[0], gazette_name_change_res.rows[0], photo_res.rows[0], signature_res.rows[0]] || [];
 }
