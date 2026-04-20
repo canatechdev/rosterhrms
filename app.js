@@ -8,9 +8,16 @@ const cron = require("node-cron");
 const morgan = require('morgan');
 
 const authMiddleware = require("./middlewares/auth.middleware");
-const app = express();
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://zproster.thecanatech.com"
+]
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 
-app.use(cors());
 // require("./cron/retirementCron");
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));

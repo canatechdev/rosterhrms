@@ -5,7 +5,7 @@ const authMiddleware = require('../../middlewares/auth.middleware.js');
 const upload = require("../../config/multer.config");
 
 router.post("/continue", authMiddleware, reqBody, profileController.getCurrentStep);
-router.get('/test',(req,res)=>{res.json({message:"Test successful"})})
+router.get('/test', (req, res) => { res.json({ message: "Test successful" }) })
 
 // 1. वैयक्तिक माहिती | PERSONAL INFORMATION
 router.post("/profile/personal_info/1", authMiddleware, reqBody, profileController.savePersonalInfoStep1);
@@ -24,13 +24,18 @@ router.post("/profile/personal_info/8", authMiddleware, reqBody, profileControll
 
 // 2. शैक्षणिक अर्हता | EDUCATIONAL QUALIFICATIONS
 router.post("/profile/education/1", authMiddleware, upload.fields([
-    { "name": "passing_cert" }, { "name": "training_cert" }
+    { "name": "passing_cert" }
 ]), reqBody, profileController.saveEducationStep1);
 router.post("/profile/education/2", authMiddleware, upload.fields([
+    { "name": "training_cert" }
+]), reqBody, profileController.saveEducationStep2);
+router.post("/profile/education/3", authMiddleware, reqBody, profileController.saveEducationStep3);
+router.post("/profile/education/4", authMiddleware, reqBody, profileController.saveEducationStep4);
+router.post("/profile/education/5", authMiddleware, upload.fields([
     { name: "computer_exam_cert" }, { name: "marathi_typing_cert" },
     { name: "english_typing_cert" }, { name: "marathi_exam_cert" },
     { name: "hindi_exam_cert" }
-]), reqBody, profileController.saveEducationStep2);
+]), reqBody, profileController.saveEducationStep5);
 
 // 3. सेवा माहिती | SERVICE INFORMATION
 router.post("/profile/service_info/1", authMiddleware, upload.fields([

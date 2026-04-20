@@ -57,14 +57,27 @@ export const PROFILE_STEPS = {
     "EDUCATION": [ // 2. अर्हता माहिती ७.शैक्षणिक अर्हता २१,२२,२३,२५(इतर परीक्षा)  + FILE UPLOAD 7
         {
             step: 1,
-            fields: ["edu_type", "institution", "qualification", "pass_year", "obtained_at", "passing_cert", "course_name", "tr_institution", "coordinator", "start_date", "end_date", "training_type", "training_cert", "dp_exam_name", "dp_status", "dp_pass_date", "dp_attempt_number", "cp_exam_name", "cp_status", "cp_pass_date", "cp_attempt_number"],
+            fields: ["edu_type", "institution", "qualification", "pass_year", "obtained_at", "passing_cert"],
             required: []
         },
         {
             step: 2,
-            fields: ["computer_passed", "computer_exempted", "computer_pass_date", "computer_exempt_date", "computer_institution", "computer_cert_no", "marathi_typing_passed", "marathi_typing_exempted", "marathi_typing_wpm", "marathi_typing_pass_date", "marathi_typing_exempt_date", "marathi_typing_institution", "marathi_typing_cert_no", "english_typing_passed", "english_typing_exempted", "english_typing_wpm", "english_typing_pass_date", "english_typing_exempt_date", "english_typing_institution", "english_typing_cert_no", "increment_withheld_typing", "recovery_done",
-                "marathi_lang_passed", "marathi_lang_exempted", "marathi_lang_pass_date", "marathi_lang_exempt_date", "hindi_lang_passed", "hindi_lang_exempted", "hindi_lang_pass_date", "hindi_lang_exempt_date",
-                "computer_exam_cert", "marathi_typing_cert", "english_typing_cert", "marathi_exam_cert", "hindi_exam_cert"],
+            fields: ["course_name", "institution", "coordinator", "start_date", "end_date", "training_type", "training_cert"],
+            required: []
+        },
+        {
+            step: 3,
+            fields: ["exam_name", "status", "pass_date", "attempt_number"],
+            required: []
+        },
+        {
+            step: 4,
+            fields: ["exam_name", "status", "pass_date", "attempt_number"],
+            required: []
+        },
+        {
+            step: 5,
+            fields: ["computer_passed", "computer_exempted", "computer_pass_date", "computer_exempt_date", "computer_institution", "computer_cert_no", "marathi_typing_passed", "marathi_typing_exempted", "marathi_typing_wpm", "marathi_typing_pass_date", "marathi_typing_exempt_date", "marathi_typing_institution", "marathi_typing_cert_no", "english_typing_passed", "english_typing_exempted", "english_typing_wpm", "english_typing_pass_date", "english_typing_exempt_date", "english_typing_institution", "english_typing_cert_no", "increment_withheld_typing", "recovery_done",                "marathi_lang_passed", "marathi_lang_exempted", "marathi_lang_pass_date", "marathi_lang_exempt_date", "hindi_lang_passed", "hindi_lang_exempted", "hindi_lang_pass_date", "hindi_lang_exempt_date",                "computer_exam_cert", "marathi_typing_cert", "english_typing_cert","marathi_exam_cert", "hindi_exam_cert"],
             required: []
         },
     ],

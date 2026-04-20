@@ -376,10 +376,10 @@ exports.savePersonalInfoStep8 = async ({ user_id, nomination_type, nominee_name,
 }
 
 // Education CONTROLLER FUNCTIONS
-exports.saveEducationStep1 = async ({ user_id, edu_type, institution, qualification, pass_year, obtained_at, passing_cert, course_name, tr_institution, coordinator, start_date, end_date, training_type, training_cert, dp_exam_name, dp_status, dp_pass_date, dp_attempt_number, cp_exam_name, cp_status, cp_pass_date, cp_attempt_number }) => {
+exports.saveEducationStep1 = async ({ user_id, edu_type, institution, qualification, pass_year, obtained_at, passing_cert }) => {
     // console.log('deva')
 
-    if (!user_id || !edu_type || !institution || !qualification || !pass_year || !obtained_at || !passing_cert || !course_name || !tr_institution || !coordinator || !start_date || !end_date || !training_type || !training_cert || !dp_exam_name || !dp_status || !dp_pass_date || !dp_attempt_number || !cp_exam_name || !cp_status || !cp_pass_date || !cp_attempt_number) {
+    if (!user_id || !edu_type || !institution || !qualification || !pass_year || !obtained_at || !passing_cert) {
         throw { status: 400, message: "All fields are required" };
     }
 
@@ -403,23 +403,45 @@ exports.saveEducationStep1 = async ({ user_id, edu_type, institution, qualificat
             RETURNING edu_id, edu_type, institution, qualification, pass_year, obtained_at, cert_url` , [user_id, edu_type, institution, qualification, pass_year, obtained_at, passing_cert]
         );
 
+        await client.query(
+            `UPDATE employee_profiles SET current_step = 2,current_section=2  WHERE user_id = $1`,
+            [user_id]
+        );
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    }
+    finally {
+        client.release();
+    }
+
+    return education_res.rows[0] || [];
+}
+exports.saveEducationStep2 = async ({ user_id, course_name, institution, coordinator, start_date, end_date, training_type, training_cert }) => {
+
+    if (!user_id || !course_name || !institution || !coordinator || !start_date || !end_date || !training_type || !training_cert) {
+        throw { status: 400, message: "All fields are required" };
+    }
+
+    // let education_res;
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
+        console.log('radd')
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 2) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
+
         training_res = await client.query(
             `INSERT INTO employee_training(user_id, course_name, institution, coordinator, start_date, end_date, training_type, cert_url) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
             RETURNING training_id, course_name, institution, coordinator, start_date, end_date, training_type, cert_url
-            `, [user_id, course_name, tr_institution, coordinator, start_date, end_date, training_type, training_cert]
+            `, [user_id, course_name, institution, coordinator, start_date, end_date, training_type, training_cert]
         );
-
-        dept_exams_res = await client.query(`
-            INSERT INTO employee_dept_exams(user_id, exam_name, status, pass_date, attempt_number) VALUES ($1,$2,$3,$4,$5)
-            ON CONFLICT(exam_name) DO UPDATE SET
-            status=EXCLUDED.status, pass_date=EXCLUDED.pass_date, attempt_number=EXCLUDED.attempt_number
-            RETURNING dept_exam_id, exam_name, status, pass_date, attempt_number
-            `, [user_id, dp_exam_name, dp_status, dp_pass_date, dp_attempt_number]);
-
-        cp_exams_res = await client.query(`
-            INSERT INTO employee_competitive_exams(user_id, exam_name, status, pass_date, attempt_number) VALUES($1, $2, $3, $4, $5)
-            RETURNING comp_exam_id, exam_name, status, pass_date, attempt_number
-            `, [user_id, cp_exam_name, cp_status, cp_pass_date, cp_attempt_number]);
 
         await client.query(
             `UPDATE employee_profiles SET current_step = 2,current_section=2  WHERE user_id = $1`,
@@ -434,9 +456,90 @@ exports.saveEducationStep1 = async ({ user_id, edu_type, institution, qualificat
         client.release();
     }
 
-    return [education_res.rows[0], training_res.rows[0], dept_exams_res.rows[0], cp_exams_res.rows[0]] || [];
+    return training_res.rows[0] || [];
 }
-exports.saveEducationStep2 = async ({ user_id, computer_passed, computer_exempted, computer_pass_date, computer_exempt_date, computer_institution, computer_cert_no, marathi_typing_passed, marathi_typing_exempted, marathi_typing_wpm, marathi_typing_pass_date, marathi_typing_exempt_date, marathi_typing_institution, marathi_typing_cert_no, english_typing_passed, english_typing_exempted, english_typing_wpm, english_typing_pass_date, english_typing_exempt_date, english_typing_institution, english_typing_cert_no, increment_withheld_typing, recovery_done, marathi_lang_passed, marathi_lang_exempted, marathi_lang_pass_date, marathi_lang_exempt_date, hindi_lang_passed, hindi_lang_exempted, hindi_lang_pass_date, hindi_lang_exempt_date, computer_exam_cert, marathi_typing_cert, english_typing_cert, marathi_exam_cert, hindi_exam_cert }) => {
+exports.saveEducationStep3 = async ({ user_id, exam_name, status, pass_date, attempt_number }) => {
+
+    if (!user_id || !exam_name || !status || !pass_date || !attempt_number) {
+        throw { status: 400, message: "All fields are required" };
+    }
+
+    // let education_res;
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
+        console.log('radd')
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 2) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
+
+        dept_exams_res = await client.query(`
+            INSERT INTO employee_dept_exams(user_id, exam_name, status, pass_date, attempt_number) VALUES ($1,$2,$3,$4,$5)
+            ON CONFLICT(exam_name) DO UPDATE SET
+            status=EXCLUDED.status, pass_date=EXCLUDED.pass_date, attempt_number=EXCLUDED.attempt_number
+            RETURNING dept_exam_id, exam_name, status, pass_date, attempt_number
+            `, [user_id, exam_name, status, pass_date, attempt_number]);
+
+        await client.query(
+            `UPDATE employee_profiles SET current_step = 2,current_section=2  WHERE user_id = $1`,
+            [user_id]
+        );
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    }
+    finally {
+        client.release();
+    }
+
+    return dept_exams_res.rows[0] || [];
+}
+
+exports.saveEducationStep4 = async ({ user_id, exam_name, status, pass_date, attempt_number }) => {
+
+    if (!user_id || !exam_name || !status || !pass_date || !attempt_number) {
+        throw { status: 400, message: "All fields are required" };
+    }
+
+    // let education_res;
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
+        console.log('radd')
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 2) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
+
+        cp_exams_res = await client.query(`
+            INSERT INTO employee_competitive_exams(user_id, exam_name, status, pass_date, attempt_number) VALUES($1, $2, $3, $4, $5)
+            RETURNING comp_exam_id, exam_name, status, pass_date, attempt_number
+            `, [user_id, exam_name, status, pass_date, attempt_number]);
+
+        await client.query(
+            `UPDATE employee_profiles SET current_step = 2,current_section=2  WHERE user_id = $1`,
+            [user_id]
+        );
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    }
+    finally {
+        client.release();
+    }
+
+    return cp_exams_res.rows[0] || [];
+}
+exports.saveEducationStep5 = async ({ user_id, computer_passed, computer_exempted, computer_pass_date, computer_exempt_date, computer_institution, computer_cert_no, marathi_typing_passed, marathi_typing_exempted, marathi_typing_wpm, marathi_typing_pass_date, marathi_typing_exempt_date, marathi_typing_institution, marathi_typing_cert_no, english_typing_passed, english_typing_exempted, english_typing_wpm, english_typing_pass_date, english_typing_exempt_date, english_typing_institution, english_typing_cert_no, increment_withheld_typing, recovery_done, marathi_lang_passed, marathi_lang_exempted, marathi_lang_pass_date, marathi_lang_exempt_date, hindi_lang_passed, hindi_lang_exempted, hindi_lang_pass_date, hindi_lang_exempt_date, computer_exam_cert, marathi_typing_cert, english_typing_cert, marathi_exam_cert, hindi_exam_cert }) => {
     // console.log('deva')
 
     if (!user_id || !computer_passed || !computer_exempted || !computer_pass_date || !computer_exempt_date || !computer_institution || !computer_cert_no || !marathi_typing_passed || !marathi_typing_exempted || !marathi_typing_wpm || !marathi_typing_pass_date || !marathi_typing_exempt_date || !marathi_typing_institution || !marathi_typing_cert_no || !english_typing_passed || !english_typing_exempted || !english_typing_wpm || !english_typing_pass_date || !english_typing_exempt_date || !english_typing_institution || !english_typing_cert_no || !increment_withheld_typing || !recovery_done || !marathi_lang_passed || !marathi_lang_exempted || !marathi_lang_pass_date || !marathi_lang_exempt_date || !hindi_lang_passed || !hindi_lang_exempted || !hindi_lang_pass_date || !hindi_lang_exempt_date || !computer_exam_cert || !marathi_typing_cert || !english_typing_cert || !marathi_exam_cert || !hindi_exam_cert) {

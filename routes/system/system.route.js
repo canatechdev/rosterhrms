@@ -10,7 +10,7 @@ router.get('/casts', authMiddleware, authController.getCasts);
 // router.post("/", reqBody, authController.login);
 // router.get('/roles',authMiddleware, authController.getRoles);
 
-router.get('/get_employees',authMiddleware, authController.getEmployees);
+router.get('/get_employees', authController.getEmployees);
 
 router.get('/posts/:department_id', authMiddleware, authController.getPosts);
 

@@ -54,8 +54,7 @@ exports.savePersonalInfoStep8 = asyncHandler(async (req, res) => {
 
 // CONTROLLER FUNCTIONS FOR EDUCATION STEPS
 exports.saveEducationStep1 = asyncHandler(async (req, res) => {
-
-    req.body.training_cert = req.files ? req.files["training_cert"] ? req.files["training_cert"][0].filename : null : null;
+    
     req.body.passing_cert = req.files ? req.files["passing_cert"] ? req.files["passing_cert"][0].filename : null : null;
 
     const result = await profileService.saveEducationStep1(req.body);
@@ -64,12 +63,34 @@ exports.saveEducationStep1 = asyncHandler(async (req, res) => {
 });
 exports.saveEducationStep2 = asyncHandler(async (req, res) => {
 
+    req.body.training_cert = req.files ? req.files["training_cert"] ? req.files["training_cert"][0].filename : null : null;
+
+    const result = await profileService.saveEducationStep2(req.body);
+    res.status(201).json({ success: true, data: result });
+
+});
+
+exports.saveEducationStep3 = asyncHandler(async (req, res) => {
+
+    const result = await profileService.saveEducationStep3(req.body);
+    res.status(201).json({ success: true, data: result });
+
+});
+
+exports.saveEducationStep4 = asyncHandler(async (req, res) => {
+
+    const result = await profileService.saveEducationStep4(req.body);
+    res.status(201).json({ success: true, data: result });
+
+});
+exports.saveEducationStep5 = asyncHandler(async (req, res) => {
+
     req.body.computer_exam_cert = req.files ? req.files["computer_exam_cert"] ? req.files["computer_exam_cert"][0].filename : null : null;
     req.body.marathi_typing_cert = req.files ? req.files["marathi_typing_cert"] ? req.files["marathi_typing_cert"][0].filename : null : null;
     req.body.english_typing_cert = req.files ? req.files["english_typing_cert"] ? req.files["english_typing_cert"][0].filename : null : null;
     req.body.marathi_exam_cert = req.files ? req.files["marathi_exam_cert"] ? req.files["marathi_exam_cert"][0].filename : null : null;
     req.body.hindi_exam_cert = req.files ? req.files["hindi_exam_cert"] ? req.files["hindi_exam_cert"][0].filename : null : null;
-    const result = await profileService.saveEducationStep2(req.body);
+    const result = await profileService.saveEducationStep5(req.body);
     res.status(201).json({ success: true, data: result });
 
 });
