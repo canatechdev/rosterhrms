@@ -57,8 +57,7 @@ export const PROFILE_STEPS = {
     "EDUCATION": [ // 2. अर्हता माहिती ७.शैक्षणिक अर्हता २१,२२,२३,२५(इतर परीक्षा)  + FILE UPLOAD 7
         {
             step: 1,
-            fields: ["edu_type", "institution", "qualification", "pass_year", "obtained_at",
-                "passing_cert", "course_name", "tr_institution", "coordinator", "start_date", "end_date", "training_type", "training_cert", "dp_exam_name", "dp_status", "dp_pass_date", "dp_attempt_number", "cp_exam_name", "cp_status", "cp_pass_date", "cp_attempt_number"],
+            fields: ["edu_type", "institution", "qualification", "pass_year", "obtained_at", "passing_cert", "course_name", "tr_institution", "coordinator", "start_date", "end_date", "training_type", "training_cert", "dp_exam_name", "dp_status", "dp_pass_date", "dp_attempt_number", "cp_exam_name", "cp_status", "cp_pass_date", "cp_attempt_number"],
             required: []
         },
         {

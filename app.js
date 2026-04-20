@@ -11,7 +11,7 @@ const authMiddleware = require("./middlewares/auth.middleware");
 const app = express();
 
 app.use(cors());
-require("./cron/retirementCron");
+// require("./cron/retirementCron");
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
