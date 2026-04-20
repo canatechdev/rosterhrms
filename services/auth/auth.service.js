@@ -104,7 +104,7 @@ const registerUser = async (data) => {
         email, phone, password,
         role_id,
         first_name, last_name, aadhar_number,
-        zp_id, department_id, user
+        zp_id, department_id, user, employee_id
     } = data;
 
     // All fields mandatory for a proper employee record
@@ -150,11 +150,11 @@ const registerUser = async (data) => {
         // Insert profile — zp_id stored directly per your schema
         await client.query(
             `INSERT INTO employee_profiles
-                (user_id, first_name, last_name,department_id, created_by, aadhar_number)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
-            [userId, first_name, last_name, department_id || null, user.user_id, aadhar_number || null]
+                (user_id, first_name, last_name,department_id, created_by, aadhar_number, employee_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [userId, first_name, last_name, department_id || null, user.user_id, aadhar_number || null, employee_id || null]
         );
-
+        
         await client.query("COMMIT");
         return userResult.rows;
     } catch (err) {

@@ -150,7 +150,7 @@ BEGIN;
 	CREATE TABLE employee_profiles (
 		profile_id                  BIGSERIAL PRIMARY KEY,
 		user_id                     BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-
+		employee_id					TEXT, -- FOR NOW TEXT LATER BIGINT OR VARCHAR
 		-- Identity (Section 1)
 		salutation                  VARCHAR(20),         -- Mr, Mrs, Dr, Er, Prof, Ms, Smt, N/A
 		first_name                  VARCHAR(100),
@@ -168,7 +168,7 @@ BEGIN;
 		gender_id                   BIGINT REFERENCES genders(gender_id) ON DELETE SET NULL,
 		dob                         DATE,
 		pan_number                  VARCHAR(20),
-		aadhar_number               VARCHAR(20),
+		aadhar_number               VARCHAR(20) UNIQUE,
 		govt_email                  VARCHAR(150),
 		religion                    VARCHAR(50),         -- Hindu, Muslim, Buddhist etc (English code)
 		caste_id                    BIGINT REFERENCES castes(caste_id) ON DELETE SET NULL,
