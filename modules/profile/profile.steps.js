@@ -77,7 +77,7 @@ export const PROFILE_STEPS = {
         },
         {
             step: 5,
-            fields: ["computer_passed", "computer_exempted", "computer_pass_date", "computer_exempt_date", "computer_institution", "computer_cert_no", "marathi_typing_passed", "marathi_typing_exempted", "marathi_typing_wpm", "marathi_typing_pass_date", "marathi_typing_exempt_date", "marathi_typing_institution", "marathi_typing_cert_no", "english_typing_passed", "english_typing_exempted", "english_typing_wpm", "english_typing_pass_date", "english_typing_exempt_date", "english_typing_institution", "english_typing_cert_no", "increment_withheld_typing", "recovery_done",                "marathi_lang_passed", "marathi_lang_exempted", "marathi_lang_pass_date", "marathi_lang_exempt_date", "hindi_lang_passed", "hindi_lang_exempted", "hindi_lang_pass_date", "hindi_lang_exempt_date",                "computer_exam_cert", "marathi_typing_cert", "english_typing_cert","marathi_exam_cert", "hindi_exam_cert"],
+            fields: ["computer_passed", "computer_exempted", "computer_pass_date", "computer_exempt_date", "computer_institution", "computer_cert_no", "marathi_typing_passed", "marathi_typing_exempted", "marathi_typing_wpm", "marathi_typing_pass_date", "marathi_typing_exempt_date", "marathi_typing_institution", "marathi_typing_cert_no", "english_typing_passed", "english_typing_exempted", "english_typing_wpm", "english_typing_pass_date", "english_typing_exempt_date", "english_typing_institution", "english_typing_cert_no", "increment_withheld_typing", "recovery_done", "marathi_lang_passed", "marathi_lang_exempted", "marathi_lang_pass_date", "marathi_lang_exempt_date", "hindi_lang_passed", "hindi_lang_exempted", "hindi_lang_pass_date", "hindi_lang_exempt_date", "computer_exam_cert", "marathi_typing_cert", "english_typing_cert", "marathi_exam_cert", "hindi_exam_cert"],
             required: []
         },
     ],
@@ -172,19 +172,23 @@ export const PROFILE_STEPS = {
     "DISCUSSION_INFO": [  // 10. चौकशी माहिती २८,३०,३१,३२
         {
             step: 1,
-            fields: ["from_date", "to_date", "action_taken", "absence_cert", "inquiry_active", "inquiry_from", "final_decision", "decision_details", "disciplinary_start_date", "inquiry_officer_date", "penalty_order_number", "penalty_type", "penalty_order_date", "penalty_order_cert"
-            ],
+            fields: ["from_date", "to_date", "action_taken", "absence_cert"],
             required: []
         },
         {
             step: 2,
+            fields: ["inquiry_active", "inquiry_from", "final_decision", "decision_details", "disciplinary_start_date", "inquiry_officer_date", "penalty_order_number", "penalty_type", "penalty_order_date", "penalty_order_cert"],
+            required: []
+        },
+        {
+            step: 3,
             fields: [
                 "was_suspended", "suspension_date", "suspension_duration", "suspension_reason", "criminal_case_filed", "subsistence_allowance_pct", "disciplinary_action_date", "inquiry_officer_date", "reinstatement_order_date", "reinstatement_joining_date", "suspension_period_decision", "order_number", "order_date", "order_cert"
             ],
             required: []
         },
         {
-            step: 3,
+            step: 4,
             fields: ["case_active", "court_name", "order_number", "order_date", "order_cert"],
             required: []
         },

@@ -66,7 +66,7 @@ exports.savePersonalInfoStep3 = async ({ user_id, is_ex_serviceman, has_domicile
     if (!user_id || !is_ex_serviceman || !has_domicile_cert || !spouse_in_service || !spouse_service_type || !spouse_office_type || !spouse_office_details || !spouse_employee_no || !has_pran || !pran_number || !gpf_number || !ppo_number || !ppo_date) {
         throw { status: 400, message: "All fields are required" };
     }
-    // console.log(aadhar_number, user_id)
+    console.log('AADHA','aadhar_number', user_id)
     const stepCheck = await pool.query(
         `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
         [user_id]
@@ -444,7 +444,7 @@ exports.saveEducationStep2 = async ({ user_id, course_name, institution, coordin
         );
 
         await client.query(
-            `UPDATE employee_profiles SET current_step = 2,current_section=2  WHERE user_id = $1`,
+            `UPDATE employee_profiles SET current_step = 3,current_section=2  WHERE user_id = $1`,
             [user_id]
         );
         await client.query('COMMIT');
@@ -485,7 +485,7 @@ exports.saveEducationStep3 = async ({ user_id, exam_name, status, pass_date, att
             `, [user_id, exam_name, status, pass_date, attempt_number]);
 
         await client.query(
-            `UPDATE employee_profiles SET current_step = 2,current_section=2  WHERE user_id = $1`,
+            `UPDATE employee_profiles SET current_step = 4,current_section=2  WHERE user_id = $1`,
             [user_id]
         );
         await client.query('COMMIT');
@@ -525,7 +525,7 @@ exports.saveEducationStep4 = async ({ user_id, exam_name, status, pass_date, att
             `, [user_id, exam_name, status, pass_date, attempt_number]);
 
         await client.query(
-            `UPDATE employee_profiles SET current_step = 2,current_section=2  WHERE user_id = $1`,
+            `UPDATE employee_profiles SET current_step = 5,current_section=2  WHERE user_id = $1`,
             [user_id]
         );
         await client.query('COMMIT');
@@ -1233,10 +1233,10 @@ exports.saveGroupInsurance1 = async ({
 };
 
 exports.saveDiscussionInfo1 = async ({
-    user_id, from_date, to_date, action_taken, absence_cert, inquiry_active, inquiry_from, final_decision, decision_details, disciplinary_start_date, inquiry_officer_date, penalty_order_number, penalty_type, penalty_order_date, penalty_order_cert
+    user_id, from_date, to_date, action_taken, absence_cert
 }) => {
     // console.log(user_id, year, entry_date, amount, group_insurance_cert);
-    if (!user_id || !from_date || !to_date || !action_taken || !absence_cert || !inquiry_active || !inquiry_from || !final_decision || !decision_details || !disciplinary_start_date || !inquiry_officer_date || !penalty_order_number || !penalty_type || !penalty_order_date || !penalty_order_cert) {
+    if (!user_id || !from_date || !to_date || !action_taken || !absence_cert) {
         throw { status: 400, message: "All fields are required" };
     }
 
@@ -1260,13 +1260,6 @@ exports.saveDiscussionInfo1 = async ({
             RETURNING *`,
             [user_id, from_date, to_date, action_taken, absence_cert]
         );
-        const dept_enq = await client.query(
-            `INSERT INTO employee_dept_inquiry(
-user_id, inquiry_active, inquiry_from, final_decision, decision_details, disciplinary_start_date, inquiry_officer_date, penalty_order_number, penalty_type, penalty_order_date, penalty_order_cert)
-            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-            RETURNING *`,
-            [user_id, inquiry_active, inquiry_from, final_decision, decision_details, disciplinary_start_date, inquiry_officer_date, penalty_order_number, penalty_type, penalty_order_date, penalty_order_cert]
-        );
 
         await client.query(
             `UPDATE employee_profiles
@@ -1277,7 +1270,7 @@ user_id, inquiry_active, inquiry_from, final_decision, decision_details, discipl
 
         await client.query('COMMIT');
 
-        return [unauth.rows[0], dept_enq.rows[0]];
+        return unauth.rows[0];
 
     } catch (error) {
         await client.query('ROLLBACK');
@@ -1288,9 +1281,58 @@ user_id, inquiry_active, inquiry_from, final_decision, decision_details, discipl
 };
 
 exports.saveDiscussionInfo2 = async ({
+    user_id, inquiry_active, inquiry_from, final_decision, decision_details, disciplinary_start_date, inquiry_officer_date, penalty_order_number, penalty_type, penalty_order_date, penalty_order_cert
+}) => {
+    
+    if (!user_id || !inquiry_active || !inquiry_from || !final_decision || !decision_details || !disciplinary_start_date || !inquiry_officer_date || !penalty_order_number || !penalty_type || !penalty_order_date || !penalty_order_cert) {
+        throw { status: 400, message: "All fields are required" };
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
+
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 10) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
+
+        const unauth = await client.query(
+            `INSERT INTO employee_dept_inquiry(
+user_id, inquiry_active, inquiry_from, final_decision, decision_details, disciplinary_start_date, inquiry_officer_date, penalty_order_number, penalty_type, penalty_order_date, penalty_order_cert)
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+            RETURNING *`,
+            [user_id, inquiry_active, inquiry_from, final_decision, decision_details, disciplinary_start_date, inquiry_officer_date, penalty_order_number, penalty_type, penalty_order_date, penalty_order_cert]
+        );
+
+        await client.query(
+            `UPDATE employee_profiles
+             SET current_step = 3, current_section = 10
+             WHERE user_id = $1`,
+            [user_id]
+        );
+
+        await client.query('COMMIT');
+
+        return unauth.rows[0];
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
+    }
+};
+
+exports.saveDiscussionInfo3 = async ({
     user_id, was_suspended, suspension_date, suspension_duration, suspension_reason, criminal_case_filed, subsistence_allowance_pct, disciplinary_action_date, inquiry_officer_date, reinstatement_order_date, reinstatement_joining_date, suspension_period_decision, order_number, order_date, order_cert
 }) => {
-    // console.log(user_id, year, entry_date, amount, group_insurance_cert);
+   
     if (!user_id || !was_suspended || !suspension_date || !suspension_duration || !suspension_reason || !criminal_case_filed || !subsistence_allowance_pct || !disciplinary_action_date || !inquiry_officer_date || !reinstatement_order_date || !reinstatement_joining_date || !suspension_period_decision || !order_number || !order_date || !order_cert) {
         throw { status: 400, message: "All fields are required" };
     }
@@ -1319,7 +1361,7 @@ user_id, was_suspended, suspension_date, suspension_duration, suspension_reason,
 
         await client.query(
             `UPDATE employee_profiles
-             SET current_step = 3, current_section = 10
+             SET current_step = 4, current_section = 10
              WHERE user_id = $1`,
             [user_id]
         );
@@ -1335,7 +1377,7 @@ user_id, was_suspended, suspension_date, suspension_duration, suspension_reason,
         client.release();
     }
 };
-exports.saveDiscussionInfo3 = async ({
+exports.saveDiscussionInfo4 = async ({
     user_id, case_active, court_name, order_number, order_date, order_cert
 }) => {
     // console.log(user_id, year, entry_date, amount, group_insurance_cert);
@@ -1535,9 +1577,7 @@ exports.saveServiceBook1 = async ({
 
 exports.saveCertificateInfo1 = async ({
     user_id, character_antecedents, constitution_oath, home_village_decl, medical_cert, small_family_pledge, undertaking, medical_reimbursement_option, nps_family_pension_option }) => {
-    console.log('devaaaa', {
-        user_id, character_antecedents, constitution_oath, home_village_decl, medical_cert, small_family_pledge, undertaking, medical_reimbursement_option, nps_family_pension_option
-    })
+   
     if (!user_id || !character_antecedents || !constitution_oath || !home_village_decl || !medical_cert || !small_family_pledge || !undertaking || !medical_reimbursement_option || !nps_family_pension_option) {
         throw { status: 400, message: "All fields are required" };
     }
@@ -1562,13 +1602,6 @@ user_id, character_antecedents, constitution_oath, home_village_decl, medical_ce
             VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
             RETURNING *`,
             [user_id, character_antecedents, constitution_oath, home_village_decl, medical_cert, small_family_pledge, undertaking, medical_reimbursement_option, nps_family_pension_option]
-        );
-
-        await client.query(
-            `UPDATE employee_profiles
-             SET current_step = 1, current_section = 14
-             WHERE user_id = $1`,
-            [user_id]
         );
 
         await client.query('COMMIT');

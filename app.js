@@ -6,7 +6,7 @@ const fs = require("fs");
 const path = require('path');
 const cron = require("node-cron");
 const morgan = require('morgan');
-
+const app=express();
 const authMiddleware = require("./middlewares/auth.middleware");
 const allowedOrigins = [
   "http://localhost:5173",
