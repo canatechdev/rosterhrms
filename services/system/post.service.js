@@ -1,6 +1,6 @@
 const pool = require('../../config/database');
 
-const createPost = async (department_id, designation, total_positions) => {
+const createPost = async (department_id, designation, total_positions, cadre_id) => {
     const result = await pool.query(
         'INSERT INTO posts (department_id, designation, total_positions) VALUES ($1, $2, $3) RETURNING *',
         [department_id, designation, total_positions]

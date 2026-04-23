@@ -9,18 +9,30 @@ router.get('/test', (req, res) => { res.json({ message: "Test successful" }) })
 
 // 1. वैयक्तिक माहिती | PERSONAL INFORMATION
 router.post("/profile/personal_info/1", authMiddleware, reqBody, profileController.savePersonalInfoStep1);
+router.get("/profile/personal_info/1/:user_id", authMiddleware, profileController.getPersonalInfoStep1);
+
 router.post("/profile/personal_info/2", authMiddleware, reqBody, profileController.savePersonalInfoStep2);
+router.get("/profile/personal_info/2/:user_id", authMiddleware, profileController.getPersonalInfoStep2);
+
 router.post("/profile/personal_info/3", authMiddleware, reqBody, profileController.savePersonalInfoStep3);
-router.post("/profile/personal_info/4", authMiddleware, upload.fields([
+router.get("/profile/personal_info/3/:user_id", authMiddleware, profileController.getPersonalInfoStep3);
+
+router.post("/profile/personal_info/4", authMiddleware, reqBody, profileController.savePersonalInfoStep4);
+
+router.post("/profile/personal_info/5", authMiddleware, upload.fields([
     { name: "marriage_cert" }, { name: "birth_cert" },
     { name: "aadhar" }, { name: "pan" },
-    { name: "caste_validity" }, { name: "gazette_name_change" },
+    { name: "caste_validity" }, { name: "gazette_name_change" }
+]), profileController.savePersonalInfoStep5);
+
+router.post("/profile/personal_info/6", authMiddleware, upload.fields([
     { name: "photo" }, { name: "signature" }
-]), profileController.savePersonalInfoStep4);
-router.post("/profile/personal_info/5", authMiddleware, reqBody, profileController.savePersonalInfoStep5);
-router.post("/profile/personal_info/6", authMiddleware, reqBody, profileController.savePersonalInfoStep6);
+]), profileController.savePersonalInfoStep6);
+
 router.post("/profile/personal_info/7", authMiddleware, reqBody, profileController.savePersonalInfoStep7);
 router.post("/profile/personal_info/8", authMiddleware, reqBody, profileController.savePersonalInfoStep8);
+router.post("/profile/personal_info/9", authMiddleware, reqBody, profileController.savePersonalInfoStep9);
+router.post("/profile/personal_info/10", authMiddleware, reqBody, profileController.savePersonalInfoStep10);
 
 // 2. शैक्षणिक अर्हता | EDUCATIONAL QUALIFICATIONS
 router.post("/profile/education/1", authMiddleware, upload.fields([

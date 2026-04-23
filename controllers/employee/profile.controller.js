@@ -6,18 +6,40 @@ exports.savePersonalInfoStep1 = asyncHandler(async (req, res) => {
     const result = await profileService.savePersonalInfoStep1(req.body);
     res.status(201).json({ success: true, data: result });
 });
+exports.getPersonalInfoStep1 = asyncHandler(async (req, res) => {
+    const result = await profileService.getPersonalInfoStep1(req.params);
+    res.status(200).json({ success: true, data: result });
+});
+
 exports.savePersonalInfoStep2 = asyncHandler(async (req, res) => {
-    // req.body.user_id = req.user.user_id;
     const result = await profileService.savePersonalInfoStep2(req.body);
     res.status(201).json({ success: true, data: result });
-
 });
+exports.getPersonalInfoStep2 = asyncHandler(async (req, res) => {
+    const result = await profileService.getPersonalInfoStep2(req.params);
+    res.status(201).json({ success: true, data: result });
+});
+
 exports.savePersonalInfoStep3 = asyncHandler(async (req, res) => {
     const result = await profileService.savePersonalInfoStep3(req.body);
     res.status(201).json({ success: true, data: result });
 });
+exports.getPersonalInfoStep3 = asyncHandler(async (req, res) => {
+    const result = await profileService.getPersonalInfoStep3(req.params);
+    res.status(201).json({ success: true, data: result });
+});
+
 
 exports.savePersonalInfoStep4 = asyncHandler(async (req, res) => {
+    const result = await profileService.savePersonalInfoStep4(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+exports.getPersonalInfoStep4 = asyncHandler(async (req, res) => {
+    const result = await profileService.getPersonalInfoStep4(req.params);
+    res.status(201).json({ success: true, data: result });
+});
+
+exports.savePersonalInfoStep5 = asyncHandler(async (req, res) => {
     req.body.marriage_cert = req.files['marriage_cert'] ? req.files['marriage_cert'][0].filename : null;
     req.body.birth_cert = req.files['birth_cert'] ? req.files['birth_cert'][0].filename : null;
     req.body.aadhar = req.files['aadhar'] ? req.files['aadhar'][0].filename : null;
@@ -27,28 +49,36 @@ exports.savePersonalInfoStep4 = asyncHandler(async (req, res) => {
     req.body.photo = req.files['photo'] ? req.files['photo'][0].filename : null;
     req.body.signature = req.files['signature'] ? req.files['signature'][0].filename : null;
 
-    const result = await profileService.savePersonalInfoStep4(req.body);
-    res.status(201).json({ success: true, data: result });
-});
-exports.savePersonalInfoStep5 = asyncHandler(async (req, res) => {
     const result = await profileService.savePersonalInfoStep5(req.body);
     res.status(201).json({ success: true, data: result });
 });
+
 exports.savePersonalInfoStep6 = asyncHandler(async (req, res) => {
+    req.body.photo = req.files['photo'] ? req.files['photo'][0].filename : null;
+    req.body.signature = req.files['signature'] ? req.files['signature'][0].filename : null;
 
     const result = await profileService.savePersonalInfoStep6(req.body);
     res.status(201).json({ success: true, data: result });
-
 });
 exports.savePersonalInfoStep7 = asyncHandler(async (req, res) => {
-
     const result = await profileService.savePersonalInfoStep7(req.body);
     res.status(201).json({ success: true, data: result });
-
 });
 exports.savePersonalInfoStep8 = asyncHandler(async (req, res) => {
 
     const result = await profileService.savePersonalInfoStep8(req.body);
+    res.status(201).json({ success: true, data: result });
+
+});
+exports.savePersonalInfoStep9 = asyncHandler(async (req, res) => {
+
+    const result = await profileService.savePersonalInfoStep9(req.body);
+    res.status(201).json({ success: true, data: result });
+
+});
+exports.savePersonalInfoStep10 = asyncHandler(async (req, res) => {
+
+    const result = await profileService.savePersonalInfoStep10(req.body);
     res.status(201).json({ success: true, data: result });
 
 });
