@@ -4,6 +4,11 @@ const { reqBody } = require('../../middlewares/req_body.middleware.js');
 const authMiddleware = require('../../middlewares/auth.middleware.js');
 const upload = require("../../config/multer.config");
 
+// excel
+const { generateTemplate, processUploadedFile } = require('../../controllers/Excel/ExcelOps.js');
+
+
+
 router.post("/continue", authMiddleware, reqBody, profileController.getCurrentStep);
 router.get('/test', (req, res) => { res.json({ message: "Test successful" }) })
 
@@ -120,5 +125,12 @@ router.post("/profile/certificate_info/1", authMiddleware, upload.fields([
 
 // APPRAISAL
 router.get("/appraisal/info/:user_id", authMiddleware, profileController.getAppraisalInfo);
+
+
+
+// EXCEL IMPORTS
+router.get('/template', generateTemplate);
+router.post('/upload', upload.single('file'), processUploadedFile);
+
 
 module.exports = router;
