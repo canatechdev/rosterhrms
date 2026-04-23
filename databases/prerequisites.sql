@@ -111,19 +111,19 @@ BEGIN;
     ('OBC', 'Other Backward Classes', 3),
     ('Open', 'Open Category (Unreserved)', 8);
 
-    INSERT INTO departments (zp_id, name) VALUES
-    (1, 'General Administration'),
-    (1, 'Finance & Accounts'),
-    (1, 'EducationPrimary)'),
-    (1, 'Public Works (PWD)'),
-    (1, 'Health'),
-    (1, 'Agriculture'),
-    (1, 'Women & Child Development'),
-    (1, 'Tribal Development'),
-    (1, 'Rural Development'),
-    (1, 'Water Supply & Sanitation'),
-    (1, 'Forest'),
-    (1, 'Disaster Management');
+    INSERT INTO departments (zp_id, name, code) VALUES
+    (1, 'General Administration', 'GA'),
+    (1, 'Finance & Accounts', 'FA'),
+    (1, 'Education', 'ED'),
+    (1, 'Public Works (PWD)', 'PWD'),
+    (1, 'Health', 'HL'),
+    (1, 'Agriculture', 'AG'),
+    (1, 'Women & Child Development', 'WCD'),
+    (1, 'Tribal Development', 'TD'),
+    (1, 'Rural Development', 'RD'),
+    (1, 'Water Supply & Sanitation', 'WSS'),
+    (1, 'Forest', 'FR'),
+    (1, 'Disaster Management', 'DM');
 
 
     INSERT INTO posts (department_id, designation, total_positions) VALUES
