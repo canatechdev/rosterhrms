@@ -205,34 +205,28 @@ async function processUploadedFile(req, res) {
                 if (!/^\d{12}$/.test(user.aadhar_number))
                     throw new Error('Aadhaar must be 12 digits');
 
-                // ── Duplicate check ───────────────────────────────────────────
-                const existingResult = await db.query(
-                    `SELECT user_id FROM users WHERE (email = $1) LIMIT 1`,
-                    [user.email]
-                );
-                const existing = extractRows(existingResult);
-                if (existing.length > 0)
-                    throw new Error(`Duplicate email: ${user.email}`);
-
                 // ── Hash password & insert ────────────────────────────────────
                 user.password = await bcrypt.hash(user.password, 10);
 
                 await db.query('BEGIN');
                 const result = await db.query(
                     `INSERT INTO users (email, phone, password, role_id, zp_id)
-                     VALUES ($1, $2, $3, $4, $5) RETURNING user_id`,
+                     VALUES ($1, $2, $3, $4, $5)
+                    ON CONFLICT (email) DO UPDATE SET phone = EXCLUDED.phone, password = EXCLUDED.password, role_id = EXCLUDED.role_id, zp_id = EXCLUDED.zp_id, updated_at = NOW()
+                     RETURNING user_id`,
                     [user.email, user.phone, user.password, user.role_id, user.zp_id]
                 );
-                const newUserId = result.rows[0].user_id;
+                const userId = result.rows[0].user_id;
 
                 await db.query(
-                    `INSERT INTO employee_profiles (user_id, first_name, last_name, employee_id, aadhar_number, department_id) 
-                     VALUES ($1, $2, $3, $4, $5, $6)`,
-                    [newUserId, user.first_name, user.last_name, user.employee_id, user.aadhar_number, user.department_id]
+                    `INSERT INTO employee_profiles (user_id, first_name, last_name, employee_id, aadhar_number, department_id)
+                     VALUES ($1, $2, $3, $4, $5, $6)
+                     ON CONFLICT (aadhar_number) DO UPDATE SET first_name = EXCLUDED.first_name, last_name = EXCLUDED.last_name, employee_id = EXCLUDED.employee_id, aadhar_number = EXCLUDED.aadhar_number, department_id = EXCLUDED.department_id, updated_at = NOW()`,
+                    [userId, user.first_name, user.last_name, user.employee_id, user.aadhar_number, user.department_id]
                 );
                 await db.query('COMMIT');
 
-                inserted.push({ employee_id: user.employee_id, db_id: newUserId });
+                inserted.push({ employee_id: user.employee_id, db_id: userId });
 
             } catch (err) {
                 await db.query('ROLLBACK');
