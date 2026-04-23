@@ -6,10 +6,11 @@ const fs = require("fs");
 const path = require('path');
 const cron = require("node-cron");
 const morgan = require('morgan');
-const app=express();
+const app = express();
 const authMiddleware = require("./middlewares/auth.middleware");
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
   "http://localhost:3000",
   "https://zproster.thecanatech.com"
 ]

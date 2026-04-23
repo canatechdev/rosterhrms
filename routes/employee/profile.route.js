@@ -103,4 +103,10 @@ router.post("/profile/service_book/1", authMiddleware, upload.fields([
 router.post("/profile/certificate_info/1", authMiddleware, upload.fields([
     { name: "character_antecedents" }, { name: "constitution_oath" }, { name: "home_village_decl" }, { name: "medical_cert" }, { name: "small_family_pledge" }, { name: "undertaking" }, { name: "medical_reimbursement_option" }, { name: "nps_family_pension_option" }]), reqBody, profileController.saveCertificateInfo1);
 
+
+
+
+// APPRAISAL
+router.get("/appraisal/info/:user_id", authMiddleware, profileController.getAppraisalInfo);
+
 module.exports = router;

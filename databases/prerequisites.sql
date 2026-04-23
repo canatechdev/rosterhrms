@@ -72,7 +72,7 @@ BEGIN;
     (1, 'समायोजन', 'transfer_type',1),
     (2, 'प्रशासकीय', 'transfer_type',2),
     (3, 'प्रतिनियुक्ती', 'transfer_type',3),
-    (4, 'विनंती बदली', 'transfer_type',4),
+    (4, 'विनंती बदली', 'transfer_type',4)
 
 
     ;
@@ -179,6 +179,5 @@ BEGIN;
     (13, 13, 3, 1,1);
 
     INSERT INTO users(email, phone, password, role_id, zp_id) 
-    VALUES ('super.admin@gmail.com','7498605559','$2b$10$tBg5OhMSEqM4c836POg/puecA6W8uxLUSAuNrLdqeymd.jXsDz.FW', 1, 1);
-    
+    VALUES ('super.admin@gmail.com','7498605559','$2b$10$GcVY0w77WH8tCJezUmNgS.jFn8mGfq/oA/f1EzRfL9vVkkxHR6uF.', 1, 1);
 COMMIT;
