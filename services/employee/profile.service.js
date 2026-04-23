@@ -66,7 +66,7 @@ exports.savePersonalInfoStep3 = async ({ user_id, is_ex_serviceman, has_domicile
     if (!user_id || !is_ex_serviceman || !has_domicile_cert || !spouse_in_service || !spouse_service_type || !spouse_office_type || !spouse_office_details || !spouse_employee_no || !has_pran || !pran_number || !gpf_number || !ppo_number || !ppo_date) {
         throw { status: 400, message: "All fields are required" };
     }
-    console.log('AADHA','aadhar_number', user_id)
+    console.log('AADHA', 'aadhar_number', user_id)
     const stepCheck = await pool.query(
         `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
         [user_id]
@@ -1283,7 +1283,7 @@ exports.saveDiscussionInfo1 = async ({
 exports.saveDiscussionInfo2 = async ({
     user_id, inquiry_active, inquiry_from, final_decision, decision_details, disciplinary_start_date, inquiry_officer_date, penalty_order_number, penalty_type, penalty_order_date, penalty_order_cert
 }) => {
-    
+
     if (!user_id || !inquiry_active || !inquiry_from || !final_decision || !decision_details || !disciplinary_start_date || !inquiry_officer_date || !penalty_order_number || !penalty_type || !penalty_order_date || !penalty_order_cert) {
         throw { status: 400, message: "All fields are required" };
     }
@@ -1332,7 +1332,7 @@ user_id, inquiry_active, inquiry_from, final_decision, decision_details, discipl
 exports.saveDiscussionInfo3 = async ({
     user_id, was_suspended, suspension_date, suspension_duration, suspension_reason, criminal_case_filed, subsistence_allowance_pct, disciplinary_action_date, inquiry_officer_date, reinstatement_order_date, reinstatement_joining_date, suspension_period_decision, order_number, order_date, order_cert
 }) => {
-   
+
     if (!user_id || !was_suspended || !suspension_date || !suspension_duration || !suspension_reason || !criminal_case_filed || !subsistence_allowance_pct || !disciplinary_action_date || !inquiry_officer_date || !reinstatement_order_date || !reinstatement_joining_date || !suspension_period_decision || !order_number || !order_date || !order_cert) {
         throw { status: 400, message: "All fields are required" };
     }
@@ -1577,7 +1577,7 @@ exports.saveServiceBook1 = async ({
 
 exports.saveCertificateInfo1 = async ({
     user_id, character_antecedents, constitution_oath, home_village_decl, medical_cert, small_family_pledge, undertaking, medical_reimbursement_option, nps_family_pension_option }) => {
-   
+
     if (!user_id || !character_antecedents || !constitution_oath || !home_village_decl || !medical_cert || !small_family_pledge || !undertaking || !medical_reimbursement_option || !nps_family_pension_option) {
         throw { status: 400, message: "All fields are required" };
     }
@@ -1616,6 +1616,7 @@ user_id, character_antecedents, constitution_oath, home_village_decl, medical_ce
     }
 };
 
+
 exports.getCurrentStep = async ({ aadhar_number }) => {
     if (!aadhar_number) {
         throw { status: 400, message: "aadhar_number must be provided" };
@@ -1630,3 +1631,16 @@ exports.getCurrentStep = async ({ aadhar_number }) => {
     );
     return result.rows[0] || [];
 }
+
+exports.getAppraisalInfo = async ({ user_id }) => {
+    if (!user_id) {
+        throw { status: 400, message: "user_id must be provided" };
+    }
+    const result = await pool.query(
+        `SELECT ep.first_name, ep.last_name, ep.dob,ep.cadre_service_name, ep.current_office_joining_date, dept.name FROM employee_profiles ep
+            JOIN departments dept ON ep.department_id = dept.department_id
+            WHERE user_id = $1`,
+        [user_id]
+    );
+    return result.rows || [];
+};

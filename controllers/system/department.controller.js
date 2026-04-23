@@ -2,8 +2,8 @@ const departmentService = require('../../services/system/department.service.js')
 const asyncHandler = require('../../middlewares/async_handler.js');
 
 const createDepartment = asyncHandler(async (req, res) => {
-    const { name, zp_id } = req.body;
-    const department = await departmentService.createDepartment(name, zp_id);
+    // const { name, zp_id, code,  } = req.body;
+    const department = await departmentService.createDepartment(req.body);
     res.status(201).json({ success: true, data: department });
 });
 
@@ -32,9 +32,10 @@ const getDepartmentHead = async (req, res) => {
 }
 
 const updateDepartment = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const { name, zp_id, status } = req.body;
-    const department = await departmentService.updateDepartment(id, name, zp_id, status);
+    // const { id } = req.params;
+    // const { name, zp_id, code, status } = req.body;
+    req.body.id = req.params.id;
+    const department = await departmentService.updateDepartment(req.body);
     if (!department) {
         return res.status(404).json({ success: false, message: 'Department not found' });
     }

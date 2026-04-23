@@ -327,14 +327,16 @@ exports.loginUser = async ({ email, password, zp_name }) => {
                 up.middle_name,
                 up.last_name,
                 up.joining_date,
-                ARRAY_AGG(DISTINCT r.name) AS roles
+                r.name AS roles,
+                ARRAY_AGG(DISTINCT p.name) AS permissions
              FROM users u
              LEFT JOIN employee_profiles up ON u.user_id = up.user_id
              LEFT JOIN roles r ON u.role_id = r.role_id
              LEFT JOIN zp z ON u.zp_id = z.zp_id
+             JOIN role_permissions rp ON u.role_id = rp.role_id
+             JOIN permissions p ON rp.permission_id = p.permission_id
              WHERE u.email = $1 AND u.zp_id=$2
-             GROUP BY u.user_id, up.first_name, up.last_name,up.middle_name,
-                      z.name, u.zp_id, up.department_id, up.post_id, up.joining_date`,
+             GROUP BY u.user_id, up.first_name, up.last_name,up.middle_name, r.name, z.name, u.zp_id, up.department_id, up.post_id, up.joining_date`,
             [email, zpDetails.rows[0].zp_id]
         );
 

@@ -81,7 +81,7 @@ exports.getPosts = async ({ department_id }, zp_id) => {
 
 
 exports.getEmployees=async()=>{
-    const users = await pool.query(`SELECT u.user_id, u.email, u.phone, r.name role, zp.name zp, ep.first_name, ep.last_name, u.created_at, u.updated_at FROM users u
+    const users = await pool.query(`SELECT ep.*,u.user_id, u.email, u.phone, r.name role, zp.name zp, ep.first_name, ep.last_name, u.created_at, u.updated_at FROM users u
         JOIN employee_profiles ep ON u.user_id=ep.user_id 
         JOIN roles r ON r.role_id=u.role_id
         JOIN zp ON u.zp_id=zp.zp_id

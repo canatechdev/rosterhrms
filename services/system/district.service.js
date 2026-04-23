@@ -1,11 +1,13 @@
 const pool = require('../../config/database');
 
-const createDistrict = async (name,name_mr) => {
+const createDistrict = async ({name, name_mr}) => {
+    // console.log('service', name, name_mr)
+    if (!name || !name_mr) throw { status: 400, message: "District name and Marathi name are required" };
     const result = await pool.query(
         `INSERT INTO districts (name,name_mr) VALUES ($1, $2)
         ON CONFLICT(name) DO UPDATE SET name = EXCLUDED.name, name_mr=EXCLUDED.name_mr
         RETURNING *`,
-        [name,name_mr]
+        [name, name_mr]
     );
     return result.rows[0];
 };
@@ -20,10 +22,10 @@ const getDistrictById = async (id) => {
     return result.rows[0];
 };
 
-const updateDistrict = async (id, name, status,name_mr) => {
+const updateDistrict = async (id, name,  name_mr) => {
     const result = await pool.query(
         'UPDATE districts SET name = $1, name_mr = $2 WHERE district_id = $3 RETURNING *',
-        [name,name_mr, id]
+        [name, name_mr, id]
     );
     return result.rows[0];
 };

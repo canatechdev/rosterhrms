@@ -75,6 +75,7 @@ BEGIN;
 		department_id BIGSERIAL PRIMARY KEY,
 		zp_id         BIGINT REFERENCES zp(zp_id) ON DELETE SET NULL,
 		name          VARCHAR(100) NOT NULL,
+		code		  VARCHAR(20) NOT NULL UNIQUE,
 		name_mr       VARCHAR(200),
 		status        INT NOT NULL DEFAULT 1,
 		UNIQUE(zp_id, name)

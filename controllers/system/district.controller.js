@@ -2,11 +2,11 @@ const districtService = require('../../services/system/district.service.js');
 const asyncHandler = require('../../middlewares/async_handler.js');
 
 const createDistrict = asyncHandler(async (req, res) => {
-    const { name,name_mr } = req.body;
-    if(!name) {
-        return res.status(400).json({ success: false, message: 'District name is required' });
-    }   
-    const district = await districtService.createDistrict(name,name_mr);
+    // const { name,name_mr } = req.body;
+    // if(!req.body) {
+    //     return res.status(400).json({ success: false, message: 'District name is required' });
+    // }   
+    const district = await districtService.createDistrict(req.body);
     res.status(201).json({ success: true, data: district });
 });
 
