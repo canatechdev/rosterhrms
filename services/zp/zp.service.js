@@ -37,12 +37,12 @@ exports.deleteZp = async (id) => {
 };
 
 // add cadre zp wise 
-exports.addCadre = async (department_id, description, cadre_name, cadre_name_mr, description_mr, zp_id) => {
+exports.addCadre = async (department_id, description, cadre_name, cadre_name_mr, description_mr, zp_id, cadre_group) => {
     try {
         const result = await pool.query(
-            `INSERT INTO cadre (department_id, description, cadre_name,cadre_name_mr, description_mr, zp_id) 
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-            [department_id, description, cadre_name, cadre_name_mr, description_mr, zp_id]
+            `INSERT INTO cadres (department_id, description, cadre_name,cadre_name_mr, description_mr, zp_id, cadre_group) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+            [department_id, description, cadre_name, cadre_name_mr, description_mr, zp_id, cadre_group]
         );
 
         return result.rows[0];
@@ -114,7 +114,7 @@ exports.getCadre = async (zp_id) => {
     try {
         const result = await pool.query(
             `SELECT c.cadre_id, c.department_id, c.description, c.cadre_name,c.cadre_name_mr,c.description_mr, d.name,d.name_mr 
-             FROM cadre c
+             FROM cadres c
              JOIN departments d ON c.department_id = d.department_id
              WHERE c.zp_id = $1 AND c.status = 1`,
             [zp_id]
@@ -130,7 +130,7 @@ exports.getCadreById = async (cadre_id) => {
     try {
         const result = await pool.query(
             `SELECT c.cadre_id, c.department_id, c.description, c.cadre_name,c.cadre_name_mr,c.description_mr, d.name,d.name_mr
-             FROM cadre c
+             FROM cadres c
              JOIN departments d ON c.department_id = d.department_id
              WHERE c.cadre_id = $1 AND c.status = 1`,
             [cadre_id]
@@ -142,11 +142,11 @@ exports.getCadreById = async (cadre_id) => {
     }
 };
 // update cadre
-exports.updateCadre = async (cadre_id, department_id, description, cadre_name, cadre_name_mr, description_mr) => {
+exports.updateCadre = async (cadre_id, department_id, description, cadre_name, cadre_name_mr, description_mr, cadre_group) => {
     try {
         const result = await pool.query(
-            `UPDATE cadre SET department_id = $2, description = $3, cadre_name = $4, cadre_name_mr = $5, description_mr = $6 WHERE cadre_id = $1 AND status = 1 RETURNING *`,
-            [cadre_id, department_id, description, cadre_name, cadre_name_mr, description_mr]
+            `UPDATE cadres  SET department_id = $2, description = $3, cadre_name = $4, cadre_name_mr = $5, description_mr = $6, cadre_group = $7 WHERE cadre_id = $1 AND status = 1 RETURNING *`,
+            [cadre_id, department_id, description, cadre_name, cadre_name_mr, description_mr, cadre_group]
         );
         return result.rows[0];
     } catch (error) {
@@ -158,7 +158,7 @@ exports.updateCadre = async (cadre_id, department_id, description, cadre_name, c
 exports.deleteCadre = async (cadre_id) => {
     try {
         const result = await pool.query(
-            `UPDATE cadre SET status = 0 WHERE cadre_id = $1 AND status = 1 RETURNING *`,
+            `UPDATE cadres SET status = 0 WHERE cadre_id = $1 AND status = 1 RETURNING *`,
             [cadre_id]
         );
         return result.rows[0];
@@ -223,7 +223,7 @@ exports.getPostByZP = async (zp_id) => {
              FROM posts p
              JOIN departments d ON p.department_id = d.department_id
             JOIN cadre_posts cp ON p.post_id = cp.post_id
-            JOIN cadre c ON cp.cadre_id = c.cadre_id
+            JOIN cadres c ON cp.cadre_id = c.cadre_id
              WHERE p.zp_id = $1 AND p.status = 1`,
             [zp_id]
         );
@@ -253,7 +253,7 @@ exports.getPostById = async (post_id) => {
             FROM posts p
             JOIN departments d ON p.department_id = d.department_id
             JOIN cadre_posts cp ON p.post_id = cp.post_id
-            JOIN cadre c ON cp.cadre_id = c.cadre_id
+            JOIN cadres c ON cp.cadre_id = c.cadre_id
             WHERE p.post_id = $1 AND p.status = 1
         `, [post_id]);
 
@@ -740,7 +740,7 @@ exports.getRosterByCadrePost = async (cadre_post_id, zp_id, filters = {}) => {
                 cs.name_mr AS caste_name_mr,
                 v.status
             FROM cadre_posts cp
-            JOIN cadre c ON cp.cadre_id = c.cadre_id
+            JOIN cadres c ON cp.cadre_id = c.cadre_id
             JOIN posts p ON cp.post_id = p.post_id
             JOIN departments d ON p.department_id = d.department_id
             

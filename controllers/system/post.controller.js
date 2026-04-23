@@ -23,8 +23,8 @@ const getPostById = asyncHandler(async (req, res) => {
 
 const updatePost = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { department_id, designation, total_positions, status } = req.body;
-    const post = await postService.updatePost(id, department_id, designation, total_positions, status);
+    const { department_id, designation, total_positions } = req.body;
+    const post = await postService.updatePost(id, department_id, designation, total_positions);
     if (!post) {
         return res.status(404).json({ success: false, message: 'Post not found' });
     }

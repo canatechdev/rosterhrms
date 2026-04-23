@@ -23,10 +23,10 @@ const getPostById = async (id) => {
     return result.rows[0];
 };
 
-const updatePost = async (id, department_id, designation, total_positions, status) => {
+const updatePost = async (id, department_id, designation, total_positions) => {
     const result = await pool.query(
-        'UPDATE posts SET department_id = $1, designation = $2, total_positions = $3, status = $4, updated_at = NOW() WHERE post_id = $5 RETURNING *',
-        [department_id, designation, total_positions, status, id]
+        'UPDATE posts SET department_id = $1, designation = $2, total_positions = $3, updated_at = NOW() WHERE post_id = $4 RETURNING *',
+        [department_id, designation, total_positions, id]
     );
     return result.rows[0];
 };

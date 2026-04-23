@@ -71,7 +71,7 @@ app.use(cors(corsOptions));
 
 // ─── PREFLIGHT CATCH-ALL ──────────────────────────────────────────────────────
 // Ensures OPTIONS requests for every route are handled before any auth middleware
-app.options('*', cors(corsOptions));
+app.options('/{*any}', cors(corsOptions));
 
 // ─── CORE MIDDLEWARE ──────────────────────────────────────────────────────────
 app.use(express.json());
@@ -91,8 +91,7 @@ app.use(express.static(appPath, {
     if (filePath.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
   }
 }));
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api') || req.path.includes('.')) return next();
+app.get('/{*any}', (req, res, next) => {  if (req.path.startsWith('/api') || req.path.includes('.')) return next();
   res.sendFile(path.join(appPath, 'index.html'));
 });
 

@@ -140,7 +140,7 @@ exports.deleteDepartment = async(req,res)=>{
 // add zp wise cadre 
 exports.addCadre = async (req, res) => {
     try {
-        const { department_id, description, cadre_name,cadre_name_mr,description_mr} = req.body;
+        const { department_id, description, cadre_name,cadre_name_mr,description_mr, cadre_group} = req.body;
 
         if (!department_id || !description || !cadre_name) {
             return res.status(400).json({ message: "All fields are required" });
@@ -154,7 +154,8 @@ exports.addCadre = async (req, res) => {
             cadre_name,
             cadre_name_mr,
             description_mr,
-            zp_id
+            zp_id,
+            cadre_group
         );
 
         return res.status(201).json({
@@ -210,7 +211,7 @@ exports.getCadreById = async (req, res) => {
 exports.updateCadre = async (req, res) => {
     try {
         const cadre_id = req.params.cadre_id;
-        const { department_id, description, cadre_name,cadre_name_mr,description_mr } = req.body;
+        const { department_id, description, cadre_name,cadre_name_mr,description_mr, cadre_group } = req.body;
 
         if (!department_id && !description && !cadre_name) {
             return res.status(400).json({
@@ -223,7 +224,8 @@ exports.updateCadre = async (req, res) => {
             description,
             cadre_name,
             cadre_name_mr,
-            description_mr
+            description_mr,
+            cadre_group
         );
 
         if (!cadre) {
