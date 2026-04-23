@@ -13,8 +13,8 @@ const allowedOrigins = [
   "http://localhost:5174",
   "http://localhost:3000",
   "http://172.20.10.11:5173",
-  "172.20.10.11:5173",
-  "172.20.10.11",
+  "http://localhost",
+  "http://172.20.10.11:5173",
   "https://zproster.thecanatech.com"
 ]
 app.use(cors({
