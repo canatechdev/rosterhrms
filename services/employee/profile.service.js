@@ -32,8 +32,22 @@ exports.savePersonalInfoStep1 = async ({ user_id, salutation, first_name, middle
     // );
     return udpated.rows[0] || [];
 }
-exports.savePersonalInfoStep2 = async ({ user_id, first_appointment_type, cadre_service_name, dept_entry_exam_date, govt_service_joining_date, current_office_joining_date, retirement_date, sevarth_number, shaalarth_number, height_cm, identification_mark }) => {
-    if (!user_id || !first_appointment_type || !cadre_service_name || !dept_entry_exam_date || !govt_service_joining_date || !current_office_joining_date || !retirement_date || !sevarth_number || !shaalarth_number || !height_cm || !identification_mark) {
+exports.getPersonalInfoStep1 = async ({ user_id }) => {
+    if (!user_id) { throw { status: 400, message: "User ID is required" }; }
+    const result = await pool.query(
+        `SELECT user_id, salutation, first_name, middle_name, last_name, full_name_marathi, father_full_name, mother_full_name, name_changed, previous_name, blood_group, gender_id, dob, u.phone, pan_number, u.email, govt_email, religion, caste_id, caste_validity_cert, caste_validity_date, mother_tongue 
+        FROM employee_profiles
+        JOIN users u USING(user_id)
+        WHERE user_id = $1`,
+        [user_id]
+    );
+    return result.rows[0] || [];
+}
+
+
+exports.savePersonalInfoStep2 = async ({ user_id, first_appointment_type, cadre_service_name, dept_entry_exam_date }) => {
+    console.log(user_id, first_appointment_type, cadre_service_name, dept_entry_exam_date)
+    if (!user_id || !first_appointment_type || !cadre_service_name || !dept_entry_exam_date) {
         throw { status: 400, message: "All fields are required" };
     }
     // console.log(aadhar_number, user_id)
@@ -49,11 +63,11 @@ exports.savePersonalInfoStep2 = async ({ user_id, first_appointment_type, cadre_
     _id = stepCheck.rows[0].user_id;
     const udpated = await pool.query(
         `UPDATE employee_profiles SET
-        first_appointment_type =$1, cadre_service_name=$2, dept_entry_exam_date=$3, govt_service_joining_date =$4, current_office_joining_date =$5, retirement_date=$6, sevarth_number=$7, shaalarth_number=$8, height_cm=$9, identification_mark=$10
-        WHERE user_id = $11
-        RETURNING user_id, first_appointment_type, cadre_service_name, dept_entry_exam_date, govt_service_joining_date, current_office_joining_date, retirement_date, sevarth_number, shaalarth_number, height_cm, identification_mark
+        first_appointment_type =$1, cadre_service_name=$2, dept_entry_exam_date=$3
+        WHERE user_id = $4
+        RETURNING user_id, first_appointment_type, cadre_service_name, dept_entry_exam_date
         `,
-        [first_appointment_type, cadre_service_name, dept_entry_exam_date, govt_service_joining_date, current_office_joining_date, retirement_date, sevarth_number, shaalarth_number, height_cm, identification_mark, _id]
+        [first_appointment_type, cadre_service_name, dept_entry_exam_date, _id]
     );
     await pool.query(
         `UPDATE employee_profiles SET current_step = 3,current_section=1  WHERE user_id = $1`,
@@ -61,8 +75,58 @@ exports.savePersonalInfoStep2 = async ({ user_id, first_appointment_type, cadre_
     );
     return udpated.rows[0] || [];
 }
+exports.getPersonalInfoStep2 = async ({ user_id }) => {
+    if (!user_id) { throw { status: 400, message: "User ID is required" }; }
+    const result = await pool.query(
+        `SELECT user_id, first_appointment_type, cadre_service_name, dept_entry_exam_date
+        FROM employee_profiles
+        WHERE user_id = $1`,
+        [user_id]
+    );
+    return result.rows[0] || [];
+}
 
-exports.savePersonalInfoStep3 = async ({ user_id, is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date }) => {
+exports.savePersonalInfoStep3 = async ({ user_id, govt_service_joining_date, current_office_joining_date, retirement_date, sevarth_number, shaalarth_number, height_cm, identification_mark }) => {
+    if (!user_id || !govt_service_joining_date || !current_office_joining_date || !retirement_date || !sevarth_number || !shaalarth_number || !height_cm || !identification_mark) {
+        throw { status: 400, message: "All fields are required" };
+    }
+    // console.log(aadhar_number, user_id)
+    const stepCheck = await pool.query(
+        `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+        [user_id]
+    );
+
+    if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
+        throw { status: 404, message: "Registration Incomplete" };
+    }
+
+    _id = stepCheck.rows[0].user_id;
+    const udpated = await pool.query(
+        `UPDATE employee_profiles SET
+        govt_service_joining_date =$1, current_office_joining_date =$2, retirement_date=$3, sevarth_number=$4, shaalarth_number=$5, height_cm=$6, identification_mark=$7
+        WHERE user_id = $8
+        RETURNING user_id, govt_service_joining_date, current_office_joining_date, retirement_date, sevarth_number, shaalarth_number, height_cm, identification_mark
+        `,
+        [govt_service_joining_date, current_office_joining_date, retirement_date, sevarth_number, shaalarth_number, height_cm, identification_mark, _id]
+    );
+    await pool.query(
+        `UPDATE employee_profiles SET current_step = 3,current_section=1  WHERE user_id = $1`,
+        [_id]
+    );
+    return udpated.rows[0] || [];
+}
+exports.getPersonalInfoStep3 = async ({ user_id }) => {
+    if (!user_id) { throw { status: 400, message: "User ID is required" }; }
+    const result = await pool.query(
+        `SELECT user_id, govt_service_joining_date, current_office_joining_date, retirement_date, sevarth_number, shaalarth_number, height_cm, identification_mark
+        FROM employee_profiles
+        WHERE user_id = $1`,
+        [user_id]
+    );
+    return result.rows[0] || [];
+}
+
+exports.savePersonalInfoStep4 = async ({ user_id, is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date }) => {
     if (!user_id || !is_ex_serviceman || !has_domicile_cert || !spouse_in_service || !spouse_service_type || !spouse_office_type || !spouse_office_details || !spouse_employee_no || !has_pran || !pran_number || !gpf_number || !ppo_number || !ppo_date) {
         throw { status: 400, message: "All fields are required" };
     }
@@ -88,11 +152,21 @@ exports.savePersonalInfoStep3 = async ({ user_id, is_ex_serviceman, has_domicile
     );
     return udpated.rows[0] || [];
 }
+// exports.getPersonalInfoStep4 = async ({ user_id }) => {
+//     if (!user_id) { throw { status: 400, message: "User ID is required" }; }
+//     const result = await pool.query(
+//         `SELECT user_id, is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date
+//         FROM employee_profiles
+//         WHERE user_id = $1`,
+//         [user_id]
+//     );
+//     return result.rows[0] || [];
+// }
 
-exports.savePersonalInfoStep4 = async ({ user_id,
-    marital_status, marriage_cert, birth_cert, aadhar, pan, caste_validity, gazette_name_change, photo, signature }) => {
+exports.savePersonalInfoStep5 = async ({ user_id,
+    marital_status, marriage_cert, birth_cert, aadhar, pan, caste_validity, gazette_name_change }) => {
 
-    if (!user_id || !marriage_cert || !birth_cert || !aadhar || !pan || !caste_validity || !gazette_name_change || !photo || !signature || !marital_status) {
+    if (!user_id || !marriage_cert || !birth_cert || !aadhar || !pan || !caste_validity || !gazette_name_change) {
         throw { status: 400, message: "All fields are required" };
     }
     // console.log(aadhar_number, user_id)
@@ -106,24 +180,47 @@ exports.savePersonalInfoStep4 = async ({ user_id,
     }
 
     // _id = stepCheck.rows[0].user_id;
-    const [marriage_cert_res, birth_cert_res, aadhar_res, pan_res, caste_validity_res, gazette_name_change_res, photo_res, signature_res] = await Promise.all([
+    const [marriage_cert_res, birth_cert_res, aadhar_res, pan_res, caste_validity_res, gazette_name_change_res] = await Promise.all([
         await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'marriage_cert', marriage_cert]),
         await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'birth_cert', birth_cert]),
         await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'aadhar', aadhar]),
         await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'pan', pan]),
         await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'caste_validity', caste_validity]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'gazette_name_change', gazette_name_change]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'photo', photo]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'signature', signature])
+        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'gazette_name_change', gazette_name_change])
     ]);
     await pool.query(
         `UPDATE employee_profiles SET marital_status=$2, current_step = 5,current_section=1  WHERE user_id = $1`,
         [user_id, marital_status]
     );
-    return [marriage_cert_res.rows[0], birth_cert_res.rows[0], aadhar_res.rows[0], pan_res.rows[0], caste_validity_res.rows[0], gazette_name_change_res.rows[0], photo_res.rows[0], signature_res.rows[0]] || [];
+    return [marriage_cert_res.rows[0], birth_cert_res.rows[0], aadhar_res.rows[0], pan_res.rows[0], caste_validity_res.rows[0], gazette_name_change_res.rows[0]] || [];
 }
-exports.savePersonalInfoStep5 = async ({ user_id, permanent, current }) => {
-    // console.log(current, current.length, current)
+
+exports.savePersonalInfoStep6 = async ({ user_id, photo, signature }) => {
+
+    if (!user_id || !photo || !signature ) {
+        throw { status: 400, message: "All fields are required" };
+    }
+    // console.log(aadhar_number, user_id)
+    const stepCheck = await pool.query(
+        `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+        [user_id]
+    );
+
+    if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
+        throw { status: 404, message: "Registration Incomplete" };
+    }
+
+    // _id = stepCheck.rows[0].user_id;
+    const [photo_res, signature_res] = await Promise.all([
+        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'photo', photo]),
+        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'signature', signature])
+    ]);
+   
+    return [photo_res.rows[0], signature_res.rows[0]] || [];
+}
+
+exports.savePersonalInfoStep7 = async ({ user_id, permanent, current }) => {
+    console.log(current, current.length, current)
     if (!permanent || !permanent.address_line || !permanent.post_office || !permanent.city || !permanent.district || !permanent.taluka || !permanent.pin_code || !permanent.mobile || !permanent.std_code || !permanent.phone_number || !permanent.is_govt_residence || !permanent.residing_since) {
         throw { status: 400, message: "All fields are required in Address" };
     }
@@ -236,7 +333,7 @@ exports.savePersonalInfoStep5 = async ({ user_id, permanent, current }) => {
     }
     return (current && Object.keys(current).length) ? [permanent_res.rows[0], current_res.rows[0]] : [permanent_res.rows[0]] || [];
 }
-exports.savePersonalInfoStep6 = async ({ user_id, contact_name, relation, mobile, alt_contact_name, alt_mobile, std_code, phone_number, home_std_code, home_phone_number, residing_since }) => {
+exports.savePersonalInfoStep8 = async ({ user_id, contact_name, relation, mobile, alt_contact_name, alt_mobile, std_code, phone_number, home_std_code, home_phone_number, residing_since }) => {
     // console.log(current, current.length, current)
     if (!user_id || !contact_name || !relation || !mobile || !alt_contact_name || !alt_mobile || !std_code || !phone_number || !home_std_code || !home_phone_number || !residing_since) {
         throw { status: 400, message: "All fields are required" };
@@ -292,7 +389,7 @@ exports.savePersonalInfoStep6 = async ({ user_id, contact_name, relation, mobile
 
     return contact_res.rows[0] || [];
 }
-exports.savePersonalInfoStep7 = async ({ user_id, salutation, first_name, middle_name, last_name, dob, relation }) => {
+exports.savePersonalInfoStep9 = async ({ user_id, salutation, first_name, middle_name, last_name, dob, relation }) => {
 
     if (!user_id || !salutation || !first_name || !middle_name || !last_name || !dob || !relation) {
         throw { status: 400, message: "All fields are required" };
@@ -333,7 +430,7 @@ exports.savePersonalInfoStep7 = async ({ user_id, salutation, first_name, middle
 
     return family_res.rows[0] || [];
 }
-exports.savePersonalInfoStep8 = async ({ user_id, nomination_type, nominee_name, middle_name, relation_to_employee, nominee_age, share_percentage, contingency_event, alternate_nominee_name, alternate_nominee_relation, alternate_nominee_address }) => {
+exports.savePersonalInfoStep10 = async ({ user_id, nomination_type, nominee_name, middle_name, relation_to_employee, nominee_age, share_percentage, contingency_event, alternate_nominee_name, alternate_nominee_relation, alternate_nominee_address }) => {
 
     if (!user_id || !nomination_type || !nominee_name || !middle_name || !relation_to_employee || !nominee_age || !share_percentage || !contingency_event || !alternate_nominee_name || !alternate_nominee_relation || !alternate_nominee_address) {
         throw { status: 400, message: "All fields are required" };
