@@ -11,6 +11,13 @@ router.get('/get_zp/:id', authMiddleware, zpController.getZpById);
 router.put('/update_zp/:id', authMiddleware, reqBody, zpController.updateZp);
 router.delete('/delete_zp/:id', authMiddleware, zpController.deleteZp);
 
+// add zp under offices 
+router.post('/add_zp_under_office', authMiddleware, reqBody, zpController.addZpUnderOffice);
+router.get('/get_zp_under_office', authMiddleware, zpController.getZpUnderOffice);
+router.get('/get_zp_under_office/:office_id', authMiddleware, zpController.getZpUnderOfficeById);
+router.put('/update_zp_under_office/:office_id', authMiddleware, reqBody, zpController.updateZpUnderOffice);
+router.delete('/delete_zp_under_office/:office_id', authMiddleware, zpController.deleteZpUnderOffice);
+    
 // department crud 
 router.post('/add_department',authMiddleware,reqBody,zpController.addDepartment);
 router.get("/get_department",authMiddleware,zpController.getDepartmentByZP);
@@ -48,6 +55,5 @@ router.post("/retire-employee/:user_id", authMiddleware, zpController.retireAllZ
 router.post("/promote-employee",authMiddleware,reqBody,zpController.promoteEmployee);
 router.post("/transfer-employee/:user_id",authMiddleware,reqBody,zpController.transferEmployee);
 
-router.get("/admins/:zp_name", authMiddleware, zpController.getZPAdmins);
  
 module.exports = router;

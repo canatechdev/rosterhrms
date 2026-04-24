@@ -36,6 +36,161 @@ exports.deleteZp = async (id) => {
     await pool.query('DELETE FROM zp WHERE zp_id = $1', [id]);
 };
 
+exports.addZpUnderOffice = async (
+    zp_id,
+    office_code,
+    office_name,
+    office_name_marathi,
+    description,
+    description_marathi,
+    is_active = true
+) => {
+    try {
+        const existingOffice = await pool.query(
+            `SELECT office_id FROM offices WHERE office_code = $1 AND is_active = TRUE`,
+            [office_code]
+        );
+
+        if (existingOffice.rows.length > 0) {
+            const error = new Error("Office code already exists");
+            error.status = 400;
+            throw error;
+        }
+
+        const result = await pool.query(
+            `INSERT INTO offices (
+                zp_id,
+                office_code,
+                office_name,
+                office_name_marathi,
+                description,
+                description_marathi
+               
+            ) VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *`,
+            [
+                zp_id,
+                office_code,
+                office_name,
+                office_name_marathi || null,
+                description || null,
+                description_marathi || null
+           
+            ]
+        );
+
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error in addZpUnderOffice service:", error);
+        throw error;
+    }
+};
+
+exports.getZpUnderOffice = async (zp_id) => {
+    try {
+        const result = await pool.query(
+            `SELECT *
+             FROM offices
+             WHERE zp_id = $1 AND is_active = TRUE
+             ORDER BY office_id DESC`,
+            [zp_id]
+        );
+
+        return result.rows;
+    } catch (error) {
+        console.error("Error in getZpUnderOffice service:", error);
+        throw error;
+    }
+};
+
+exports.getZpUnderOfficeById = async (office_id, zp_id) => {
+    try {
+        const result = await pool.query(
+            `SELECT *
+             FROM offices
+             WHERE office_id = $1 AND zp_id = $2 AND is_active = TRUE`,
+            [office_id, zp_id]
+        );
+
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error in getZpUnderOfficeById service:", error);
+        throw error;
+    }
+};
+
+exports.updateZpUnderOffice = async (
+    office_id,
+    zp_id,
+    office_code,
+    office_name,
+    office_name_marathi,
+    description,
+    description_marathi,
+    is_active
+) => {
+    try {
+        const existingOffice = await pool.query(
+            `SELECT office_id
+             FROM offices
+             WHERE office_code = $1 AND office_id != $2`,
+            [office_code, office_id]
+        );
+
+        if (existingOffice.rows.length > 0) {
+            const error = new Error("Office code already exists");
+            error.status = 400;
+            throw error;
+        }
+
+        const result = await pool.query(
+            `UPDATE offices
+             SET office_code = $3,
+                 office_name = $4,
+                 office_name_marathi = $5,
+                 description = $6,
+                 description_marathi = $7,
+                 is_active = $8,
+                 updated_at = CURRENT_TIMESTAMP
+             WHERE office_id = $1 AND zp_id = $2
+             RETURNING *`,
+            [
+                office_id,
+                zp_id,
+                office_code,
+                office_name,
+                office_name_marathi || null,
+                description || null,
+                description_marathi || null,
+                typeof is_active === "boolean" ? is_active : true
+            ]
+        );
+
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error in updateZpUnderOffice service:", error);
+        throw error;
+    }
+};
+
+exports.deleteZpUnderOffice = async (office_id, zp_id) => {
+    try {
+        const result = await pool.query(
+            `UPDATE offices
+             SET is_active = FALSE,
+                 updated_at = CURRENT_TIMESTAMP
+             WHERE office_id = $1 AND zp_id = $2 AND is_active = TRUE
+             RETURNING *`,
+            [office_id, zp_id]
+        );
+
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error in deleteZpUnderOffice service:", error);
+        throw error;
+    }
+};
+
 // add cadre zp wise 
 exports.addCadre = async (department_id, description, cadre_name, cadre_name_mr, description_mr, zp_id, cadre_group) => {
     try {
