@@ -1,9 +1,9 @@
 const pool = require('../../config/database');
 
-const createCaste = async (name, full_name, priority,name_mr,full_name_mr) => {
+const createCaste = async (name, full_name, priority,full_name_mr) => {
     const result = await pool.query(
-        'INSERT INTO castes (name, full_name,name_mr,full_name_mr, priority) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [name, full_name,name_mr,full_name_mr, priority]
+        'INSERT INTO castes (name, full_name,full_name_mr, priority) VALUES ($1, $2, $3, $4) RETURNING *',
+        [name, full_name,full_name_mr, priority]
     );
     return result.rows[0];
 };
@@ -18,10 +18,10 @@ const getCasteById = async (id) => {
     return result.rows[0];
 };
 
-const updateCaste = async (id, name, full_name, priority, status,name_mr,full_name_mr) => {
+const updateCaste = async (id, name, full_name, priority, status,full_name_mr) => {
     const result = await pool.query(
-        'UPDATE castes SET name = $1, full_name = $2, name_mr = $3, full_name_mr = $4, priority = $5, status = $6 WHERE caste_id = $7 RETURNING *',
-        [name, full_name,name_mr,full_name_mr, priority, status, id]
+        'UPDATE castes SET name = $1, full_name = $2, full_name_mr = $3, priority = $4, status = $5 WHERE caste_id = $6 RETURNING *',
+        [name, full_name,full_name_mr, priority, status, id]
     );
     return result.rows[0];
 };
