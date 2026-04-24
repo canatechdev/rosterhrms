@@ -27,6 +27,7 @@ const STATIC_ORIGINS = [
   "http://localhost:3000",
   "http://localhost",
   "http://192.168.1.36:5173",
+  "http://192.168.1.34:5173",
   "http://10.177.14.133:5173",
   "http://172.20.10.11:5173",
   "http://zproster.thecanatech.com",
