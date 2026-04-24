@@ -29,6 +29,7 @@ const STATIC_ORIGINS = [
   "http://192.168.1.36:5173",
   "http://10.177.14.133:5173",
   "http://172.20.10.11:5173",
+  "http://zproster.thecanatech.com",
   "https://zproster.thecanatech.com",
 ];
 
@@ -92,7 +93,8 @@ app.use(express.static(appPath, {
     if (filePath.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
   }
 }));
-app.get('/{*any}', (req, res, next) => {  if (req.path.startsWith('/api') || req.path.includes('.')) return next();
+app.get('/{*any}', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.includes('.')) return next();
   res.sendFile(path.join(appPath, 'index.html'));
 });
 
