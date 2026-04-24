@@ -559,7 +559,7 @@ exports.getRosterTemplateByZP = async (zp_id) => {
     try {
         console.log("Fetching roster template for ZP ID:", zp_id);
         const result = await pool.query(
-            `SELECT rt.template_id, rt.point_no, rt.caste_id, c.name,c.full_name, c.caste_id 
+            `SELECT rt.template_id, rt.point_no, rt.caste_id, c.name,c.name_mr, c.caste_id 
              FROM roster_template rt
              JOIN castes c ON rt.caste_id = c.caste_id
              WHERE rt.zp_id = $1 AND rt.status = 1`,
@@ -575,7 +575,7 @@ exports.getRosterTemplateByZP = async (zp_id) => {
 exports.getRosterTemplateById = async (template_id) => {
     try {
         const result = await pool.query(
-            `SELECT rt.template_id, rt.point_no, rt.caste_id, c.name, c.caste_id 
+            `SELECT rt.template_id, rt.point_no, rt.caste_id, c.name, c.name_mr, c.caste_id 
              FROM roster_template rt
              JOIN castes c ON rt.caste_id = c.caste_id
              WHERE rt.template_id = $1 AND rt.status = 1`,
@@ -774,7 +774,7 @@ exports.fillVacancy = async (vacancy_id, user_id, zp_id) => {
             throw new Error("Vacancy already filled");
         }
         const caste = await client.query(`
-    SELECT c.caste_id, c.name
+    SELECT c.caste_id, c.name, c.name_mr
     FROM vacancies v
     JOIN castes c ON v.caste_id = c.caste_id
     WHERE v.vacancy_id = $1
@@ -892,7 +892,7 @@ exports.getRosterByCadrePost = async (cadre_post_id, zp_id, filters = {}) => {
                 v.roster_point,
                 v.caste_id,
                 cs.name AS caste_name,
-                cs.full_name_mr,
+                cs.name_mr AS caste_name_mr,
                 v.status
             FROM cadre_posts cp
             JOIN cadres c ON cp.cadre_id = c.cadre_id

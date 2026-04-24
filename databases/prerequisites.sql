@@ -99,17 +99,17 @@ BEGIN;
     INSERT INTO genders (name) VALUES
     ('Male'), ('Female'), ('Other');
 
-    INSERT INTO castes (name, full_name, priority) VALUES
-    ('SC', 'Scheduled Castes', 1),
-    ('ST', 'Scheduled Tribes', 2),
-    ('VJ-A', 'Vimukta Jati', 4),
-    ('NT-B', 'Nomadic Tribes B', 5),
-    ('NT-C', 'Nomadic Tribes C', 5),
-    ('NT-D', 'Nomadic Tribes D', 5),
-    ('SBC', 'Special Backward Classes', 6),
-    ('EWS', 'Economically Weaker Sections', 7),
-    ('OBC', 'Other Backward Classes', 3),
-    ('Open', 'Open Category (Unreserved)', 8);
+    INSERT INTO castes (name, name_mr, code, priority) VALUES
+    ('SC', 'Scheduled Castes','SC1', 1),
+    ('ST', 'Scheduled Tribes','ST2', 2),
+    ('VJ-A', 'Vimukta Jati','VJ4', 4),
+    ('NT-B', 'Nomadic Tribes B','NT5', 5),
+    ('NT-C', 'Nomadic Tribes C','NT5', 5),
+    ('NT-D', 'Nomadic Tribes D','NT5', 5),
+    ('SBC', 'Special Backward Classes','SBC6', 6),
+    ('EWS', 'Economically Weaker Sections','EWS7', 7),
+    ('OBC', 'Other Backward Classes','OBC3', 3),
+    ('Open', 'Open Category (Unreserved)','Open8', 8);
 
     INSERT INTO departments (zp_id, name, code) VALUES
     (1, 'General Administration', 'GA'),

@@ -40,8 +40,8 @@ BEGIN;
 	CREATE TABLE castes (
 		caste_id  BIGSERIAL PRIMARY KEY,
 		name      VARCHAR(100) NOT NULL,  -- SC, ST, OBC etc (code)
-		full_name VARCHAR(200) NOT NULL,  -- full Marathi name
-		full_name_mr VARCHAR(200),
+		name_mr VARCHAR(200),  -- full Marathi name
+		code VARCHAR(50) NOT NULL,
 		priority  INT NOT NULL,
 		status    INT NOT NULL DEFAULT 1
 	);
