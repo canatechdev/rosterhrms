@@ -892,7 +892,7 @@ exports.getRosterByCadrePost = async (cadre_post_id, zp_id, filters = {}) => {
                 v.roster_point,
                 v.caste_id,
                 cs.name AS caste_name,
-                cs.full_name_mr AS caste_full_name_mr,
+                cs.full_name_mr,
                 v.status
             FROM cadre_posts cp
             JOIN cadres c ON cp.cadre_id = c.cadre_id
