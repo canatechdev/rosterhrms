@@ -2,7 +2,8 @@ const casteService = require('../../services/system/caste.service.js');
 const asyncHandler = require('../../middlewares/async_handler.js');
 
 const createCaste = asyncHandler(async (req, res) => {
-    const { name, full_name, priority,full_name_mr } = req.body;
+    const { name, full_name, priority } = req.body;
+    const full_name_mr = req.body.full_name_mr ?? req.body.name_mr ?? null;
     const caste = await casteService.createCaste(name, full_name, priority,full_name_mr);
     res.status(201).json({ success: true, data: caste });
 });
@@ -23,7 +24,8 @@ const getCasteById = asyncHandler(async (req, res) => {
 
 const updateCaste = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { name, full_name, priority, status,full_name_mr } = req.body;
+    const { name, full_name, priority, status } = req.body;
+    const full_name_mr = req.body.full_name_mr ?? req.body.name_mr ?? null;
     const caste = await casteService.updateCaste(id, name, full_name, priority, status,full_name_mr);
     if (!caste) {
         return res.status(404).json({ success: false, message: 'Caste not found' });
