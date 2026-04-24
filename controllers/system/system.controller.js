@@ -5,6 +5,16 @@ exports.getEmployees = async (req, res) => {
     res.json(employees);
 }
 
+exports.getEmployeeById = async (req, res) => {
+    const employees = await systemService.getEmployeeById(req.params);
+    res.json(employees);
+}
+
+exports.deleteEmployeeById = async (req, res) => {
+    const employees = await systemService.deleteEmployeeById(req.params);
+    res.json(employees);
+}
+
 // get all casts
 exports.getCasts = async (req, res) => {
     const casts = await systemService.getCasts();
