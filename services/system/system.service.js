@@ -1,6 +1,10 @@
 const pool = require("../../config/database");
 exports.getCasts = async () => {
-    const casts = await pool.query("SELECT caste_id,name,full_name FROM CASTES where status=1");
+    const casts = await pool.query(`
+        SELECT caste_id, name, full_name, full_name_mr, full_name_mr AS name_mr
+        FROM castes
+        WHERE status = 1
+    `);
     return casts.rows;
 }
 

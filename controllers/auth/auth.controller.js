@@ -76,10 +76,10 @@ exports.login = async (req, res) => {
     req.body.zp_name = req.params.zp_name;
     const result = await authService.loginUser(req.body);
     res.cookie("refreshToken", result.refreshToken, {
-        httpOnly: true,
+        httpOnly: true, 
         secure: false,
         sameSite: "strict",
-        maxAge: 15 * 24 * 60 * 60 * 1000 // 15 days
+        maxAge: 15 * 24 * 60 * 60 * 1000 
     })
     res.status(200).json({ "accessToken": result.accessToken, "user": result.user });
 };

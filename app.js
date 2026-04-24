@@ -102,7 +102,7 @@ app.use('/api/departments', require('./routes/system/department.route'));
 app.use('/api/roles', require('./routes/system/role.route.js'));
 app.use('/api/permissions', require('./routes/system/permission.route.js'));
 app.use('/api/castes', require('./routes/system/caste.route.js'));
-app.use('/api/cadres', require('./routes/system/cadre.route.js'));
+// app.use('/api/cadres', require('./routes/system/cadre.route.js'));
 app.use('/api/posts', require('./routes/system/post.route.js'));
 app.use('/api/zp', require('./routes/zp/zp.route'));
 app.use('/api/districts', require('./routes/system/district.route.js'));

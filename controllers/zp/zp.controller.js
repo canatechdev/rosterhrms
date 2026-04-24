@@ -38,6 +38,134 @@ exports.deleteZp = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, message: 'Zp deleted successfully' });
 });
 
+
+exports.addZpUnderOffice = asyncHandler(async (req, res) => {
+    const {
+        office_code,
+        office_name,
+        office_name_marathi,
+        description,
+        description_marathi,
+        is_active
+    } = req.body;
+
+    if (!office_code || !office_name) {
+        return res.status(400).json({
+            success: false,
+            message: "office_code and office_name are required"
+        });
+    }
+
+    const zp_id = req.user.zp_id;
+    const office = await zpService.addZpUnderOffice(
+        zp_id,
+        office_code,
+        office_name,
+        office_name_marathi,
+        description,
+        description_marathi,
+        is_active
+    );
+
+    return res.status(201).json({
+        success: true,
+        message: "Office added successfully",
+        data: office
+    });
+});
+
+exports.getZpUnderOffice = asyncHandler(async (req, res) => {
+    const zp_id = req.user.zp_id;
+    const offices = await zpService.getZpUnderOffice(zp_id);
+
+    return res.status(200).json({
+        success: true,
+        message: "Offices fetched successfully",
+        data: offices
+    });
+});
+
+exports.getZpUnderOfficeById = asyncHandler(async (req, res) => {
+    const { office_id } = req.params;
+    const zp_id = req.user.zp_id;
+    const office = await zpService.getZpUnderOfficeById(office_id, zp_id);
+
+    if (!office) {
+        return res.status(404).json({
+            success: false,
+            message: "Office not found"
+        });
+    }
+
+    return res.status(200).json({
+        success: true,
+        message: "Office fetched successfully",
+        data: office
+    });
+});
+
+exports.updateZpUnderOffice = asyncHandler(async (req, res) => {
+    const { office_id } = req.params;
+    const {
+        office_code,
+        office_name,
+        office_name_marathi,
+        description,
+        description_marathi,
+        is_active
+    } = req.body;
+
+    if (!office_code || !office_name) {
+        return res.status(400).json({
+            success: false,
+            message: "office_code and office_name are required"
+        });
+    }
+
+    const zp_id = req.user.zp_id;
+    const office = await zpService.updateZpUnderOffice(
+        office_id,
+        zp_id,
+        office_code,
+        office_name,
+        office_name_marathi,
+        description,
+        description_marathi,
+        is_active
+    );
+
+    if (!office) {
+        return res.status(404).json({
+            success: false,
+            message: "Office not found"
+        });
+    }
+
+    return res.status(200).json({
+        success: true,
+        message: "Office updated successfully",
+        data: office
+    });
+});
+
+exports.deleteZpUnderOffice = asyncHandler(async (req, res) => {
+    const { office_id } = req.params;
+    const zp_id = req.user.zp_id;
+    const office = await zpService.deleteZpUnderOffice(office_id, zp_id);
+
+    if (!office) {
+        return res.status(404).json({
+            success: false,
+            message: "Office not found"
+        });
+    }
+
+    return res.status(200).json({
+        success: true,
+        message: "Office deleted successfully",
+        data: office
+    });
+});
 // add department by zp 
 exports.addDepartment = async(req,res)=>{
     try{
@@ -607,12 +735,7 @@ exports.getVacanciesByZP = async(req,res)=>{
 
   
   
-  // get all getZPAdmins
-  exports.getZPAdmins=async(req,res)=>{
-      const zp_name=req.params.zp_name;
-      const zpAdmins = await zpService.getZPAdmins(zp_name);
-      res.json(zpAdmins);
-  }
+
 
 
 

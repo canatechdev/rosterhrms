@@ -893,7 +893,27 @@ BEGIN;
 	-- SEED DATA using prerequisites.sql
 	-- ─────────────────────────────────────────	
 
+	-- offices 
+	CREATE TABLE offices (
+    office_id SERIAL PRIMARY KEY,
+    zp_id INT NOT NULL, 
+    office_code VARCHAR(50) NOT NULL UNIQUE,
+    office_name VARCHAR(150) NOT NULL,
+    office_name_marathi VARCHAR(150),
+    description TEXT,
+    description_marathi TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_zp
+        FOREIGN KEY (zp_id)
+        REFERENCES zp(zp_id)
+        ON DELETE CASCADE
+);
+
 COMMIT;
+
 
 
 -- NOT FOR NOW
