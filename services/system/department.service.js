@@ -66,7 +66,8 @@ exports.getDepartmentHead = async ({ user_id }) => {
         up.last_name,
         r.name,
         d.name,
-        d.name_mr;`, [zp.rows[0].zp_id]);
+        d.name_mr,
+        d.code`, [zp.rows[0].zp_id]);
     return heads.rows;
 }
 exports.updateDepartment = async ({id, name, zp_id, code, name_mr}) => {
