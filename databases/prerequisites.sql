@@ -84,16 +84,20 @@ BEGIN;
     ('super_admin', 'Full system control'),
     ('zp_admin', 'Manages ZP level operations'),
     ('dept_head', 'Manages department specific ops'),
-    ('employee', 'Basic employee access');
+    ('employee', 'Basic employee access'),
+    ('reporting_officer', 'Reporting officer (Appraisals)'),
+    ('reviewing_officer', ' Reviewing officer (Appraisals)'),
+    ('establishment_officer', 'Officer responsible for verifying employee details during appraisal initiation');
+
 
     INSERT INTO permissions (name) VALUES
     ('add_employee'), ('add_zp_admin'), ('add_department_head'),
-    ('view_reports'), ('manage_employees'), ('manage_departments');
+    ('view_reports'), ('manage_employees'), ('manage_departments'),('process_appraisals');
 
     INSERT INTO role_permissions (role_id, permission_id) VALUES
     (1, 2), (1, 4), (1, 6), -- super_admin has all permissions
     (2, 3), (2, 4), (2, 5), -- zp_admin can manage employees and departments
-    (3, 1), (3, 4), -- dept_head can add employees and view reports
+    (3, 1), (3, 4),(3,7), -- dept_head can add employees and view reports
     (4, 4); -- employee can only view reports
 
     INSERT INTO genders (name) VALUES

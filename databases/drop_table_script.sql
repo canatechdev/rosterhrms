@@ -2,6 +2,7 @@ BEGIN;
     DROP TABLE enum_master CASCADE;
     DROP TABLE districts CASCADE;
     DROP TABLE zp CASCADE;
+    DROP TABLE offices CASCADE;
     DROP TABLE genders CASCADE;
     DROP TABLE castes CASCADE;
     DROP TABLE roles CASCADE;
