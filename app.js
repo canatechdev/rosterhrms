@@ -30,6 +30,7 @@ const STATIC_ORIGINS = [
   "http://192.168.1.34:5173",
   "http://10.177.14.133:5173",
   "http://172.20.10.11:5173",
+  "http://192.168.1.6:5173/",
   "http://zproster.thecanatech.com",
   "https://zproster.thecanatech.com",
 ];
@@ -112,6 +113,7 @@ app.use('/api/districts', require('./routes/system/district.route.js'));
 app.use('/api/employee', require('./routes/employee/profile.route.js'));
 app.use('/api/system', require('./routes/system/system.route'));
 app.use('/api/masters', require('./routes/system/master.route.js'));
+app.use('/api/appraisals', require('./routes/employee/appraisals.route.js'));
 
 // ─── HEALTH & LOGS ────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => res.status(200).json({ status: "success", code: 200 }));
