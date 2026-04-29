@@ -110,7 +110,7 @@ exports.initiateAppraisalEmployee = async ({ user, cycle_id, employee_user_id, r
     return result.rows[0] || [];
 }
 
-exports.getSection1AppraisalEmployee = async ({ user }) => {
+exports.getSection1AppraisalEmployee = async (user) => {
 
     if (!user) {
         throw { status: 400, message: "No such user found" };
@@ -120,20 +120,30 @@ exports.getSection1AppraisalEmployee = async ({ user }) => {
     let result;
     try {
 
-        result = await client.query(
+        isValidReq = await client.query(
             `
             SELECT * FROM users u 
-            JOIN employee_profiles ep ON u.user_id = ep.user_id
+            JOIN user_roles ur ON u.user_id = ur.user_id
+            JOIN roles r ON ur.role_id = r.role_id
+            WHERE u.user_id = $1 AND u.zp_id = $2 AND r.name = 'employee'
             `,
             [user.user_id, user.zp_id]
         );
+        if (isValidReq.rows.length === 0) {
+            throw { status: 403, message: "Access Denied" };
+        }
+        result = await client.query(`
+            SELECT u.user_id, ep.first_name, ep.last_name, ep.dob, ep.current_office_joining_date, CONCAT(rto_ep.first_name, ' ', rto_ep.last_name) AS reporting_officer_name, CONCAT(rvo_ep.first_name, ' ', rvo_ep.last_name) AS reviewing_officer_name, d.name AS department_name, a.appraisal_id
+            FROM users u JOIN employee_profiles ep ON u.user_id = ep.user_id
+            JOIN departments d ON ep.department_id = d.department_id
+            JOIN appraisals a ON u.user_id = a.employee_user_id
+            JOIN users rto ON a.reporting_officer_id = rto.user_id
+            JOIN employee_profiles rto_ep ON rto.user_id = rto_ep.user_id
+            JOIN users rvo ON a.reviewing_officer_id = rvo.user_id
+            JOIN employee_profiles rvo_ep ON rvo.user_id = rvo_ep.user_id
+            WHERE u.user_id = $1
+            `, [user.user_id]);
 
-        // result = await client.query(
-        //     `INSERT INTO appraisals (cycle_id, employee_user_id, reporting_officer_id, reviewing_officer_id, establishment_user_id, report_period_from, report_period_to) VALUES ($1, $2, $3, $4, $5, $6, $7)
-        //     ON CONFLICT(cycle_id, employee_user_id) DO UPDATE SET reporting_officer_id = EXCLUDED.reporting_officer_id, reviewing_officer_id = EXCLUDED.reviewing_officer_id,establishment_user_id = EXCLUDED.establishment_user_id, report_period_from = EXCLUDED.report_period_from, report_period_to = EXCLUDED.report_period_to
-        //     RETURNING appraisal_id`,
-        //     [cycle_id, employee_user_id, reporting_officer_id, reviewing_officer_id, establishment_user_id, report_period_from, report_period_to]
-        // );
         await client.query('COMMIT');
     } catch (error) {
         await client.query('ROLLBACK');
@@ -244,7 +254,7 @@ appraisal_id, task_description, allocated_targets, noteworthy_works, difficultie
 
 exports.section3AppraisalEmployee = async ({ user, appraisal_id,
     agrees_with_self_appraisal, factual_remarks, noteworthy_remarks, failure_remarks, agrees_training_needs, work_accomplishment_score, work_quality_score, work_exceptional_score, attitude_score, responsibility_score, personality_score, emotional_stability_score, communication_score, timeliness_score, knowledge_score, strategic_planning_score, decision_making_score, initiative_score, coordination_score, character_integrity_remarks, overall_assessment, health_status, overall_gradation, place, submitted_at }) => {
-    
+
     if (!user || !appraisal_id || !agrees_with_self_appraisal || !factual_remarks || !noteworthy_remarks || !failure_remarks || !agrees_training_needs || !work_accomplishment_score || !work_quality_score || !work_exceptional_score || !attitude_score || !responsibility_score || !personality_score || !emotional_stability_score || !communication_score || !timeliness_score || !knowledge_score || !strategic_planning_score || !decision_making_score || !initiative_score || !coordination_score || !character_integrity_remarks || !overall_assessment || !health_status || !overall_gradation || !place || !submitted_at) {
         throw { status: 400, message: "All fields are required" };
     }
@@ -288,8 +298,8 @@ agrees_with_self_appraisal, factual_remarks, noteworthy_remarks, failure_remarks
 }
 
 exports.section4AppraisalEmployee = async ({ user, appraisal_id,
-        agrees_with_reporting_officer,  disagreement_details, overall_assessment, overall_gradation, place }) => {
-    
+    agrees_with_reporting_officer, disagreement_details, overall_assessment, overall_gradation, place }) => {
+
     if (!user || !appraisal_id || !agrees_with_reporting_officer || !disagreement_details || !overall_assessment || !overall_gradation || !place) {
         throw { status: 400, message: "All fields are required" };
     }

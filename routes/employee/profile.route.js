@@ -67,28 +67,19 @@ router.post("/profile/service_info/3", authMiddleware, upload.fields([
 
 // 4. वेतन माहिती
 router.post("/profile/payment_info/1", authMiddleware, reqBody, profileController.savePaymentInfoStep1);
-router.post("/profile/payment_info/2", authMiddleware, reqBody, profileController.savePaymentInfoStep2);
+router.post("/profile/payment_info/2", authMiddleware, upload.fields([
+    { name: "increment_cert" }
+]), reqBody, profileController.savePaymentInfoStep2);
 router.post("/profile/payment_info/3", authMiddleware, reqBody, profileController.savePaymentInfoStep3);
 router.post("/profile/payment_info/4", authMiddleware, reqBody, profileController.savePaymentInfoStep4);
+router.post("/profile/payment_info/5", authMiddleware, reqBody, profileController.savePaymentInfoStep5);
 
 // 5. बदली बदल माहिती  |   TRANSFER_INFO
 router.post("/profile/transfer_info/1", authMiddleware, reqBody, profileController.saveTransferInfostep1);
-router.post("/profile/promotion_info/1", authMiddleware, reqBody, profileController.savePromotionInfostep1);
 
-// 6. सेवा विस्तार माहिती  | SERVICE_EXTENSION_INFO
-router.post("/profile/service_extension_info/1", authMiddleware, upload.fields([{
-    name: 'withheld_order_cert'
-}]), reqBody, profileController.saveServiceExtensionInfostep1);
 
-// 7. अपंगत्व माहिती  | DISABILITY_INFO
-router.post("/profile/disability_info/1", authMiddleware, upload.fields([{
-    name: 'disability_cert'
-}]), reqBody, profileController.saveDisabilityInfostep1);
 
-// 8. गटविमा माहिती २७
-router.post("/profile/group_insurance/1", authMiddleware, upload.fields([{ name: 'group_insurance_cert' }]), reqBody, profileController.saveGroupInsurance1);
-
-// 9. चौकशी माहिती २८,३०,३१,३२
+// 6. चौकशी माहिती २८,३०,३१,३२
 router.post("/profile/discussion_info/1", authMiddleware, upload.fields([
     { name: 'absence_cert' }
 ]), reqBody, profileController.saveDiscussionInfo1);
@@ -105,27 +96,42 @@ router.post("/profile/discussion_info/4", authMiddleware, upload.fields([
     { name: 'order_cert' }
 ]), reqBody, profileController.saveDiscussionInfo4);
 
-// 10. अग्रिम माहिती ३५
-router.post("/profile/advances_info/1", authMiddleware, reqBody, profileController.saveAdvancesInfo1);
-
-// 11. आजार बदल व इतर माहिती ३४
-router.post("/profile/medical_conditions/1", authMiddleware, reqBody, profileController.saveMedicalCondition1);
-
-// 12. सेवापुस्तक माहिती १४,३३
+// 7. सेवापुस्तक माहिती १४,३३
 router.post("/profile/service_book/1", authMiddleware, upload.fields([
     { name: 'service_book_cert' }, { name: 'verification_cert' }
 ]), reqBody, profileController.saveServiceBook1);
 
-// 13. प्रमाणपत्रे माहिती २६
+// 8. आजार बदल व इतर माहिती ३४
+router.post("/profile/medical_conditions/1", authMiddleware, reqBody, profileController.saveMedicalCondition1);
+
+// 9. PROMOTION_INFO
+router.post("/profile/promotion_info/1", authMiddleware, reqBody, profileController.savePromotionInfostep1);
+
+
+// 10. सेवा विस्तार माहिती  | SERVICE_EXTENSION_INFO
+router.post("/profile/service_extension_info/1", authMiddleware, upload.fields([{
+    name: 'withheld_order_cert'
+}]), reqBody, profileController.saveServiceExtensionInfostep1);
+
+// 11. अपंगत्व माहिती  | DISABILITY_INFO
+router.post("/profile/disability_info/1", authMiddleware, upload.fields([{
+    name: 'disability_cert'
+}]), reqBody, profileController.saveDisabilityInfostep1);
+
+// 12. गटविमा माहिती २७
+router.post("/profile/group_insurance/1", authMiddleware, upload.fields([{ name: 'group_insurance_cert' }]), reqBody, profileController.saveGroupInsurance1);
+
+// 13. अग्रिम माहिती ३५
+router.post("/profile/advances_info/1", authMiddleware, reqBody, profileController.saveAdvancesInfo1);
+
+// 14. प्रमाणपत्रे माहिती २६
 router.post("/profile/certificate_info/1", authMiddleware, upload.fields([
     { name: "character_antecedents" }, { name: "constitution_oath" }, { name: "home_village_decl" }, { name: "medical_cert" }, { name: "small_family_pledge" }, { name: "undertaking" }, { name: "medical_reimbursement_option" }, { name: "nps_family_pension_option" }]), reqBody, profileController.saveCertificateInfo1);
 
 
 
-
-// APPRAISAL
+// PROMOTION
 router.get("/appraisal/info/:user_id", authMiddleware, profileController.getAppraisalInfo);
-
 
 
 // EXCEL IMPORTS

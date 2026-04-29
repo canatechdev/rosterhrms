@@ -381,6 +381,7 @@ BEGIN;
 		increment_date      DATE,
 		effective_date      DATE,
 		is_advance          BOOLEAN DEFAULT FALSE,
+		increment_cert		TEXT,
 		created_at          TIMESTAMP DEFAULT NOW()
 	);
 

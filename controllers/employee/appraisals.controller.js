@@ -20,6 +20,12 @@ exports.section1AppraisalEmployee = asyncHandler(async (req, res) => {
     res.status(201).json({ success: true, data: result });
 });
 
+exports.getSection1AppraisalEmployee = asyncHandler(async (req, res) => {
+    
+    const result = await appraisalsService.getSection1AppraisalEmployee(req.user);
+    res.status(201).json({ success: true, data: result });
+});
+
 exports.section2AppraisalEmployee = asyncHandler(async (req, res) => {
     req.body.user = req.user;
     const result = await appraisalsService.section2AppraisalEmployee(req.body);

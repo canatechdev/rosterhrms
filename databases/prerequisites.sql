@@ -14,20 +14,22 @@ BEGIN;
     (7, 'जि.प.सेस','appointment_type',7),
     (8, 'कालेलकर आयोग','appointment_type',8),
     (9, 'स्पर्धा परीक्षा','appointment_type',9),
+
     (1, 'PERSONAL_INFO','employee_sections',1),
     (2, 'EDUCATION','employee_sections',2),
     (3, 'SERVICE_INFO','employee_sections',3),
     (4, 'PAYMENT_INFO','employee_sections',4),
     (5, 'TRANSFER_INFO','employee_sections',5),
-    (6, 'PROMOTION_INFO','employee_sections',6),
-    (7, 'SERVICE_EXTENSION_INFO','employee_sections',7),
-    (8, 'DISABILITY_INFO','employee_sections',8),
-    (9, 'GROUP_INSURANCE','employee_sections',9),
-    (10, 'DISCUSSION_INFO','employee_sections',10),
-    (11, 'ADVANCES_INFO','employee_sections',11),
-    (12, 'MEDICAL_CONDITIONS','employee_sections',12),
-    (13, 'SERVICE_BOOK_INFO','employee_sections',13),
+    (6, 'DISCUSSION_INFO','employee_sections',6),
+    (7, 'SERVICE_BOOK_INFO','employee_sections',7),
+    (8, 'MEDICAL_CONDITIONS','employee_sections',8),
+    (9, 'PROMOTION_INFO','employee_sections',9),
+    (10, 'SERVICE_EXTENSION_INFO','employee_sections',10),
+    (11, 'DISABILITY_INFO','employee_sections',11),
+    (12, 'GROUP_INSURANCE','employee_sections',12),
+    (13, 'ADVANCES_INFO','employee_sections',13),
     (14, 'CERTIFICATE_INFO','employee_sections',14),
+    
     (1, 'विवाहित','marital_status',1),
     (2, 'अविवाहित','marital_status',2),
     (3, 'विधवा','marital_status',3),
@@ -184,4 +186,7 @@ BEGIN;
 
     INSERT INTO users(email, phone, password, role_id, zp_id) 
     VALUES ('super.admin@gmail.com','7498605559','$2b$10$GcVY0w77WH8tCJezUmNgS.jFn8mGfq/oA/f1EzRfL9vVkkxHR6uF.', 1, 1);
+    
+    INSERT INTO user_roles (user_id, role_id) VALUES
+    (1, 1);
 COMMIT;

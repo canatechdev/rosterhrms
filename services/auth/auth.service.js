@@ -43,7 +43,10 @@ const _checkPermission = async (userId, permissionName) => {
 
 exports.addZPAdmin = async (data) => {
     await _checkPermission(data.user.user_id, "add_zp_admin");
-
+    const role = await pool.query(`SELECT role_id FROM roles WHERE name='zp_admin'`, [data.role_id]);
+    if (role.rowCount === 0) {
+        throw { status: 400, message: "Invalid role_id for ZP admin" }
+    }
     const isZPAdmin = await pool.query(`SELECT 1 FROM ROLES r WHERE r.role_id=$1 and r.name='zp_admin'`, [data.role_id]);
     if (isZPAdmin.rowCount === 0) {
         throw { status: 400, message: "Invalid role_id for ZP admin" }
