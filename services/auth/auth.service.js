@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { sendEmail } = require("../../providers/email.provider");
 const { v7: uuid7 } = require("uuid");
-
+const { sendWelcomeCredentials } = require("../../controllers/Excel/ExcelOps");
 const SALT_ROUNDS = 10;
 
 const _issueTokens = async (client, user_id, email) => {
@@ -118,7 +118,7 @@ const registerUser = async (data) => {
             message: "Required: email, phone, role_id, first_name, zp_id, department_id"
         };
     }
-    if(!password || password.length < 6) {
+    if (!password || password.length < 6) {
         password = uuid7().replace(/-/g, '').slice(0, 10); // Generate a random 10 char password
     }
     const client = await pool.connect();
@@ -159,7 +159,7 @@ const registerUser = async (data) => {
              VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [userId, first_name, last_name, department_id || null, user.user_id, aadhar_number || null, employee_id || null]
         );
-        await this.sendWelcomeCredentials({
+        await sendWelcomeCredentials({
             email,
             password,
             name: first_name,
@@ -175,63 +175,7 @@ const registerUser = async (data) => {
     }
 };
 
-exports.sendWelcomeCredentials = async (data) => {
-    const { email, password, name, changePasswordUrl } = data;
-    if(!email || !password || !name || !changePasswordUrl) {
-        throw { status: 400, message: "email, password, name and changePasswordUrl are required to send welcome email" };
-    }
-    await sendEmail(
-        email,
-        "Welcome to Recello — Your account is ready",
-        `Hi ${name}, your login: ${email} / ${password}. Change it at: ${changePasswordUrl}`,
-        `
-<div style="background:#f4f6f9;padding:28px 16px;">
-<div style="max-width:400px;margin:0 auto;font-family:Arial,sans-serif;">
 
-  <div style="background:#0f172a;border-radius:12px 12px 0 0;padding:28px 28px 24px;">
-    <div style="display:flex;align-items:center;gap:7px;margin-bottom:22px;">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2.5" stroke="#7dd3fc" stroke-width="1.8"/><path d="M2 8.5l10 5.5 10-5.5" stroke="#7dd3fc" stroke-width="1.8" stroke-linecap="round"/></svg>
-      <span style="color:#7dd3fc;font-size:12px;font-weight:700;letter-spacing:2.5px;">RECELLO</span>
-    </div>
-    <div style="width:32px;height:2px;background:#3b82f6;border-radius:2px;margin-bottom:14px;"></div>
-    <h1 style="color:#f8fafc;font-size:18px;font-weight:700;margin:0 0 6px;line-height:1.4;">Welcome aboard, ${name}.</h1>
-    <p style="color:#94a3b8;font-size:13px;margin:0;line-height:1.5;">Your account has been created and is ready to use.</p>
-  </div>
-
-  <div style="background:#fff;padding:24px 28px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
-    <p style="font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:1.2px;margin:0 0 12px;font-weight:600;">Your login details</p>
-    <div style="margin-bottom:10px;">
-      <p style="font-size:11px;color:#94a3b8;margin:0 0 3px;">Email address</p>
-      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;">
-        <span style="font-size:13px;color:#1e293b;font-family:monospace;font-weight:600;">${email}</span>
-      </div>
-    </div>
-    <div style="margin-bottom:24px;">
-      <p style="font-size:11px;color:#94a3b8;margin:0 0 3px;">Temporary password</p>
-      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:13px;color:#1e293b;font-family:monospace;font-weight:600;">${password}</span>
-        <span style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:4px;font-weight:600;">TEMPORARY</span>
-      </div>
-    </div>
-    <a href="${changePasswordUrl}" style="display:block;text-align:center;background:#1d4ed8;color:#fff;text-decoration:none;padding:13px 20px;border-radius:8px;font-size:13px;font-weight:700;">Set a new password →</a>
-  </div>
-
-  <div style="background:#fffbeb;border:1px solid #fde68a;border-left:3px solid #f59e0b;padding:12px 16px;">
-    <p style="font-size:12px;color:#78350f;margin:0;line-height:1.6;">
-      This temporary password expires in <strong>24 hours</strong>. If you didn't expect this email, no action is needed.
-    </p>
-  </div>
-
-  <div style="background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;">
-    <span style="font-size:11px;color:#94a3b8;">© 2026 Recello</span>
-    <span style="font-size:11px;color:#cbd5e1;">Account notification</span>
-  </div>
-
-</div>
-</div>
-        `
-    );
-};
 
 // exports.addEmployee = async (data) => {
 //     const client = await pool.connect();
