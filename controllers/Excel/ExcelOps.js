@@ -1,6 +1,7 @@
 const ExcelJS = require('exceljs');
 const xlsx = require('xlsx');
 const db = require('../../config/database');
+const { sendEmail } = require('../../providers/email.provider');
 // const logger = require('../../lib/logger');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
@@ -274,7 +275,7 @@ async function sendWelcomeCredentials(data) {
     }
     await sendEmail(
         email,
-        "Welcome to Recello — Your account is ready",
+        "Welcome to ZP-Roaster — Your account is ready",
         `Hi ${name}, your login: ${email} / ${password}. Change it at: ${changePasswordUrl}`,
         `
 <div style="background:#f4f6f9;padding:28px 16px;">
@@ -283,7 +284,7 @@ async function sendWelcomeCredentials(data) {
   <div style="background:#0f172a;border-radius:12px 12px 0 0;padding:28px 28px 24px;">
     <div style="display:flex;align-items:center;gap:7px;margin-bottom:22px;">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2.5" stroke="#7dd3fc" stroke-width="1.8"/><path d="M2 8.5l10 5.5 10-5.5" stroke="#7dd3fc" stroke-width="1.8" stroke-linecap="round"/></svg>
-      <span style="color:#7dd3fc;font-size:12px;font-weight:700;letter-spacing:2.5px;">RECELLO</span>
+      <span style="color:#7dd3fc;font-size:12px;font-weight:700;letter-spacing:2.5px;">ZP-ROASTER</span>
     </div>
     <div style="width:32px;height:2px;background:#3b82f6;border-radius:2px;margin-bottom:14px;"></div>
     <h1 style="color:#f8fafc;font-size:18px;font-weight:700;margin:0 0 6px;line-height:1.4;">Welcome aboard, ${name}.</h1>
@@ -315,7 +316,7 @@ async function sendWelcomeCredentials(data) {
   </div>
 
   <div style="background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;">
-    <span style="font-size:11px;color:#94a3b8;">© 2026 Recello</span>
+    <span style="font-size:11px;color:#94a3b8;">© 2026 ZP-Roaster</span>
     <span style="font-size:11px;color:#cbd5e1;">Account notification</span>
   </div>
 

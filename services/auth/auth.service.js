@@ -1,7 +1,7 @@
 const pool = require("../../config/database");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { sendEmail } = require("../../providers/email.provider");
+// const { sendEmail } = require("../../providers/email.provider");
 const { v7: uuid7 } = require("uuid");
 const { sendWelcomeCredentials } = require("../../controllers/Excel/ExcelOps");
 const SALT_ROUNDS = 10;
@@ -43,7 +43,7 @@ const _checkPermission = async (userId, permissionName) => {
 
 exports.addZPAdmin = async (data) => {
     await _checkPermission(data.user.user_id, "add_zp_admin");
-    // console.log('deva')
+
     const role = await pool.query(`SELECT role_id FROM roles WHERE name='zp_admin'`);
     if (role.rowCount === 0) {
         throw { status: 400, message: "Invalid role_id for ZP admin" }
@@ -159,6 +159,7 @@ const registerUser = async (data) => {
              VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [userId, first_name, last_name, department_id || null, user.user_id, aadhar_number || null, employee_id || null]
         );
+        
         await sendWelcomeCredentials({
             email,
             password,
