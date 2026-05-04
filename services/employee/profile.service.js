@@ -281,12 +281,14 @@ exports.savePersonalInfoStep6 = async ({ user_id, photo, signature }) => {
 
 exports.savePersonalInfoStep7 = async ({ user_id, permanent, current }) => {
     // console.log(current, current.length, current)
-    if (!permanent || !permanent.address_line || !permanent.post_office || !permanent.city || !permanent.district || !permanent.taluka || !permanent.pin_code || !permanent.mobile || !permanent.std_code || !permanent.phone_number || !permanent.is_govt_residence || !permanent.residing_since) {
-        throw { status: 400, message: "All fields are required in Address" };
+    if (!permanent || !permanent.address_line || !permanent.post_office || !permanent.city || !permanent.district || !permanent.taluka || !permanent.pin_code || !permanent.mobile || !permanent.std_code || !permanent.phone_number) {
+        if (permanent.is_govt_residence == "true" && !permanent.residing_since) throw { status: 400, message: "Government residance date is required" };
+        throw { status: 400, message: "All fields are required in Permanant Address" };
     }
 
-    if ((current && Object.keys(current).length) && (!current.address_line || !current.post_office || !current.city || !current.district || !current.taluka || !current.pin_code || !current.mobile || !current.std_code || !current.phone_number || !current.is_govt_residence || !current.residing_since)) {
-        throw { status: 400, message: "All fields are required in current" };
+    if ((current && Object.keys(current).length) && (!current.address_line || !current.post_office || !current.city || !current.district || !current.taluka || !current.pin_code || !current.mobile || !current.std_code || !current.phone_number)) {
+        if (current.is_govt_residence == "true" && !current.residing_since) throw { status: 400, message: "Government residance date is required" };
+        throw { status: 400, message: "All fields are required in Current Address" };
     }
     let permanent_res;
     const client = await pool.connect();
@@ -616,10 +618,10 @@ exports.saveEducationStep2 = async ({ user_id, course_name, institution, coordin
     return training_res.rows[0] || [];
 }
 exports.saveEducationStep3 = async ({ user_id, exam_name, status, pass_date, attempt_number }) => {
-
-    if (!user_id || !exam_name || !status || !pass_date || !attempt_number) {
-        throw { status: 400, message: "All fields are required" };
-    }
+    if (!user_id || !exam_name || !attempt_number) throw { status: 400, message: "Exam Name and attempt number are required" }
+    if (status == 2 && !pass_date) {
+        throw { status: 400, message: "Passing date is required" };
+    } else pass_date = '1900-01-01'
 
     // let education_res;
     const client = await pool.connect();
@@ -659,9 +661,10 @@ exports.saveEducationStep3 = async ({ user_id, exam_name, status, pass_date, att
 
 exports.saveEducationStep4 = async ({ user_id, exam_name, status, pass_date, attempt_number }) => {
 
-    if (!user_id || !exam_name || !status || !pass_date || !attempt_number) {
-        throw { status: 400, message: "All fields are required" };
-    }
+    if (!user_id || !exam_name || !attempt_number) throw { status: 400, message: "Exam Name and attempt number are required" }
+    if (status == 2 && !pass_date) {
+        throw { status: 400, message: "Passing date is required" };
+    } else pass_date = '1900-01-01'
 
     // let education_res;
     const client = await pool.connect();
@@ -730,7 +733,7 @@ exports.saveEducationStep5 = async ({ user_id, computer_passed, computer_exempte
             user_id, computer_passed, computer_exempted, computer_pass_date, computer_exempt_date, computer_institution, computer_cert_no, marathi_typing_passed, marathi_typing_exempted, marathi_typing_wpm, marathi_typing_pass_date, marathi_typing_exempt_date, marathi_typing_institution, marathi_typing_cert_no, english_typing_passed, english_typing_exempted, english_typing_wpm, english_typing_pass_date, english_typing_exempt_date, english_typing_institution, english_typing_cert_no, increment_withheld_typing, recovery_done, marathi_lang_passed, marathi_lang_exempted, marathi_lang_pass_date, marathi_lang_exempt_date, hindi_lang_passed, hindi_lang_exempted, hindi_lang_pass_date, hindi_lang_exempt_date
         ]
         );
-        
+
         await client.query(
             `UPDATE employee_profiles SET current_step = 1,current_section=3  WHERE user_id = $1`,
             [user_id]
@@ -792,10 +795,14 @@ exports.saveServiceInfoStep1 = async ({ user_id, appointment_route, social_reser
 }
 
 exports.saveServiceInfoStep2 = async ({ user_id, employment_type, status_date, probation_applicable, probation_start_date, probation_end_date, probation_completed, probation_order_date, probation_order_number, has_permanency_cert, permanency_cert_date, permanent_from_date, permanent_post_name, probation_cert, permanent_benefit_cert }) => {
-    console.log({ user_id, employment_type, status_date, probation_applicable, probation_start_date, probation_end_date, probation_completed, probation_order_date, probation_order_number, has_permanency_cert, permanency_cert_date, permanent_from_date, permanent_post_name, probation_cert, permanent_benefit_cert })
-    if (!user_id || !employment_type || !status_date || !probation_applicable || !probation_start_date || !probation_end_date || !probation_completed || !probation_order_date || !probation_order_number || !has_permanency_cert || !permanency_cert_date || !permanent_from_date || !permanent_post_name || !probation_cert || !permanent_benefit_cert) {
-        throw { status: 400, message: "All fields are required" };
+
+    if (!user_id || !employment_type || !status_date) {
+        throw { status: 400, message: "employment_type and status date are incorrect" };
     }
+
+    if (probation_applicable == "true" && (!probation_start_date || !probation_end_date || !probation_completed || !probation_order_date || !probation_order_number || !probation_cert)) throw { status: 400, message: "Probation Details Incorrect" }
+
+    if (has_permanency_cert == "true" && (!permanency_cert_date || !permanent_from_date || !permanent_post_name || !permanent_benefit_cert)) throw { status: 400, message: "Permanant post details incorrect" }
 
     let probation_res;
     const client = await pool.connect();
