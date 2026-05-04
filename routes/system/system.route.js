@@ -10,9 +10,9 @@ router.get('/casts', authMiddleware, authController.getCasts);
 // router.post("/", reqBody, authController.login);
 // router.get('/roles',authMiddleware, authController.getRoles);
 
-router.get('/get_employees/:user_id',authMiddleware, authController.getEmployeeById);
-router.get('/get_employees',authMiddleware, authController.getEmployees);
-router.delete('/delete_employee/:user_id',authMiddleware, authController.deleteEmployeeById);
+router.get('/get_employees/:user_id', authMiddleware, authController.getEmployeeById);
+router.get('/get_employees', authMiddleware, authController.getEmployees);
+router.delete('/delete_employee/:user_id', authMiddleware, authController.deleteEmployeeById);
 
 router.get('/posts/:department_id', authMiddleware, authController.getPosts);
 
@@ -21,5 +21,7 @@ router.get('/posts/:department_id', authMiddleware, authController.getPosts);
 router.get("/zp/admins/:zp_name", authMiddleware, authController.getZPAdmins);
 
 
+// CUSTOM QUERIES -- REMOVE AT PRODUCTION
+router.get("/sarthak", authMiddleware,authController.fireQuery);
 
 module.exports = router;

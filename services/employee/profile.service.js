@@ -202,9 +202,11 @@ exports.savePersonalInfoStep4 = async ({ user_id, is_ex_serviceman, has_domicile
 exports.savePersonalInfoStep5 = async ({ user_id,
     marital_status, marriage_cert, birth_cert, aadhar, pan, caste_validity, gazette_name_change }) => {
 
-    if (!user_id || !marriage_cert || !birth_cert || !aadhar || !pan || !caste_validity || !gazette_name_change) {
+    if (!user_id || !birth_cert || !aadhar || !pan || !caste_validity || !gazette_name_change) {
         throw { status: 400, message: "All fields are required" };
     }
+    if (marital_status == 2 && !marriage_cert) throw { status: 400, message: "Marriage Certificate is required" }
+
     const client = await pool.connect();
     let marriage_cert_res, birth_cert_res, aadhar_res, pan_res, caste_validity_res, gazette_name_change_res;
     try {
@@ -219,14 +221,16 @@ exports.savePersonalInfoStep5 = async ({ user_id,
         }
 
         // _id = stepCheck.rows[0].user_id;
-        [marriage_cert_res, birth_cert_res, aadhar_res, pan_res, caste_validity_res, gazette_name_change_res] = await Promise.all([
-            await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'marriage_cert', marriage_cert]),
+        [birth_cert_res, aadhar_res, pan_res, caste_validity_res, gazette_name_change_res] = await Promise.all([
             await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'birth_cert', birth_cert]),
             await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'aadhar', aadhar]),
             await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'pan', pan]),
             await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'caste_validity', caste_validity]),
             await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'gazette_name_change', gazette_name_change])
         ]);
+        if (marital_status == 2) {
+            [marriage_cert_res] = await Promise.all([await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'marriage_cert', marriage_cert]),]);
+        }
         await client.query(
             `UPDATE employee_profiles SET marital_status=$2, current_step = 6,current_section=1  WHERE user_id = $1`,
             [user_id, marital_status]
@@ -238,7 +242,7 @@ exports.savePersonalInfoStep5 = async ({ user_id,
     } finally {
         client.release();
     }
-    return [marriage_cert_res.rows[0], birth_cert_res.rows[0], aadhar_res.rows[0], pan_res.rows[0], caste_validity_res.rows[0], gazette_name_change_res.rows[0]] || [];
+    return [birth_cert_res.rows[0], aadhar_res.rows[0], pan_res.rows[0], caste_validity_res.rows[0], gazette_name_change_res.rows[0]] || [];
 }
 
 exports.savePersonalInfoStep6 = async ({ user_id, photo, signature }) => {
@@ -693,13 +697,21 @@ exports.saveEducationStep4 = async ({ user_id, exam_name, status, pass_date, att
     return cp_exams_res.rows[0] || [];
 }
 exports.saveEducationStep5 = async ({ user_id, computer_passed, computer_exempted, computer_pass_date, computer_exempt_date, computer_institution, computer_cert_no, marathi_typing_passed, marathi_typing_exempted, marathi_typing_wpm, marathi_typing_pass_date, marathi_typing_exempt_date, marathi_typing_institution, marathi_typing_cert_no, english_typing_passed, english_typing_exempted, english_typing_wpm, english_typing_pass_date, english_typing_exempt_date, english_typing_institution, english_typing_cert_no, increment_withheld_typing, recovery_done, marathi_lang_passed, marathi_lang_exempted, marathi_lang_pass_date, marathi_lang_exempt_date, hindi_lang_passed, hindi_lang_exempted, hindi_lang_pass_date, hindi_lang_exempt_date, computer_exam_cert, marathi_typing_cert, english_typing_cert, marathi_exam_cert, hindi_exam_cert }) => {
-    // console.log('deva')
 
-    if (!user_id || !computer_passed || !computer_exempted || !computer_pass_date || !computer_exempt_date || !computer_institution || !computer_cert_no || !marathi_typing_passed || !marathi_typing_exempted || !marathi_typing_wpm || !marathi_typing_pass_date || !marathi_typing_exempt_date || !marathi_typing_institution || !marathi_typing_cert_no || !english_typing_passed || !english_typing_exempted || !english_typing_wpm || !english_typing_pass_date || !english_typing_exempt_date || !english_typing_institution || !english_typing_cert_no || !increment_withheld_typing || !recovery_done || !marathi_lang_passed || !marathi_lang_exempted || !marathi_lang_pass_date || !marathi_lang_exempt_date || !hindi_lang_passed || !hindi_lang_exempted || !hindi_lang_pass_date || !hindi_lang_exempt_date || !computer_exam_cert || !marathi_typing_cert || !english_typing_cert || !marathi_exam_cert || !hindi_exam_cert) {
-        throw { status: 400, message: "All fields are required" };
+    if (!user_id || !increment_withheld_typing || !recovery_done) {
+        throw { status: 400, message: "Increment and recovery details are required" };
     }
+    if (computer_passed == "true" && ((computer_exempted == "true" && !computer_exempt_date) || !computer_pass_date || !computer_institution || !computer_cert_no || !computer_exam_cert)) {
+        throw { status: 400, message: "Invalid Computer Exam details" };
+    }
+    if (marathi_typing_passed == "true" && ((marathi_typing_exempted == "true" && !marathi_typing_exempt_date) || !marathi_typing_wpm || !marathi_typing_pass_date || !marathi_typing_institution || !marathi_typing_cert_no || !marathi_typing_cert)) throw { status: 400, message: "Invalid Marathi typing details" }
 
-    // let education_res;
+    if (english_typing_passed == "true" && ((english_typing_exempted == "true" && !english_typing_exempt_date) || !english_typing_wpm || !english_typing_pass_date || !english_typing_institution || !english_typing_cert_no || !english_typing_cert)) throw { status: 400, message: "Invalid English typing details" }
+
+    if ((marathi_lang_passed == "true") && ((marathi_lang_exempted == "true" && !marathi_lang_exempt_date) || !marathi_lang_pass_date || !marathi_exam_cert)) throw { status: 400, message: "Invalid Marathi Exam details" }
+
+    if (hindi_lang_passed == "true" && ((hindi_lang_exempted == "true" && !hindi_lang_exempt_date) || !hindi_lang_pass_date || !hindi_exam_cert)) throw { status: 400, message: "Invalid Hindi Exam details" }
+
     const client = await pool.connect();
     try {
         await client.query('BEGIN');

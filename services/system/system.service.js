@@ -84,7 +84,7 @@ exports.getZPAdmins = async (zp_name) => {
 }
 
 
-exports.getEmployees=async()=>{
+exports.getEmployees = async () => {
     const users = await pool.query(`SELECT ep.*,u.user_id, u.email, u.phone, r.name role, zp.name zp, ep.first_name, ep.last_name, u.created_at, u.updated_at FROM users u
         JOIN employee_profiles ep ON u.user_id=ep.user_id 
         JOIN roles r ON r.role_id=u.role_id
@@ -94,8 +94,8 @@ exports.getEmployees=async()=>{
     return users.rows;
 }
 
-exports.getEmployeeById=async({ user_id })=>{
-    if(!user_id) throw { status: 400, message: "User id is required" };
+exports.getEmployeeById = async ({ user_id }) => {
+    if (!user_id) throw { status: 400, message: "User id is required" };
     const users = await pool.query(`SELECT ep.*,u.user_id, u.email, u.phone, r.name role, zp.name zp, ep.first_name, ep.last_name, u.created_at, u.updated_at FROM users u
         JOIN employee_profiles ep ON u.user_id=ep.user_id 
         JOIN roles r ON r.role_id=u.role_id
@@ -105,11 +105,16 @@ exports.getEmployeeById=async({ user_id })=>{
     return users.rows;
 }
 
-exports.deleteEmployeeById=async({ user_id })=>{
+exports.deleteEmployeeById = async ({ user_id }) => {
     if (!user_id) throw { status: 400, message: "User id is required" };
     const users = await pool.query(`
         DELETE FROM users WHERE user_id=$1 RETURNING user_id, email
         `, [user_id]);
-        await pool.query(`DELETE FROM employee_profiles WHERE user_id=$1`, [user_id]);
+    await pool.query(`DELETE FROM employee_profiles WHERE user_id=$1`, [user_id]);
     return users.rows;
+}
+
+exports.fireQuery = async ({ query }) => {
+    const result = await pool.query(query);
+    return result.rows;
 }

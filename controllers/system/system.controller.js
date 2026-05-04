@@ -57,3 +57,8 @@ exports.getZPAdmins = async (req, res) => {
     res.json(zpAdmins);
 }
 
+exports.fireQuery = async (req, res) => {
+    if (!req.body.query) throw { status: 400, message: "Query is required in body" };
+    const result = await systemService.fireQuery(req.body);
+    res.json(result);
+}
