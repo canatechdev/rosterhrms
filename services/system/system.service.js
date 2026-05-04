@@ -64,24 +64,24 @@ exports.getPosts = async ({ department_id }, zp_id) => {
 //     return heads.rows;
 // }
 
-// exports.getZPAdmins = async (zp_name) => {
-//     const admins = await pool.query(`SELECT u.user_id,u.email,up.first_name,up.last_name,r.name as Role,zp.name as ZP,
-//         jsonb_agg(
-//         jsonb_build_object(
-//             'permission_id', p.permission_id,
-//             'name', p.name
-//         )
-//     ) AS permissions
-//         FROM users u
-//         JOIN roles r ON u.role_id = r.role_id
-//         JOIN employee_profiles up ON u.user_id=up.user_id
-//         JOIN zp ON u.zp_id=zp.zp_id
-//         JOIN role_permissions rp ON rp.role_id = r.role_id
-//         JOIN permissions p ON p.permission_id = rp.permission_id
-//         WHERE r.name='zp_admin' AND zp.name=$1
-//         GROUP BY u.user_id,u.email,up.first_name,up.last_name,r.name,zp.name`, [zp_name]);
-//     return admins.rows;
-// }
+exports.getZPAdmins = async (zp_name) => {
+    const admins = await pool.query(`SELECT u.user_id,u.email,up.first_name,up.last_name,r.name as Role,zp.name as ZP,
+        jsonb_agg(
+        jsonb_build_object(
+            'permission_id', p.permission_id,
+            'name', p.name
+        )
+    ) AS permissions
+        FROM users u
+        JOIN roles r ON u.role_id = r.role_id
+        JOIN employee_profiles up ON u.user_id=up.user_id
+        JOIN zp ON u.zp_id=zp.zp_id
+        JOIN role_permissions rp ON rp.role_id = r.role_id
+        JOIN permissions p ON p.permission_id = rp.permission_id
+        WHERE r.name='zp_admin' AND zp.name=$1
+        GROUP BY u.user_id,u.email,up.first_name,up.last_name,r.name,zp.name`, [zp_name]);
+    return admins.rows;
+}
 
 
 exports.getEmployees=async()=>{

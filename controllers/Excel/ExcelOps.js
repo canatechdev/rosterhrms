@@ -269,13 +269,13 @@ async function processUploadedFile(req, res) {
     }
 }
 async function sendWelcomeCredentials(data) {
-    const { email, password, name, changePasswordUrl } = data;
+    const { email, password, name, message, changePasswordUrl } = data;
     if (!email || !password || !name || !changePasswordUrl) {
         throw { status: 400, message: "email, password, name and changePasswordUrl are required to send welcome email" };
     }
     await sendEmail(
         email,
-        "Welcome to ZP-Roaster — Your account is ready",
+        message,
         `Hi ${name}, your login: ${email} / ${password}. Change it at: ${changePasswordUrl}`,
         `
 <div style="background:#f4f6f9;padding:28px 16px;">
@@ -288,7 +288,7 @@ async function sendWelcomeCredentials(data) {
     </div>
     <div style="width:32px;height:2px;background:#3b82f6;border-radius:2px;margin-bottom:14px;"></div>
     <h1 style="color:#f8fafc;font-size:18px;font-weight:700;margin:0 0 6px;line-height:1.4;">Welcome aboard, ${name}.</h1>
-    <p style="color:#94a3b8;font-size:13px;margin:0;line-height:1.5;">Your account has been created and is ready to use.</p>
+    <p style="color:#94a3b8;font-size:13px;margin:0;line-height:1.5;">New credentials have been generated and Account is ready to use.</p>
   </div>
 
   <div style="background:#fff;padding:24px 28px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
@@ -316,7 +316,7 @@ async function sendWelcomeCredentials(data) {
   </div>
 
   <div style="background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;">
-    <span style="font-size:11px;color:#94a3b8;">© 2026 ZP-Roaster</span>
+    <span style="font-size:11px;color:#94a3b8;">© ${new Date().getFullYear()} ZP-Roaster </span>
     <span style="font-size:11px;color:#cbd5e1;">Account notification</span>
   </div>
 

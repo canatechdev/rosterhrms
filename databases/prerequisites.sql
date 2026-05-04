@@ -185,7 +185,7 @@ BEGIN;
     (13, 13, 3, 1,1);
 
     INSERT INTO users(email, phone, password, role_id, zp_id) 
-    VALUES ('super.admin@gmail.com','7498605559','$2b$10$GcVY0w77WH8tCJezUmNgS.jFn8mGfq/oA/f1EzRfL9vVkkxHR6uF.', 1, 1);
+    VALUES ('super.admin@gmail.com','7498605559','$2b$10$GcVY0w77WH8tCJezUmNgS.jFn8mGfq/oA/f1EzRfL9vVkkxHR6uF.', 1, null);
     
     INSERT INTO user_roles (user_id, role_id) VALUES
     (1, 1);

@@ -43,7 +43,7 @@ const _checkPermission = async (userId, permissionName) => {
 
 exports.addZPAdmin = async (data) => {
     await _checkPermission(data.user.user_id, "add_zp_admin");
-
+    data.is_verified = true; // ZP Admins are verified by default
     const role = await pool.query(`SELECT role_id FROM roles WHERE name='zp_admin'`);
     if (role.rowCount === 0) {
         throw { status: 400, message: "Invalid role_id for ZP admin" }
@@ -56,6 +56,7 @@ exports.addZPAdmin = async (data) => {
 }
 exports.addDeptHead = async (data) => {
     await _checkPermission(data.user.user_id, "add_department_head");
+    data.is_verified = true; // DEPARTMENT HEADS are verified by default
 
     if (!data.department_id) {
         throw { status: 400, message: "department_id is required for department head" }
@@ -107,7 +108,7 @@ const registerUser = async (data) => {
     const {
         email, phone, role_id,
         first_name, last_name, aadhar_number,
-        zp_id, department_id, user, employee_id
+        zp_id, department_id, user, employee_id, is_verified
     } = data;
     let { password } = data;
     // All fields mandatory for a proper employee record
@@ -118,7 +119,7 @@ const registerUser = async (data) => {
             message: "Required: email, phone, role_id, first_name, zp_id, department_id"
         };
     }
-    if (!password || password.length < 6) {
+    if (!password) {
         password = uuid7().replace(/-/g, '').slice(0, 10); // Generate a random 10 char password
     }
     const client = await pool.connect();
@@ -145,13 +146,13 @@ const registerUser = async (data) => {
 
         // Insert user
         const userResult = await client.query(
-            `INSERT INTO users (email, phone, password, role_id, zp_id)
-             VALUES ($1, $2, $3, $4, $5)
+            `INSERT INTO users (email, phone, password, role_id, zp_id, is_verified)
+             VALUES ($1, $2, $3, $4, $5, $6)
              RETURNING user_id, email`,
-            [email, phone, hashedPassword, role_id, zp_id]
+            [email, phone, hashedPassword, role_id, zp_id, is_verified || false]
         );
         const userId = userResult.rows[0].user_id;
-
+        await client.query(`INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)`, [userId, role_id]);
         // Insert profile — zp_id stored directly per your schema
         await client.query(
             `INSERT INTO employee_profiles
@@ -159,13 +160,15 @@ const registerUser = async (data) => {
              VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [userId, first_name, last_name, department_id || null, user.user_id, aadhar_number || null, employee_id || null]
         );
-
-        await sendWelcomeCredentials({
-            email,
-            password,
-            name: first_name,
-            changePasswordUrl: `${process.env.BASE_URL}/change_password`
-        });
+        if (roleCheck.rows[0].name === 'employee') {
+            await sendWelcomeCredentials({
+                message: "Welcome to ZP-Roaster — Your account is ready",
+                email,
+                password,
+                name: first_name,
+                changePasswordUrl: `${process.env.BASE_URL}/change_password`
+            });
+        }
         await client.query("COMMIT");
         return userResult.rows;
     } catch (err) {
@@ -176,6 +179,61 @@ const registerUser = async (data) => {
     }
 };
 
+exports.loginSuperAdmin = async ({ email, password }) => {
+    const client = await pool.connect();
+    await client.query("BEGIN");
+    try {
+        const su_admin = await client.query(`SELECT user_id, password FROM users WHERE
+            role_id = (SELECT role_id FROM roles WHERE name='super_admin') AND email = $1`, [email]);
+        if (su_admin.rowCount === 0) {
+            throw { status: 404, message: "No Such Super Admin" };
+        }
+        const isMatch = await bcrypt.compare(password, su_admin.rows[0].password);
+        if (!isMatch) {
+            throw { status: 401, message: "Invalid credentials" };
+        }
+        const result = await client.query(
+            `SELECT
+                u.user_id,
+                u.email,
+                u.phone,
+                u.status,
+                ARRAY_AGG(DISTINCT r.name) AS roles,
+                ARRAY_AGG(DISTINCT p.name) AS permissions
+             FROM users u
+             LEFT JOIN roles r ON u.role_id = r.role_id
+             JOIN role_permissions rp ON u.role_id = rp.role_id
+             JOIN permissions p ON rp.permission_id = p.permission_id
+             WHERE u.email = $1 AND r.name='super_admin'
+             GROUP BY u.user_id, r.name`,
+            [email]
+        );
+
+        if (result.rowCount === 0) {
+            throw { status: 401, message: "Invalid credentials" };
+        }
+
+        const user = result.rows[0];
+
+        if (user.status !== 1) {
+            throw { status: 403, message: "Account is inactive. Contact administrator." };
+        }
+
+        const { accessToken, refreshToken } = await _issueTokens(client, user.user_id, user.email);
+
+        // Never send password hash to client
+        const { password: _pwd, status: status, ...safeUser } = user;
+        await client.query("COMMIT");
+        return { accessToken, refreshToken, user: safeUser };
+
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw { status: err.status || 500, message: err.message || "Login failed" };
+    } finally {
+        client.release();
+    }
+}
+
 exports.loginUser = async ({ email, password, zp_name }) => {
     if (!email || !password) {
         throw { status: 400, message: "Email and password are required" };
@@ -184,8 +242,8 @@ exports.loginUser = async ({ email, password, zp_name }) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-
         const zpDetails = await client.query(`SELECT zp_id FROM zp WHERE name = $1`, [zp_name]);
+
         if (zpDetails.rowCount === 0) {
             throw { status: 400, message: "Invalid ZP in URL" };
         }
@@ -332,11 +390,40 @@ exports.changePassword = async ({ old_password, new_password, user }) => {
             throw { status: 401, message: "Old password is incorrect" };
         }
         const hashedPassword = await bcrypt.hash(new_password, SALT_ROUNDS);
-        await client.query(`UPDATE users SET password = $1 WHERE user_id = $2`, [hashedPassword, user.user_id]);
+        await client.query(`UPDATE users SET password = $1, is_verified = true WHERE user_id = $2`, [hashedPassword, user.user_id]);
         return { message: "Password changed successfully" };
 
     } catch (err) {
         throw { status: err.status || 500, message: err.message || "Password change failed" };
+    } finally {
+        client.release();
+    }
+}
+
+exports.resetPassword = async ({ user_id }) => {
+    const client = await pool.connect();
+    try {
+        const res = await client.query(`SELECT email, ep.first_name FROM users u JOIN employee_profiles ep ON u.user_id = ep.user_id WHERE u.user_id = $1`, [user_id]);
+        if (res.rowCount === 0) {
+            throw { status: 404, message: "User not found" };
+        }
+        const new_password = uuid7().replace(/-/g, '').slice(0, 10); // Generate a random 10 char password
+        const hashedPassword = await bcrypt.hash(new_password, SALT_ROUNDS);
+
+        await client.query(`UPDATE users SET password = $1, is_verified = false WHERE user_id = $2`, [hashedPassword, user_id]);
+
+        await sendWelcomeCredentials({
+            message: "Your password has been successfully reset. Kindly change your password",
+            email: res.rows[0].email,
+            password: new_password,
+            name: res.rows[0].first_name,
+            changePasswordUrl: `${process.env.BASE_URL}/change_password`
+        });
+
+        return { message: "Password reset successfully" };
+
+    } catch (err) {
+        throw { status: err.status || 500, message: err.message || "Password reset failed" };
     } finally {
         client.release();
     }
