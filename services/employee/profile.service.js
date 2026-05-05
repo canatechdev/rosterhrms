@@ -154,13 +154,18 @@ exports.getPersonalInfoStep3 = async ({ user_id }) => {
 }
 
 exports.savePersonalInfoStep4 = async ({ user_id, is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date }) => {
-    if (!user_id || !is_ex_serviceman || !has_domicile_cert || !spouse_in_service || !spouse_service_type || !spouse_office_type || !spouse_office_details || !spouse_employee_no || !has_pran || !pran_number || !gpf_number || !ppo_number || !ppo_date) {
+    if (!user_id || !is_ex_serviceman || !has_domicile_cert || !has_pran || !pran_number || !gpf_number || !ppo_number || !ppo_date) {
         throw { status: 400, message: "All fields are required" };
     }
+    if (spouse_in_service == "true" && (!spouse_service_type || !spouse_office_type || !spouse_office_details || !spouse_employee_no)) {
+        throw { status: 400, message: "All spouse in service details are required" }
+    } else {
+        spouse_service_type = null; spouse_office_type = null; spouse_office_details = null; spouse_employee_no = null;
+    }
+
     const client = await pool.connect();
     let updated;
     try {
-        // console.log('AADHA', 'aadhar_number', user_id)
         const stepCheck = await client.query(
             `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
             [user_id]
