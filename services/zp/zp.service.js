@@ -1192,6 +1192,27 @@ exports.getZPAdmins = async (zp_name) => {
     return admins.rows;
 }
 
+exports.mapDepartmentsToZP = async (zp_name, department_ids) => {
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+        const zpRes = await client.query(`SELECT zp_id FROM zp WHERE name = $1 AND status = 1`, [zp_name]);
+        if (zpRes.rows.length === 0) {
+            throw new Error("ZP not found");
+        }
+        const zp_id = zpRes.rows[0].zp_id;
+        await client.query(`DELETE FROM zp_departments WHERE zp_id = $1`, [zp_id]);
+        await client.query(`INSERT INTO zp_departments(zp_id, department_id)
+            SELECT $1, UNNEST($2::int[])`,[zp_id, department_ids]);
 
-
-
+        await client.query("COMMIT");
+        return { success: true };
+    } catch (error) {
+        await client.query("ROLLBACK");
+        console.error("Error in mapDepartmentsToZP service:", error);
+        throw error;
+    }   
+    finally {
+        client.release();
+    }
+}

@@ -23,13 +23,10 @@ const getDepartmentById = asyncHandler(async (req, res) => {
 });
 
 // get all getDepartmentHead
-const getDepartmentHead = async (req, res) => {
-    // if(!req.params) throw {status:400,message:"Department id is required"};
-    // const zp_id = .user_id;
-    // console.log('radha',req.user)
+const getDepartmentHead = asyncHandler(async (req, res) => {
     const posts = await departmentService.getDepartmentHead(req.user);
     res.json(posts);
-}
+});
 
 const updateDepartment = asyncHandler(async (req, res) => {
     // const { id } = req.params;

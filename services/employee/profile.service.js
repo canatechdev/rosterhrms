@@ -154,13 +154,17 @@ exports.getPersonalInfoStep3 = async ({ user_id }) => {
 }
 
 exports.savePersonalInfoStep4 = async ({ user_id, is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date }) => {
-    if (!user_id || !is_ex_serviceman || !has_domicile_cert || !has_pran || !pran_number || !gpf_number || !ppo_number || !ppo_date) {
+    if (!user_id || !is_ex_serviceman || !has_domicile_cert ||  !gpf_number || !ppo_number || !ppo_date) {
         throw { status: 400, message: "All fields are required" };
     }
+
     if (spouse_in_service == "true" && (!spouse_service_type || !spouse_office_type || !spouse_office_details || !spouse_employee_no)) {
         throw { status: 400, message: "All spouse in service details are required" }
     } else {
         spouse_service_type = null; spouse_office_type = null; spouse_office_details = null; spouse_employee_no = null;
+    }
+    if (has_pran=="true" && !pran_number) {
+        throw { status: 400, message: "PRAN Number is required" };
     }
 
     const client = await pool.connect();

@@ -55,5 +55,6 @@ router.post("/retire-employee/:user_id", authMiddleware, zpController.retireAllZ
 router.post("/promote-employee",authMiddleware,reqBody,zpController.promoteEmployee);
 router.post("/transfer-employee/:user_id",authMiddleware,reqBody,zpController.transferEmployee);
 
+router.post('/map/departments/:zp_name', authMiddleware, reqBody, zpController.mapDepartmentsToZP);
  
 module.exports = router;
