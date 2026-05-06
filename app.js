@@ -26,9 +26,13 @@ const STATIC_ORIGINS = [
   "http://localhost:5174",
   "http://localhost:3000",
   "http://localhost",
+  "http://192.168.1.6:5173/",
+  "http://192.168.1.5:5173/",
   "http://192.168.1.36:5173",
+  "http://192.168.1.34:5173",
   "http://10.177.14.133:5173",
   "http://172.20.10.11:5173",
+  "http://zproster.thecanatech.com",
   "https://zproster.thecanatech.com",
 ];
 
@@ -92,7 +96,8 @@ app.use(express.static(appPath, {
     if (filePath.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
   }
 }));
-app.get('/{*any}', (req, res, next) => {  if (req.path.startsWith('/api') || req.path.includes('.')) return next();
+app.get('/{*any}', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.includes('.')) return next();
   res.sendFile(path.join(appPath, 'index.html'));
 });
 
@@ -102,13 +107,13 @@ app.use('/api/departments', require('./routes/system/department.route'));
 app.use('/api/roles', require('./routes/system/role.route.js'));
 app.use('/api/permissions', require('./routes/system/permission.route.js'));
 app.use('/api/castes', require('./routes/system/caste.route.js'));
-// app.use('/api/cadres', require('./routes/system/cadre.route.js'));
 app.use('/api/posts', require('./routes/system/post.route.js'));
 app.use('/api/zp', require('./routes/zp/zp.route'));
 app.use('/api/districts', require('./routes/system/district.route.js'));
 app.use('/api/employee', require('./routes/employee/profile.route.js'));
 app.use('/api/system', require('./routes/system/system.route'));
 app.use('/api/masters', require('./routes/system/master.route.js'));
+app.use('/api/appraisals', require('./routes/employee/appraisals.route.js'));
 
 // ─── HEALTH & LOGS ────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => res.status(200).json({ status: "success", code: 200 }));

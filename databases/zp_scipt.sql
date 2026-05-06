@@ -40,8 +40,8 @@ BEGIN;
 	CREATE TABLE castes (
 		caste_id  BIGSERIAL PRIMARY KEY,
 		name      VARCHAR(100) NOT NULL,  -- SC, ST, OBC etc (code)
-		full_name VARCHAR(200) NOT NULL,  -- full Marathi name
-		full_name_mr VARCHAR(200),
+		name_mr VARCHAR(200),  -- full Marathi name
+		code VARCHAR(50) NOT NULL,
 		priority  INT NOT NULL,
 		status    INT NOT NULL DEFAULT 1
 	);
@@ -52,9 +52,10 @@ BEGIN;
 
 	CREATE TABLE roles (
 		role_id     BIGSERIAL PRIMARY KEY,
-		name        VARCHAR(100) NOT NULL, -- super_admin, zp_admin, dept_head, employee
+		name        VARCHAR(100) NOT NULL UNIQUE, -- super_admin, zp_admin, dept_head, employee
 		description TEXT
 	);
+
 
 	CREATE TABLE permissions (
 		permission_id BIGSERIAL PRIMARY KEY UNIQUE,
@@ -73,12 +74,16 @@ BEGIN;
 
 	CREATE TABLE departments (
 		department_id BIGSERIAL PRIMARY KEY,
-		zp_id         BIGINT REFERENCES zp(zp_id) ON DELETE SET NULL,
 		name          VARCHAR(100) NOT NULL,
 		code		  VARCHAR(20) NOT NULL UNIQUE,
 		name_mr       VARCHAR(200),
-		status        INT NOT NULL DEFAULT 1,
-		UNIQUE(zp_id, name)
+		status        INT NOT NULL DEFAULT 1
+	);
+
+	CREATE TABLE zp_departments(
+		zp_id BIGINT REFERENCES zp(zp_id) ON DELETE CASCADE,
+		department_id BIGINT REFERENCES departments(department_id) ON DELETE CASCADE,
+		PRIMARY KEY(zp_id, department_id)
 	);
 
 	CREATE TABLE posts (
@@ -134,6 +139,12 @@ BEGIN;
 		status      INT NOT NULL DEFAULT 1,
 		created_at  TIMESTAMP DEFAULT NOW(),
 		updated_at  TIMESTAMP DEFAULT NOW()
+	);
+
+	CREATE TABLE user_roles (
+		user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
+		role_id BIGINT REFERENCES roles(role_id) ON DELETE CASCADE,
+		PRIMARY KEY (user_id, role_id)
 	);
 
 	CREATE TABLE refresh_tokens (
@@ -255,7 +266,7 @@ BEGIN;
 	CREATE TABLE employee_education (
 		edu_id        BIGSERIAL PRIMARY KEY,
 		user_id       BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-		edu_type      VARCHAR(50),    -- illiterate/pre_primary/primary/secondary/higher_secondary/graduate/postgraduate
+		edu_type      VARCHAR(50) UNIQUE,    -- illiterate/pre_primary/primary/secondary/higher_secondary/graduate/postgraduate
 		institution   VARCHAR(200),
 		qualification VARCHAR(200),
 		pass_year     SMALLINT,
@@ -375,6 +386,7 @@ BEGIN;
 		increment_date      DATE,
 		effective_date      DATE,
 		is_advance          BOOLEAN DEFAULT FALSE,
+		increment_cert		TEXT,
 		created_at          TIMESTAMP DEFAULT NOW()
 	);
 
@@ -914,38 +926,6 @@ BEGIN;
 
 COMMIT;
 
-
-	CREATE TABLE headquarters (
-		hq_id SERIAL PRIMARY KEY,
-		zp_id INT NOT NULL,
-		name VARCHAR(150) NOT NULL,
-		name_mr VARCHAR(150) NOT NULL,
-		status INT NOT NULL DEFAULT 1,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	);
-
-	CREATE TABLE blocks (
-    block_id SERIAL PRIMARY KEY,
-
-    zp_id INT NOT NULL,
-
-    name VARCHAR(150) NOT NULL,
-
-    name_mr VARCHAR(150) NOT NULL,
-
-    status INT DEFAULT 1,
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_blocks_zp
-    FOREIGN KEY (zp_id)
-    REFERENCES zp(zp_id)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
-);
 
 
 -- NOT FOR NOW

@@ -79,4 +79,6 @@ router.post("/transfer-employee/:user_id",authMiddleware,reqBody,zpController.tr
 
 
 
+router.post('/map/departments/:zp_name', authMiddleware, reqBody, zpController.mapDepartmentsToZP);
+ 
 module.exports = router;

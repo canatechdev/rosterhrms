@@ -14,20 +14,22 @@ BEGIN;
     (7, 'जि.प.सेस','appointment_type',7),
     (8, 'कालेलकर आयोग','appointment_type',8),
     (9, 'स्पर्धा परीक्षा','appointment_type',9),
+
     (1, 'PERSONAL_INFO','employee_sections',1),
     (2, 'EDUCATION','employee_sections',2),
     (3, 'SERVICE_INFO','employee_sections',3),
     (4, 'PAYMENT_INFO','employee_sections',4),
     (5, 'TRANSFER_INFO','employee_sections',5),
-    (6, 'PROMOTION_INFO','employee_sections',6),
-    (7, 'SERVICE_EXTENSION_INFO','employee_sections',7),
-    (8, 'DISABILITY_INFO','employee_sections',8),
-    (9, 'GROUP_INSURANCE','employee_sections',9),
-    (10, 'DISCUSSION_INFO','employee_sections',10),
-    (11, 'ADVANCES_INFO','employee_sections',11),
-    (12, 'MEDICAL_CONDITIONS','employee_sections',12),
-    (13, 'SERVICE_BOOK_INFO','employee_sections',13),
+    (6, 'DISCUSSION_INFO','employee_sections',6),
+    (7, 'SERVICE_BOOK_INFO','employee_sections',7),
+    (8, 'MEDICAL_CONDITIONS','employee_sections',8),
+    (9, 'PROMOTION_INFO','employee_sections',9),
+    (10, 'SERVICE_EXTENSION_INFO','employee_sections',10),
+    (11, 'DISABILITY_INFO','employee_sections',11),
+    (12, 'GROUP_INSURANCE','employee_sections',12),
+    (13, 'ADVANCES_INFO','employee_sections',13),
     (14, 'CERTIFICATE_INFO','employee_sections',14),
+    
     (1, 'विवाहित','marital_status',1),
     (2, 'अविवाहित','marital_status',2),
     (3, 'विधवा','marital_status',3),
@@ -84,32 +86,36 @@ BEGIN;
     ('super_admin', 'Full system control'),
     ('zp_admin', 'Manages ZP level operations'),
     ('dept_head', 'Manages department specific ops'),
-    ('employee', 'Basic employee access');
+    ('employee', 'Basic employee access'),
+    ('reporting_officer', 'Reporting officer (Appraisals)'),
+    ('reviewing_officer', ' Reviewing officer (Appraisals)'),
+    ('establishment_officer', 'Officer responsible for verifying employee details during appraisal initiation');
+
 
     INSERT INTO permissions (name) VALUES
-    ('add_employee'), ('add_zp_admin'), ('add_department_head'),
-    ('view_reports'), ('manage_employees'), ('manage_departments');
+    ('add_employee'),('add_zp_admin'),('add_department_head'),('view_reports'),
+    ('manage_employees'),('manage_departments'),('process_appraisals'),('reset_password');
 
     INSERT INTO role_permissions (role_id, permission_id) VALUES
     (1, 2), (1, 4), (1, 6), -- super_admin has all permissions
     (2, 3), (2, 4), (2, 5), -- zp_admin can manage employees and departments
-    (3, 1), (3, 4), -- dept_head can add employees and view reports
+    (3, 1), (3, 4),(3,7), -- dept_head can add employees and view reports
     (4, 4); -- employee can only view reports
 
     INSERT INTO genders (name) VALUES
     ('Male'), ('Female'), ('Other');
 
-    INSERT INTO castes (name, full_name, priority) VALUES
-    ('SC', 'Scheduled Castes', 1),
-    ('ST', 'Scheduled Tribes', 2),
-    ('VJ-A', 'Vimukta Jati', 4),
-    ('NT-B', 'Nomadic Tribes B', 5),
-    ('NT-C', 'Nomadic Tribes C', 5),
-    ('NT-D', 'Nomadic Tribes D', 5),
-    ('SBC', 'Special Backward Classes', 6),
-    ('EWS', 'Economically Weaker Sections', 7),
-    ('OBC', 'Other Backward Classes', 3),
-    ('Open', 'Open Category (Unreserved)', 8);
+    INSERT INTO castes (name, name_mr, code, priority) VALUES
+    ('SC', 'Scheduled Castes','SC1', 1),
+    ('ST', 'Scheduled Tribes','ST2', 2),
+    ('VJ-A', 'Vimukta Jati','VJ4', 4),
+    ('NT-B', 'Nomadic Tribes B','NT5', 5),
+    ('NT-C', 'Nomadic Tribes C','NT5', 5),
+    ('NT-D', 'Nomadic Tribes D','NT5', 5),
+    ('SBC', 'Special Backward Classes','SBC6', 6),
+    ('EWS', 'Economically Weaker Sections','EWS7', 7),
+    ('OBC', 'Other Backward Classes','OBC3', 3),
+    ('Open', 'Open Category (Unreserved)','Open8', 8);
 
     INSERT INTO departments (zp_id, name, code) VALUES
     (1, 'General Administration', 'GA'),
@@ -179,5 +185,8 @@ BEGIN;
     (13, 13, 3, 1,1);
 
     INSERT INTO users(email, phone, password, role_id, zp_id) 
-    VALUES ('super.admin@gmail.com','7498605559','$2b$10$GcVY0w77WH8tCJezUmNgS.jFn8mGfq/oA/f1EzRfL9vVkkxHR6uF.', 1, 1);
+    VALUES ('super.admin@gmail.com','7498605559','$2b$10$GcVY0w77WH8tCJezUmNgS.jFn8mGfq/oA/f1EzRfL9vVkkxHR6uF.', 1, null);
+    
+    INSERT INTO user_roles (user_id, role_id) VALUES
+    (1, 1);
 COMMIT;

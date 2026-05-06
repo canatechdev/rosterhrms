@@ -2,7 +2,9 @@ const pool = require('../../config/database');
 
 const createRole = async (name, description) => {
     const result = await pool.query(
-        'INSERT INTO roles (name, description) VALUES ($1, $2) RETURNING *',
+        `INSERT INTO roles (name, description) VALUES ($1, $2)
+        ON CONFLICT (name) DO UPDATE SET description = EXCLUDED.description
+        RETURNING *`,
         [name, description]
     );
     return result.rows[0];

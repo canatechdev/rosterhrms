@@ -748,7 +748,7 @@ exports.getRosterTemplateByZP = async (zp_id) => {
     try {
         console.log("Fetching roster template for ZP ID:", zp_id);
         const result = await pool.query(
-            `SELECT rt.template_id, rt.point_no, rt.caste_id, c.name,c.full_name, c.caste_id 
+            `SELECT rt.template_id, rt.point_no, rt.caste_id, c.name,c.name_mr, c.caste_id 
              FROM roster_template rt
              JOIN castes c ON rt.caste_id = c.caste_id
              WHERE rt.zp_id = $1 AND rt.status = 1`,
@@ -764,7 +764,7 @@ exports.getRosterTemplateByZP = async (zp_id) => {
 exports.getRosterTemplateById = async (template_id) => {
     try {
         const result = await pool.query(
-            `SELECT rt.template_id, rt.point_no, rt.caste_id, c.name, c.caste_id 
+            `SELECT rt.template_id, rt.point_no, rt.caste_id, c.name, c.name_mr, c.caste_id 
              FROM roster_template rt
              JOIN castes c ON rt.caste_id = c.caste_id
              WHERE rt.template_id = $1 AND rt.status = 1`,
@@ -963,7 +963,7 @@ exports.fillVacancy = async (vacancy_id, user_id, zp_id) => {
             throw new Error("Vacancy already filled");
         }
         const caste = await client.query(`
-    SELECT c.caste_id, c.name
+    SELECT c.caste_id, c.name, c.name_mr
     FROM vacancies v
     JOIN castes c ON v.caste_id = c.caste_id
     WHERE v.vacancy_id = $1
@@ -1081,7 +1081,7 @@ exports.getRosterByCadrePost = async (cadre_post_id, zp_id, filters = {}) => {
                 v.roster_point,
                 v.caste_id,
                 cs.name AS caste_name,
-                cs.full_name_mr,
+                cs.name_mr AS caste_name_mr,
                 v.status
             FROM cadre_posts cp
             JOIN cadres c ON cp.cadre_id = c.cadre_id
@@ -1381,6 +1381,27 @@ exports.getZPAdmins = async (zp_name) => {
     return admins.rows;
 }
 
+exports.mapDepartmentsToZP = async (zp_name, department_ids) => {
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+        const zpRes = await client.query(`SELECT zp_id FROM zp WHERE name = $1 AND status = 1`, [zp_name]);
+        if (zpRes.rows.length === 0) {
+            throw new Error("ZP not found");
+        }
+        const zp_id = zpRes.rows[0].zp_id;
+        await client.query(`DELETE FROM zp_departments WHERE zp_id = $1`, [zp_id]);
+        await client.query(`INSERT INTO zp_departments(zp_id, department_id)
+            SELECT $1, UNNEST($2::int[])`,[zp_id, department_ids]);
 
-
-
+        await client.query("COMMIT");
+        return { success: true };
+    } catch (error) {
+        await client.query("ROLLBACK");
+        console.error("Error in mapDepartmentsToZP service:", error);
+        throw error;
+    }   
+    finally {
+        client.release();
+    }
+}

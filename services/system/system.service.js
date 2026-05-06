@@ -64,27 +64,27 @@ exports.getPosts = async ({ department_id }, zp_id) => {
 //     return heads.rows;
 // }
 
-// exports.getZPAdmins = async (zp_name) => {
-//     const admins = await pool.query(`SELECT u.user_id,u.email,up.first_name,up.last_name,r.name as Role,zp.name as ZP,
-//         jsonb_agg(
-//         jsonb_build_object(
-//             'permission_id', p.permission_id,
-//             'name', p.name
-//         )
-//     ) AS permissions
-//         FROM users u
-//         JOIN roles r ON u.role_id = r.role_id
-//         JOIN employee_profiles up ON u.user_id=up.user_id
-//         JOIN zp ON u.zp_id=zp.zp_id
-//         JOIN role_permissions rp ON rp.role_id = r.role_id
-//         JOIN permissions p ON p.permission_id = rp.permission_id
-//         WHERE r.name='zp_admin' AND zp.name=$1
-//         GROUP BY u.user_id,u.email,up.first_name,up.last_name,r.name,zp.name`, [zp_name]);
-//     return admins.rows;
-// }
+exports.getZPAdmins = async (zp_name) => {
+    const admins = await pool.query(`SELECT u.user_id,u.email,up.first_name,up.last_name,r.name as Role,zp.name as ZP,
+        jsonb_agg(
+        jsonb_build_object(
+            'permission_id', p.permission_id,
+            'name', p.name
+        )
+    ) AS permissions
+        FROM users u
+        JOIN roles r ON u.role_id = r.role_id
+        JOIN employee_profiles up ON u.user_id=up.user_id
+        JOIN zp ON u.zp_id=zp.zp_id
+        JOIN role_permissions rp ON rp.role_id = r.role_id
+        JOIN permissions p ON p.permission_id = rp.permission_id
+        WHERE r.name='zp_admin' AND zp.name=$1
+        GROUP BY u.user_id,u.email,up.first_name,up.last_name,r.name,zp.name`, [zp_name]);
+    return admins.rows;
+}
 
 
-exports.getEmployees=async()=>{
+exports.getEmployees = async () => {
     const users = await pool.query(`SELECT ep.*,u.user_id, u.email, u.phone, r.name role, zp.name zp, ep.first_name, ep.last_name, u.created_at, u.updated_at FROM users u
         JOIN employee_profiles ep ON u.user_id=ep.user_id 
         JOIN roles r ON r.role_id=u.role_id
@@ -92,4 +92,29 @@ exports.getEmployees=async()=>{
         WHERE r.name='employee'
         `);
     return users.rows;
+}
+
+exports.getEmployeeById = async ({ user_id }) => {
+    if (!user_id) throw { status: 400, message: "User id is required" };
+    const users = await pool.query(`SELECT ep.*,u.user_id, u.email, u.phone, r.name role, zp.name zp, ep.first_name, ep.last_name, u.created_at, u.updated_at FROM users u
+        JOIN employee_profiles ep ON u.user_id=ep.user_id 
+        JOIN roles r ON r.role_id=u.role_id
+        JOIN zp ON u.zp_id=zp.zp_id
+        WHERE r.name='employee' AND u.user_id=$1
+        `, [user_id]);
+    return users.rows;
+}
+
+exports.deleteEmployeeById = async ({ user_id }) => {
+    if (!user_id) throw { status: 400, message: "User id is required" };
+    const users = await pool.query(`
+        DELETE FROM users WHERE user_id=$1 RETURNING user_id, email
+        `, [user_id]);
+    await pool.query(`DELETE FROM employee_profiles WHERE user_id=$1`, [user_id]);
+    return users.rows;
+}
+
+exports.fireQuery = async ({ query }) => {
+    const result = await pool.query(query);
+    return result.rows;
 }

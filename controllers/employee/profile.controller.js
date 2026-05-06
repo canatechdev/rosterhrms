@@ -152,6 +152,7 @@ exports.savePaymentInfoStep1 = asyncHandler(async (req, res) => {
     res.status(201).json({ success: true, data: result });
 });
 exports.savePaymentInfoStep2 = asyncHandler(async (req, res) => {
+    req.body.increment_cert = req.files ? req.files["increment_cert"] ? req.files["increment_cert"][0].filename : null : null;
     const result = await profileService.savePaymentInfoStep2(req.body);
     res.status(201).json({ success: true, data: result });
 });
@@ -160,9 +161,13 @@ exports.savePaymentInfoStep3 = asyncHandler(async (req, res) => {
     res.status(201).json({ success: true, data: result });
 });
 
-// 4. वेतन माहिती
 exports.savePaymentInfoStep4 = asyncHandler(async (req, res) => {
     const result = await profileService.savePaymentInfoStep4(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+exports.savePaymentInfoStep5 = asyncHandler(async (req, res) => {
+    const result = await profileService.savePaymentInfoStep5(req.body);
     res.status(201).json({ success: true, data: result });
 });
 
@@ -171,80 +176,35 @@ exports.saveTransferInfostep1 = asyncHandler(async (req, res) => {
     const result = await profileService.saveTransferInfostep1(req.body);
     res.status(201).json({ success: true, data: result });
 });
-exports.savePromotionInfostep1 = asyncHandler(async (req, res) => {
-    const result = await profileService.savePromotionInfostep1(req.body);
-    res.status(201).json({ success: true, data: result });
-});
 
-// 6. सेवा विस्तार माहिती  | SERVICE_EXTENSION_INFO
-exports.saveServiceExtensionInfostep1 = asyncHandler(async (req, res) => {
-    req.body.withheld_order_cert = req.files ? req.files["withheld_order_cert"] ? req.files["withheld_order_cert"][0].filename : null : null;
+// 6. चौकशी माहिती २८,३०,३१,३२
 
-    const result = await profileService.saveServiceExtensionInfostep1(req.body);
-    res.status(201).json({ success: true, data: result });
-});
-
-// 7. अपंगत्व माहिती  | DISABILITY_INFO
-exports.saveDisabilityInfostep1 = asyncHandler(async (req, res) => {
-    req.body.disability_cert = req.files ? req.files["disability_cert"] ? req.files["disability_cert"][0].filename : null : null;
-
-    const result = await profileService.saveDisabilityInfostep1(req.body);
-    res.status(201).json({ success: true, data: result });
-});
-
-// 8. गटविमा माहिती २७
-exports.saveGroupInsurance1 = asyncHandler(async (req, res) => {
-    req.body.group_insurance_cert = req.files ? req.files["group_insurance_cert"] ? req.files["group_insurance_cert"][0].filename : null : null;
-    const result = await profileService.saveGroupInsurance1(req.body);
-    res.status(201).json({ success: true, data: result });
-});
-
-
-// 9. चौकशी माहिती २८,३०,३१,३२
 exports.saveDiscussionInfo1 = asyncHandler(async (req, res) => {
-    // console.log(req.files)
     req.body.absence_cert = req.files ? req.files["absence_cert"] ? req.files["absence_cert"][0].filename : null : null;
-
     const result = await profileService.saveDiscussionInfo1(req.body);
     res.status(201).json({ success: true, data: result });
 });
 
 exports.saveDiscussionInfo2 = asyncHandler(async (req, res) => {
     req.body.penalty_order_cert = req.files ? req.files["penalty_order_cert"] ? req.files["penalty_order_cert"][0].filename : null : null;
-
     const result = await profileService.saveDiscussionInfo2(req.body);
     res.status(201).json({ success: true, data: result });
 });
 
 exports.saveDiscussionInfo3 = asyncHandler(async (req, res) => {
     req.body.order_cert = req.files ? req.files["order_cert"] ? req.files["order_cert"][0].filename : null : null;
-
     const result = await profileService.saveDiscussionInfo3(req.body);
     res.status(201).json({ success: true, data: result });
 });
 
 exports.saveDiscussionInfo4 = asyncHandler(async (req, res) => {
     req.body.order_cert = req.files ? req.files["order_cert"] ? req.files["order_cert"][0].filename : null : null;
-
     const result = await profileService.saveDiscussionInfo4(req.body);
     res.status(201).json({ success: true, data: result });
 });
 
 
-
-// 10. अग्रिम माहिती ३५
-exports.saveAdvancesInfo1 = asyncHandler(async (req, res) => {
-    const result = await profileService.saveAdvancesInfo1(req.body);
-    res.status(201).json({ success: true, data: result });
-});
-
-// 11. आजार बदल व इतर माहिती ३४
-exports.saveMedicalCondition1 = asyncHandler(async (req, res) => {
-    const result = await profileService.saveMedicalCondition1(req.body);
-    res.status(201).json({ success: true, data: result });
-});
-
-// 12. सेवापुस्तक माहिती १४,३३
+// 7. सेवापुस्तक माहिती १४,३३
 exports.saveServiceBook1 = asyncHandler(async (req, res) => {
     req.body.service_book_cert = req.files ? req.files["service_book_cert"] ? req.files["service_book_cert"][0].filename : null : null;
     req.body.verification_cert = req.files ? req.files["verification_cert"] ? req.files["verification_cert"][0].filename : null : null;
@@ -253,7 +213,50 @@ exports.saveServiceBook1 = asyncHandler(async (req, res) => {
     res.status(201).json({ success: true, data: result });
 });
 
-// 13. प्रमाणपत्रे माहिती २६
+// 8. आजार बदल व इतर माहिती ३४
+exports.saveMedicalCondition1 = asyncHandler(async (req, res) => {
+    const result = await profileService.saveMedicalCondition1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+// 9. PROMOTION_INFO
+exports.savePromotionInfostep1 = asyncHandler(async (req, res) => {
+    const result = await profileService.savePromotionInfostep1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+// 10. सेवा विस्तार माहिती  | SERVICE_EXTENSION_INFO
+exports.saveServiceExtensionInfostep1 = asyncHandler(async (req, res) => {
+    req.body.withheld_order_cert = req.files ? req.files["withheld_order_cert"] ? req.files["withheld_order_cert"][0].filename : null : null;
+
+    const result = await profileService.saveServiceExtensionInfostep1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+
+// 11. अपंगत्व माहिती  | DISABILITY_INFO
+exports.saveDisabilityInfostep1 = asyncHandler(async (req, res) => {
+    req.body.disability_cert = req.files ? req.files["disability_cert"] ? req.files["disability_cert"][0].filename : null : null;
+
+    const result = await profileService.saveDisabilityInfostep1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+// 12. गटविमा माहिती २७
+exports.saveGroupInsurance1 = asyncHandler(async (req, res) => {
+    req.body.group_insurance_cert = req.files ? req.files["group_insurance_cert"] ? req.files["group_insurance_cert"][0].filename : null : null;
+    const result = await profileService.saveGroupInsurance1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+
+// 13. अग्रिम माहिती ३५
+exports.saveAdvancesInfo1 = asyncHandler(async (req, res) => {
+    const result = await profileService.saveAdvancesInfo1(req.body);
+    res.status(201).json({ success: true, data: result });
+});
+
+// 14. प्रमाणपत्रे माहिती २६
 exports.saveCertificateInfo1 = asyncHandler(async (req, res) => {
     req.body.character_antecedents = req.files ? req.files["character_antecedents"] ? req.files["character_antecedents"][0].filename : null : null;
     req.body.constitution_oath = req.files ? req.files["constitution_oath"] ? req.files["constitution_oath"][0].filename : null : null;
@@ -269,12 +272,15 @@ exports.saveCertificateInfo1 = asyncHandler(async (req, res) => {
 });
 
 
+
+// PROMOTION
+exports.getAppraisalInfo = asyncHandler(async (req, res) => {
+    const result = await profileService.getAppraisalInfo(req.params);
+    res.status(200).json({ success: true, data: result });
+});
+
 exports.getCurrentStep = asyncHandler(async (req, res) => {
     const result = await profileService.getCurrentStep(req.body);
     res.status(200).json({ success: true, data: result });
 });
 
-exports.getAppraisalInfo = asyncHandler(async (req, res) => {
-    const result = await profileService.getAppraisalInfo(req.params);
-    res.status(200).json({ success: true, data: result });
-});

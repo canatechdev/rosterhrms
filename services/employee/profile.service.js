@@ -1,22 +1,25 @@
 const pool = require('../../config/database.js');
 
+// 1. वैयक्तिक माहिती | PERSONAL INFORMATION
 exports.savePersonalInfoStep1 = async ({ user_id, salutation, first_name, middle_name, last_name, full_name_marathi, father_full_name, mother_full_name, name_changed, previous_name, blood_group, gender, dob, phone, pan_number, email, govt_email, religion, caste_id, caste_validity_cert, caste_validity_date, mother_tongue }) => {
     if (!user_id || !salutation || !first_name || !middle_name || !last_name || !blood_group || !gender || !dob || !phone || !pan_number || !email || !religion || !caste_id || !caste_validity_date) {
         throw { status: 400, message: "All fields are required" };
     }
-    // console.log(aadhar_number, user_id)
-    const stepCheck = await pool.query(
-        `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
-        [user_id]
-    );
+    const client = await pool.connect();
+    let udpated;
+    try {
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
 
-    if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
-        throw { status: 404, message: "Registration Incomplete" };
-    }
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
 
-    _id = stepCheck.rows[0].user_id;
-    const udpated = await pool.query(
-        `UPDATE employee_profiles SET 
+        _id = stepCheck.rows[0].user_id;
+        udpated = await client.query(
+            `UPDATE employee_profiles SET 
         salutation = $1, first_name = $2, middle_name = $3, last_name = $4, full_name_marathi = $5, father_full_name = $6, mother_full_name = $7, name_changed = $8, previous_name = $9, blood_group = $10, gender_id =        $11, dob = $12, pan_number = $13, govt_email = $14, religion = $15, caste_id = $16, caste_validity_cert = $17, caste_validity_date = $18, mother_tongue = $19, 
         
         current_step = 2, current_section=1
@@ -24,12 +27,16 @@ exports.savePersonalInfoStep1 = async ({ user_id, salutation, first_name, middle
         WHERE user_id = $20
         RETURNING user_id, first_name, middle_name, last_name, blood_group, gender_id, dob, pan_number, aadhar_number,  religion, mother_tongue
         `,
-        [salutation, first_name, middle_name, last_name, full_name_marathi, father_full_name, mother_full_name, name_changed, previous_name, blood_group, gender, dob, pan_number, govt_email, religion, caste_id, caste_validity_cert, caste_validity_date, mother_tongue, _id]
-    );
-    // await pool.query(
-    //     `UPDATE employee_profiles SET current_step = 2,current_section=1  WHERE user_id = $1`,
-    //     [_id]
-    // );
+            [salutation, first_name, middle_name, last_name, full_name_marathi, father_full_name, mother_full_name, name_changed, previous_name, blood_group, gender, dob, pan_number, govt_email, religion, caste_id, caste_validity_cert, caste_validity_date, mother_tongue, _id]
+        );
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
+    }
+
     return udpated.rows[0] || [];
 }
 exports.getPersonalInfoStep1 = async ({ user_id }) => {
@@ -46,34 +53,44 @@ exports.getPersonalInfoStep1 = async ({ user_id }) => {
 
 
 exports.savePersonalInfoStep2 = async ({ user_id, first_appointment_type, cadre_service_name, dept_entry_exam_date }) => {
-    console.log(user_id, first_appointment_type, cadre_service_name, dept_entry_exam_date)
+    // console.log(user_id, first_appointment_type, cadre_service_name, dept_entry_exam_date)
     if (!user_id || !first_appointment_type || !cadre_service_name || !dept_entry_exam_date) {
         throw { status: 400, message: "All fields are required" };
     }
+    let updated
     // console.log(aadhar_number, user_id)
-    const stepCheck = await pool.query(
-        `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
-        [user_id]
-    );
+    const client = await pool.connect();
+    try {
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
 
-    if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
-        throw { status: 404, message: "Registration Incomplete" };
-    }
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
 
-    _id = stepCheck.rows[0].user_id;
-    const udpated = await pool.query(
-        `UPDATE employee_profiles SET
+        _id = stepCheck.rows[0].user_id;
+        updated = await client.query(
+            `UPDATE employee_profiles SET
         first_appointment_type =$1, cadre_service_name=$2, dept_entry_exam_date=$3
         WHERE user_id = $4
         RETURNING user_id, first_appointment_type, cadre_service_name, dept_entry_exam_date
         `,
-        [first_appointment_type, cadre_service_name, dept_entry_exam_date, _id]
-    );
-    await pool.query(
-        `UPDATE employee_profiles SET current_step = 3,current_section=1  WHERE user_id = $1`,
-        [_id]
-    );
-    return udpated.rows[0] || [];
+            [first_appointment_type, cadre_service_name, dept_entry_exam_date, _id]
+        );
+        await client.query(
+            `UPDATE employee_profiles SET current_step = 3,current_section=1  WHERE user_id = $1`,
+            [_id]
+        );
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
+    }
+    return updated.rows[0] || [];
 }
 exports.getPersonalInfoStep2 = async ({ user_id }) => {
     if (!user_id) { throw { status: 400, message: "User ID is required" }; }
@@ -90,30 +107,40 @@ exports.savePersonalInfoStep3 = async ({ user_id, govt_service_joining_date, cur
     if (!user_id || !govt_service_joining_date || !current_office_joining_date || !retirement_date || !sevarth_number || !shaalarth_number || !height_cm || !identification_mark) {
         throw { status: 400, message: "All fields are required" };
     }
-    // console.log(aadhar_number, user_id)
-    const stepCheck = await pool.query(
-        `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
-        [user_id]
-    );
+    const client = await pool.connect();
+    let updated;
+    try {
+        // console.log(aadhar_number, user_id)
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
 
-    if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
-        throw { status: 404, message: "Registration Incomplete" };
-    }
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
 
-    _id = stepCheck.rows[0].user_id;
-    const udpated = await pool.query(
-        `UPDATE employee_profiles SET
+        _id = stepCheck.rows[0].user_id;
+        updated = await client.query(
+            `UPDATE employee_profiles SET
         govt_service_joining_date =$1, current_office_joining_date =$2, retirement_date=$3, sevarth_number=$4, shaalarth_number=$5, height_cm=$6, identification_mark=$7
         WHERE user_id = $8
         RETURNING user_id, govt_service_joining_date, current_office_joining_date, retirement_date, sevarth_number, shaalarth_number, height_cm, identification_mark
         `,
-        [govt_service_joining_date, current_office_joining_date, retirement_date, sevarth_number, shaalarth_number, height_cm, identification_mark, _id]
-    );
-    await pool.query(
-        `UPDATE employee_profiles SET current_step = 3,current_section=1  WHERE user_id = $1`,
-        [_id]
-    );
-    return udpated.rows[0] || [];
+            [govt_service_joining_date, current_office_joining_date, retirement_date, sevarth_number, shaalarth_number, height_cm, identification_mark, _id]
+        );
+        await client.query(
+            `UPDATE employee_profiles SET current_step = 4,current_section=1  WHERE user_id = $1`,
+            [_id]
+        );
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
+    }
+    return updated.rows[0] || [];
 }
 exports.getPersonalInfoStep3 = async ({ user_id }) => {
     if (!user_id) { throw { status: 400, message: "User ID is required" }; }
@@ -127,30 +154,48 @@ exports.getPersonalInfoStep3 = async ({ user_id }) => {
 }
 
 exports.savePersonalInfoStep4 = async ({ user_id, is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date }) => {
-    if (!user_id || !is_ex_serviceman || !has_domicile_cert || !spouse_in_service || !spouse_service_type || !spouse_office_type || !spouse_office_details || !spouse_employee_no || !has_pran || !pran_number || !gpf_number || !ppo_number || !ppo_date) {
+    if (!user_id || !is_ex_serviceman || !has_domicile_cert ||  !gpf_number || !ppo_number || !ppo_date) {
         throw { status: 400, message: "All fields are required" };
     }
-    console.log('AADHA', 'aadhar_number', user_id)
-    const stepCheck = await pool.query(
-        `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
-        [user_id]
-    );
 
-    if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
-        throw { status: 404, message: "Registration Incomplete" };
+    if (spouse_in_service == "true" && (!spouse_service_type || !spouse_office_type || !spouse_office_details || !spouse_employee_no)) {
+        throw { status: 400, message: "All spouse in service details are required" }
+    } else {
+        spouse_service_type = null; spouse_office_type = null; spouse_office_details = null; spouse_employee_no = null;
+    }
+    if (has_pran=="true" && !pran_number) {
+        throw { status: 400, message: "PRAN Number is required" };
     }
 
-    _id = stepCheck.rows[0].user_id;
-    const udpated = await pool.query(
-        `UPDATE employee_profiles SET
+    const client = await pool.connect();
+    let updated;
+    try {
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
+
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
+
+        _id = stepCheck.rows[0].user_id;
+        updated = await client.query(
+            `UPDATE employee_profiles SET
         is_ex_serviceman=$1, has_domicile_cert=$2, spouse_in_service=$3, spouse_service_type=$4, spouse_office_type=$5, spouse_office_details=$6, spouse_employee_no=$7, has_pran=$8, pran_number=$9, gpf_number=$10, ppo_number=$11, ppo_date=$12,
-        current_step = 4,current_section=1
+        current_step = 5,current_section=1
         WHERE user_id = $13
         RETURNING user_id, is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date
         `,
-        [is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date, _id]
-    );
-    return udpated.rows[0] || [];
+            [is_ex_serviceman, has_domicile_cert, spouse_in_service, spouse_service_type, spouse_office_type, spouse_office_details, spouse_employee_no, has_pran, pran_number, gpf_number, ppo_number, ppo_date, _id]
+        );
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
+    }
+    return updated.rows[0] || [];
 }
 // exports.getPersonalInfoStep4 = async ({ user_id }) => {
 //     if (!user_id) { throw { status: 400, message: "User ID is required" }; }
@@ -166,67 +211,93 @@ exports.savePersonalInfoStep4 = async ({ user_id, is_ex_serviceman, has_domicile
 exports.savePersonalInfoStep5 = async ({ user_id,
     marital_status, marriage_cert, birth_cert, aadhar, pan, caste_validity, gazette_name_change }) => {
 
-    if (!user_id || !marriage_cert || !birth_cert || !aadhar || !pan || !caste_validity || !gazette_name_change) {
+    if (!user_id || !birth_cert || !aadhar || !pan || !caste_validity || !gazette_name_change) {
         throw { status: 400, message: "All fields are required" };
     }
-    // console.log(aadhar_number, user_id)
-    const stepCheck = await pool.query(
-        `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
-        [user_id]
-    );
 
-    if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
-        throw { status: 404, message: "Registration Incomplete" };
+    const client = await pool.connect();
+    let marriage_cert_res, birth_cert_res, aadhar_res, pan_res, caste_validity_res, gazette_name_change_res;
+    try {
+        
+        // console.log(aadhar_number, user_id)
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
+
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
+
+        // _id = stepCheck.rows[0].user_id;
+        [birth_cert_res, aadhar_res, pan_res, caste_validity_res, gazette_name_change_res] = await Promise.all([
+            await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'birth_cert', birth_cert]),
+            await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'aadhar', aadhar]),
+            await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'pan', pan]),
+            await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'caste_validity', caste_validity]),
+            await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'gazette_name_change', gazette_name_change])
+        ]);
+        if (marital_status == 1) {
+            [marriage_cert_res] = await Promise.all([await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'marriage_cert', marriage_cert]),]);
+        }
+        await client.query(
+            `UPDATE employee_profiles SET marital_status=$2, current_step = 6,current_section=1  WHERE user_id = $1`,
+            [user_id, marital_status]
+        );
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
     }
-
-    // _id = stepCheck.rows[0].user_id;
-    const [marriage_cert_res, birth_cert_res, aadhar_res, pan_res, caste_validity_res, gazette_name_change_res] = await Promise.all([
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'marriage_cert', marriage_cert]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'birth_cert', birth_cert]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'aadhar', aadhar]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'pan', pan]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'caste_validity', caste_validity]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'gazette_name_change', gazette_name_change])
-    ]);
-    await pool.query(
-        `UPDATE employee_profiles SET marital_status=$2, current_step = 5,current_section=1  WHERE user_id = $1`,
-        [user_id, marital_status]
-    );
-    return [marriage_cert_res.rows[0], birth_cert_res.rows[0], aadhar_res.rows[0], pan_res.rows[0], caste_validity_res.rows[0], gazette_name_change_res.rows[0]] || [];
+    return [birth_cert_res.rows[0], aadhar_res.rows[0], pan_res.rows[0], caste_validity_res.rows[0], gazette_name_change_res.rows[0]] || [];
 }
 
 exports.savePersonalInfoStep6 = async ({ user_id, photo, signature }) => {
 
-    if (!user_id || !photo || !signature ) {
+    if (!user_id || !photo || !signature) {
         throw { status: 400, message: "All fields are required" };
     }
-    // console.log(aadhar_number, user_id)
-    const stepCheck = await pool.query(
-        `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
-        [user_id]
-    );
+    const client = await pool.connect();
+    let photo_res, signature_res;
+    try {
+        // console.log(aadhar_number, user_id)
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
 
-    if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
-        throw { status: 404, message: "Registration Incomplete" };
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 1) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
+
+        // _id = stepCheck.rows[0].user_id;
+        [photo_res, signature_res] = await Promise.all([
+            await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'photo', photo]),
+            await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'signature', signature])
+        ]);
+        await client.query(`UPDATE employee_profiles SET current_step = 7,current_section=1  WHERE user_id = $1`, [user_id]);
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
     }
-
-    // _id = stepCheck.rows[0].user_id;
-    const [photo_res, signature_res] = await Promise.all([
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'photo', photo]),
-        await pool.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'signature', signature])
-    ]);
-   
     return [photo_res.rows[0], signature_res.rows[0]] || [];
 }
 
 exports.savePersonalInfoStep7 = async ({ user_id, permanent, current }) => {
-    console.log(current, current.length, current)
-    if (!permanent || !permanent.address_line || !permanent.post_office || !permanent.city || !permanent.district || !permanent.taluka || !permanent.pin_code || !permanent.mobile || !permanent.std_code || !permanent.phone_number || !permanent.is_govt_residence || !permanent.residing_since) {
-        throw { status: 400, message: "All fields are required in Address" };
+    // console.log(current, current.length, current)
+    if (!permanent || !permanent.address_line || !permanent.post_office || !permanent.city || !permanent.district || !permanent.taluka || !permanent.pin_code || !permanent.mobile || !permanent.std_code || !permanent.phone_number) {
+        if (permanent.is_govt_residence == "true" && !permanent.residing_since) throw { status: 400, message: "Government residance date is required" };
+        throw { status: 400, message: "All fields are required in Permanant Address" };
     }
 
-    if ((current && Object.keys(current).length) && (!current.address_line || !current.post_office || !current.city || !current.district || !current.taluka || !current.pin_code || !current.mobile || !current.std_code || !current.phone_number || !current.is_govt_residence || !current.residing_since)) {
-        throw { status: 400, message: "All fields are required in current" };
+    if ((current && Object.keys(current).length) && (!current.address_line || !current.post_office || !current.city || !current.district || !current.taluka || !current.pin_code || !current.mobile || !current.std_code || !current.phone_number)) {
+        if (current.is_govt_residence == "true" && !current.residing_since) throw { status: 400, message: "Government residance date is required" };
+        throw { status: 400, message: "All fields are required in Current Address" };
     }
     let permanent_res;
     const client = await pool.connect();
@@ -320,7 +391,7 @@ exports.savePersonalInfoStep7 = async ({ user_id, permanent, current }) => {
         }
 
         await client.query(
-            `UPDATE employee_profiles SET current_step = 6,current_section=1  WHERE user_id = $1`,
+            `UPDATE employee_profiles SET current_step = 8,current_section=1  WHERE user_id = $1`,
             [user_id]
         );
         await client.query('COMMIT');
@@ -375,7 +446,7 @@ exports.savePersonalInfoStep8 = async ({ user_id, contact_name, relation, mobile
         );
 
         await client.query(
-            `UPDATE employee_profiles SET current_step = 7,current_section=1  WHERE user_id = $1`,
+            `UPDATE employee_profiles SET current_step = 9,current_section=1  WHERE user_id = $1`,
             [user_id]
         );
         await client.query('COMMIT');
@@ -416,7 +487,7 @@ exports.savePersonalInfoStep9 = async ({ user_id, salutation, first_name, middle
         );
 
         await client.query(
-            `UPDATE employee_profiles SET current_step = 8,current_section=1  WHERE user_id = $1`,
+            `UPDATE employee_profiles SET current_step = 10,current_section=1  WHERE user_id = $1`,
             [user_id]
         );
         await client.query('COMMIT');
@@ -472,7 +543,7 @@ exports.savePersonalInfoStep10 = async ({ user_id, nomination_type, nominee_name
     return family_res.rows[0] || [];
 }
 
-// Education CONTROLLER FUNCTIONS
+// 2. शैक्षणिक अर्हता | EDUCATIONAL QUALIFICATIONS
 exports.saveEducationStep1 = async ({ user_id, edu_type, institution, qualification, pass_year, obtained_at, passing_cert }) => {
     // console.log('deva')
 
@@ -556,10 +627,10 @@ exports.saveEducationStep2 = async ({ user_id, course_name, institution, coordin
     return training_res.rows[0] || [];
 }
 exports.saveEducationStep3 = async ({ user_id, exam_name, status, pass_date, attempt_number }) => {
-
-    if (!user_id || !exam_name || !status || !pass_date || !attempt_number) {
-        throw { status: 400, message: "All fields are required" };
-    }
+    if (!user_id || !exam_name || !attempt_number) throw { status: 400, message: "Exam Name and attempt number are required" }
+    if (status == 2 && !pass_date) {
+        throw { status: 400, message: "Passing date is required" };
+    } else pass_date = '1900-01-01'
 
     // let education_res;
     const client = await pool.connect();
@@ -599,9 +670,10 @@ exports.saveEducationStep3 = async ({ user_id, exam_name, status, pass_date, att
 
 exports.saveEducationStep4 = async ({ user_id, exam_name, status, pass_date, attempt_number }) => {
 
-    if (!user_id || !exam_name || !status || !pass_date || !attempt_number) {
-        throw { status: 400, message: "All fields are required" };
-    }
+    if (!user_id || !exam_name || !attempt_number) throw { status: 400, message: "Exam Name and attempt number are required" }
+    if (status == 2 && !pass_date) {
+        throw { status: 400, message: "Passing date is required" };
+    } else pass_date = '1900-01-01'
 
     // let education_res;
     const client = await pool.connect();
@@ -637,13 +709,21 @@ exports.saveEducationStep4 = async ({ user_id, exam_name, status, pass_date, att
     return cp_exams_res.rows[0] || [];
 }
 exports.saveEducationStep5 = async ({ user_id, computer_passed, computer_exempted, computer_pass_date, computer_exempt_date, computer_institution, computer_cert_no, marathi_typing_passed, marathi_typing_exempted, marathi_typing_wpm, marathi_typing_pass_date, marathi_typing_exempt_date, marathi_typing_institution, marathi_typing_cert_no, english_typing_passed, english_typing_exempted, english_typing_wpm, english_typing_pass_date, english_typing_exempt_date, english_typing_institution, english_typing_cert_no, increment_withheld_typing, recovery_done, marathi_lang_passed, marathi_lang_exempted, marathi_lang_pass_date, marathi_lang_exempt_date, hindi_lang_passed, hindi_lang_exempted, hindi_lang_pass_date, hindi_lang_exempt_date, computer_exam_cert, marathi_typing_cert, english_typing_cert, marathi_exam_cert, hindi_exam_cert }) => {
-    // console.log('deva')
 
-    if (!user_id || !computer_passed || !computer_exempted || !computer_pass_date || !computer_exempt_date || !computer_institution || !computer_cert_no || !marathi_typing_passed || !marathi_typing_exempted || !marathi_typing_wpm || !marathi_typing_pass_date || !marathi_typing_exempt_date || !marathi_typing_institution || !marathi_typing_cert_no || !english_typing_passed || !english_typing_exempted || !english_typing_wpm || !english_typing_pass_date || !english_typing_exempt_date || !english_typing_institution || !english_typing_cert_no || !increment_withheld_typing || !recovery_done || !marathi_lang_passed || !marathi_lang_exempted || !marathi_lang_pass_date || !marathi_lang_exempt_date || !hindi_lang_passed || !hindi_lang_exempted || !hindi_lang_pass_date || !hindi_lang_exempt_date || !computer_exam_cert || !marathi_typing_cert || !english_typing_cert || !marathi_exam_cert || !hindi_exam_cert) {
-        throw { status: 400, message: "All fields are required" };
+    if (!user_id || !increment_withheld_typing || !recovery_done) {
+        throw { status: 400, message: "Increment and recovery details are required" };
     }
+    if (computer_passed == "true" && ((computer_exempted == "true" && !computer_exempt_date) || !computer_pass_date || !computer_institution || !computer_cert_no || !computer_exam_cert)) {
+        throw { status: 400, message: "Invalid Computer Exam details" };
+    }
+    if (marathi_typing_passed == "true" && ((marathi_typing_exempted == "true" && !marathi_typing_exempt_date) || !marathi_typing_wpm || !marathi_typing_pass_date || !marathi_typing_institution || !marathi_typing_cert_no || !marathi_typing_cert)) throw { status: 400, message: "Invalid Marathi typing details" }
 
-    // let education_res;
+    if (english_typing_passed == "true" && ((english_typing_exempted == "true" && !english_typing_exempt_date) || !english_typing_wpm || !english_typing_pass_date || !english_typing_institution || !english_typing_cert_no || !english_typing_cert)) throw { status: 400, message: "Invalid English typing details" }
+
+    if ((marathi_lang_passed == "true") && ((marathi_lang_exempted == "true" && !marathi_lang_exempt_date) || !marathi_lang_pass_date || !marathi_exam_cert)) throw { status: 400, message: "Invalid Marathi Exam details" }
+
+    if (hindi_lang_passed == "true" && ((hindi_lang_exempted == "true" && !hindi_lang_exempt_date) || !hindi_lang_pass_date || !hindi_exam_cert)) throw { status: 400, message: "Invalid Hindi Exam details" }
+
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
@@ -663,7 +743,6 @@ exports.saveEducationStep5 = async ({ user_id, computer_passed, computer_exempte
         ]
         );
 
-
         await client.query(
             `UPDATE employee_profiles SET current_step = 1,current_section=3  WHERE user_id = $1`,
             [user_id]
@@ -680,6 +759,7 @@ exports.saveEducationStep5 = async ({ user_id, computer_passed, computer_exempte
     return education_res.rows[0] || [];
 }
 
+// 3. सेवा माहिती | SERVICE INFORMATION
 exports.saveServiceInfoStep1 = async ({ user_id, appointment_route, social_reservation, parallel_reservation, order_number, order_date, is_district_transfer, posting_location_type, panchayat_samiti, dept_level, office_name, post_name, post_group, joining_date, pay_commission, pay_scale, grade_pay, basic_pay, appointment_category, medical_done, medical_date, assets_submitted, assets_submitted_date, appointment_order_cert }) => {
 
     if (!user_id || !appointment_route || !social_reservation || !parallel_reservation || !order_number || !order_date || !is_district_transfer || !posting_location_type || !dept_level || !office_name || !post_name || !post_group || !joining_date || !pay_commission || !pay_scale || !grade_pay || !basic_pay || !appointment_category || !medical_done || !medical_date || !assets_submitted || !assets_submitted_date || !appointment_order_cert) {
@@ -724,10 +804,14 @@ exports.saveServiceInfoStep1 = async ({ user_id, appointment_route, social_reser
 }
 
 exports.saveServiceInfoStep2 = async ({ user_id, employment_type, status_date, probation_applicable, probation_start_date, probation_end_date, probation_completed, probation_order_date, probation_order_number, has_permanency_cert, permanency_cert_date, permanent_from_date, permanent_post_name, probation_cert, permanent_benefit_cert }) => {
-    console.log({ user_id, employment_type, status_date, probation_applicable, probation_start_date, probation_end_date, probation_completed, probation_order_date, probation_order_number, has_permanency_cert, permanency_cert_date, permanent_from_date, permanent_post_name, probation_cert, permanent_benefit_cert })
-    if (!user_id || !employment_type || !status_date || !probation_applicable || !probation_start_date || !probation_end_date || !probation_completed || !probation_order_date || !probation_order_number || !has_permanency_cert || !permanency_cert_date || !permanent_from_date || !permanent_post_name || !probation_cert || !permanent_benefit_cert) {
-        throw { status: 400, message: "All fields are required" };
+
+    if (!user_id || !employment_type || !status_date) {
+        throw { status: 400, message: "employment_type and status date are incorrect" };
     }
+
+    if (probation_applicable == "true" && (!probation_start_date || !probation_end_date || !probation_completed || !probation_order_date || !probation_order_number || !probation_cert)) throw { status: 400, message: "Probation Details Incorrect" }
+
+    if (has_permanency_cert == "true" && (!permanency_cert_date || !permanent_from_date || !permanent_post_name || !permanent_benefit_cert)) throw { status: 400, message: "Permanant post details incorrect" }
 
     let probation_res;
     const client = await pool.connect();
@@ -780,14 +864,11 @@ exports.saveServiceInfoStep3 = async ({
     asset_liability_cert
 }) => {
 
-    if (!user_id || !chattopadhyay_granted || !chattopadhyay_order_no || !chattopadhyay_order_date ||
+    if (!user_id || !chattopadhyay_granted ||
         !nivadshreeni_order_no || !nivadshreeni_order_date || !year || !submitted || !submitted_date || !asset_liability_cert) {
         throw { status: 400, message: "All fields are required" };
     }
 
-    if (!services || services.length < 1) {
-        throw { status: 400, message: "Services are required" };
-    }
 
     const client = await pool.connect();
 
@@ -804,43 +885,48 @@ exports.saveServiceInfoStep3 = async ({
         }
 
         const insertedACP = [];
-        const test = JSON.parse(services);
+        let test = [];
+        if (services || services.length > 0) {
+            test = JSON.parse(services);
+        }
 
-        for (const ele of test) {
-            console.log("SART", ele)
-            const res = await client.query(
-                `INSERT INTO employee_acp_benefits(
-                    user_id, years_required, benefit_no, service_completion_date,
-                    benefit_received, benefit_date, due_date, order_number, order_date
-                )
-                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-                ON CONFLICT (user_id, benefit_no) DO UPDATE SET
-                    years_required = EXCLUDED.years_required,
-                    service_completion_date = EXCLUDED.service_completion_date,
-                    benefit_received = EXCLUDED.benefit_received,
-                    benefit_date = EXCLUDED.benefit_date,
-                    due_date = EXCLUDED.due_date,
-                    order_number = EXCLUDED.order_number,
-                    order_date = EXCLUDED.order_date
-                RETURNING *`,
-                [
-                    user_id,
-                    ele.years_required,
-                    ele.benefit_no,
-                    ele.service_completion_date,
-                    ele.benefit_received,
-                    ele.benefit_date,
-                    ele.due_date,
-                    ele.order_number,
-                    ele.order_date
-                ]
-            );
+        if (Array.isArray(test) || test.length > 0) {
+            for (const ele of test) {
+                // console.log("SART", ele)
+                const res = await client.query(
+                    `INSERT INTO employee_acp_benefits(
+                        user_id, years_required, benefit_no, service_completion_date,
+                        benefit_received, benefit_date, due_date, order_number, order_date
+                    )
+                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+                    ON CONFLICT (user_id, benefit_no) DO UPDATE SET
+                        years_required = EXCLUDED.years_required,
+                        service_completion_date = EXCLUDED.service_completion_date,
+                        benefit_received = EXCLUDED.benefit_received,
+                        benefit_date = EXCLUDED.benefit_date,
+                        due_date = EXCLUDED.due_date,
+                        order_number = EXCLUDED.order_number,
+                        order_date = EXCLUDED.order_date
+                    RETURNING *`,
+                    [
+                        user_id,
+                        ele.years_required,
+                        ele.benefit_no,
+                        ele.service_completion_date,
+                        ele.benefit_received,
+                        ele.benefit_date,
+                        ele.due_date,
+                        ele.order_number,
+                        ele.order_date
+                    ]
+                );
 
-            insertedACP.push(res.rows[0]);
+                insertedACP.push(res.rows[0]);
+            }
         }
 
 
-        const acp_id = insertedACP[0].acp_id;
+        const acp_id = insertedACP[0]?.acp_id;
 
         await client.query(
             `UPDATE employee_acp_benefits
@@ -883,6 +969,7 @@ exports.saveServiceInfoStep3 = async ({
     }
 };
 
+// 4. वेतन माहिती
 exports.savePaymentInfoStep1 = async ({
     user_id, pay_commission, band_pay_level, grade_pay_matrix, pay_in_band, commission_date, effective_date, current_basic_pay
 }) => {
@@ -934,7 +1021,54 @@ user_id, pay_commission, band_pay_level, grade_pay_matrix, pay_in_band, commissi
         client.release();
     }
 };
-exports.savePaymentInfoStep2 = async ({
+exports.savePaymentInfoStep2 = async ({ user_id, increment_year, increment_amount, increment_date, effective_date, is_advance, increment_cert }) => {
+
+    if (!user_id || !increment_year || !increment_amount || !increment_date || !effective_date || !is_advance) {
+        throw { status: 400, message: "All fields are required" };
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
+
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 4) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
+
+
+        const assetRes = await client.query(
+            `INSERT INTO employee_increments(
+user_id, increment_year, increment_amount, increment_date, effective_date, is_advance, increment_cert)
+                VALUES ($1,$2,$3,$4,$5,$6,$7)
+                RETURNING *`,
+            [user_id, increment_year, increment_amount, increment_date, effective_date, is_advance, increment_cert || null]
+        );
+
+        await client.query(
+            `UPDATE employee_profiles
+             SET current_step = 3, current_section = 4
+             WHERE user_id = $1`,
+            [user_id]
+        );
+
+        await client.query('COMMIT');
+
+        return assetRes.rows[0] || []
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
+    }
+};
+exports.savePaymentInfoStep3 = async ({
     user_id, allowance_type, effective_from, effective_to, amount
 }) => {
 
@@ -966,7 +1100,7 @@ exports.savePaymentInfoStep2 = async ({
 
         await client.query(
             `UPDATE employee_profiles
-             SET current_step = 3, current_section = 4
+             SET current_step = 4, current_section = 4
              WHERE user_id = $1`,
             [user_id]
         );
@@ -982,7 +1116,7 @@ exports.savePaymentInfoStep2 = async ({
         client.release();
     }
 };
-exports.savePaymentInfoStep3 = async ({
+exports.savePaymentInfoStep4 = async ({
     user_id, is_applicable, scheme_type, approved_date, revised_pay, effective_date
 }) => {
 
@@ -1014,7 +1148,7 @@ exports.savePaymentInfoStep3 = async ({
 
         await client.query(
             `UPDATE employee_profiles
-             SET current_step = 4, current_section = 4
+             SET current_step = 5, current_section = 4
              WHERE user_id = $1`,
             [user_id]
         );
@@ -1030,7 +1164,7 @@ exports.savePaymentInfoStep3 = async ({
         client.release();
     }
 };
-exports.savePaymentInfoStep4 = async ({
+exports.savePaymentInfoStep5 = async ({
     user_id, recovery_done, from_date, to_date, amount, reason, cert_number, cert_date
 }) => {
 
@@ -1079,6 +1213,7 @@ exports.savePaymentInfoStep4 = async ({
     }
 };
 
+// 5. बदली बदल माहिती  |   TRANSFER_INFO
 exports.saveTransferInfostep1 = async ({
     user_id, transfer_type, transfer_category, order_date, is_current_posting, is_district_transfer, posting_location_type, panchayat_samiti, dept_level, office_name, post_name, is_gazetted, joining_date, end_date
 }) => {
@@ -1132,203 +1267,7 @@ exports.saveTransferInfostep1 = async ({
     }
 };
 
-exports.savePromotionInfostep1 = async ({
-    user_id, promotion_type, promotion_category, order_date, is_current_posting, is_district_transfer, posting_location_type, panchayat_samiti, dept_level, office_name, post_name, is_gazetted, joining_date, end_date
-}) => {
-
-    if (!user_id || !promotion_type || !promotion_category || !order_date || !is_current_posting || !is_district_transfer || !posting_location_type || !panchayat_samiti || !dept_level || !office_name || !post_name || !is_gazetted || !joining_date || !end_date) {
-        throw { status: 400, message: "All fields are required" };
-    }
-
-
-    const client = await pool.connect();
-
-    try {
-        await client.query('BEGIN');
-
-        const stepCheck = await client.query(
-            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
-            [user_id]
-        );
-
-        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 6) {
-            throw { status: 404, message: "Registration Incomplete" };
-        }
-
-        const result = await client.query(
-            `INSERT INTO employee_promotions(
-            user_id, promotion_type, promotion_category, order_date, is_current_posting, is_district_transfer, posting_location_type, panchayat_samiti, dept_level, office_name, post_name, is_gazetted, joining_date, end_date)
-            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
-            RETURNING *`,
-            [user_id, promotion_type, promotion_category, order_date, is_current_posting, is_district_transfer, posting_location_type, panchayat_samiti, dept_level, office_name, post_name, is_gazetted, joining_date, end_date]
-        );
-
-        await client.query(
-            `UPDATE employee_profiles
-             SET current_step = 1, current_section = 7
-             WHERE user_id = $1`,
-            [user_id]
-        );
-
-        await client.query('COMMIT');
-
-        return result.rows[0];
-
-    } catch (error) {
-        await client.query('ROLLBACK');
-        throw { status: 500, message: error.message || "Internal Server Error" };
-    } finally {
-        client.release();
-    }
-};
-
-exports.saveServiceExtensionInfostep1 = async ({
-    user_id, extension_granted, extension_order_no, extension_order_date, increment_withheld, withheld_from, withheld_to, withheld_order_date, withheld_order_no, withheld_order_cert
-}) => {
-
-    if (!user_id || !extension_granted || !extension_order_no || !extension_order_date || !increment_withheld || !withheld_from || !withheld_to || !withheld_order_date || !withheld_order_no || !withheld_order_cert) {
-        throw { status: 400, message: "All fields are required" };
-    }
-
-
-    const client = await pool.connect();
-
-    try {
-        await client.query('BEGIN');
-
-        const stepCheck = await client.query(
-            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
-            [user_id]
-        );
-
-        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 7) {
-            throw { status: 404, message: "Registration Incomplete" };
-        }
-
-        const result = await client.query(
-            `INSERT INTO employee_service_extensions(
-user_id, extension_granted, extension_order_no, extension_order_date, increment_withheld, withheld_from, withheld_to, withheld_order_date, withheld_order_no, withheld_order_cert)
-            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-            RETURNING *`,
-            [user_id, extension_granted, extension_order_no, extension_order_date, increment_withheld, withheld_from, withheld_to, withheld_order_date, withheld_order_no, withheld_order_cert]
-        );
-
-        await client.query(
-            `UPDATE employee_profiles
-             SET current_step = 1, current_section = 8
-             WHERE user_id = $1`,
-            [user_id]
-        );
-
-        await client.query('COMMIT');
-
-        return result.rows[0];
-
-    } catch (error) {
-        await client.query('ROLLBACK');
-        throw { status: 500, message: error.message || "Internal Server Error" };
-    } finally {
-        client.release();
-    }
-};
-
-exports.saveDisabilityInfostep1 = async ({
-    user_id, is_disabled, examiner_name, has_udid, udid_number, disability_type, disability_percentage, exam_date, is_permanent, temp_from, temp_to, transport_allowance, profession_tax_exempt, equipment_provided, equipment_name, cert_date, disability_cert
-}) => {
-
-    if (!user_id || !is_disabled || !examiner_name || !has_udid || !udid_number || !disability_type || !disability_percentage || !exam_date || !is_permanent || !temp_from || !temp_to || !transport_allowance || !profession_tax_exempt || !equipment_provided || !equipment_name || !cert_date || !disability_cert) {
-        throw { status: 400, message: "All fields are required" };
-    }
-
-    const client = await pool.connect();
-
-    try {
-        await client.query('BEGIN');
-
-        const stepCheck = await client.query(
-            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
-            [user_id]
-        );
-
-        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 8) {
-            throw { status: 404, message: "Registration Incomplete" };
-        }
-
-        const result = await client.query(
-            `INSERT INTO employee_disability(
-user_id, is_disabled, examiner_name, has_udid, udid_number, disability_type, disability_percentage, exam_date, is_permanent, temp_from, temp_to, transport_allowance, profession_tax_exempt, equipment_provided, equipment_name, cert_date, disability_cert)
-            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
-            RETURNING *`,
-            [user_id, is_disabled, examiner_name, has_udid, udid_number, disability_type, disability_percentage, exam_date, is_permanent, temp_from, temp_to, transport_allowance, profession_tax_exempt, equipment_provided, equipment_name, cert_date, disability_cert]
-        );
-
-        await client.query(
-            `UPDATE employee_profiles
-             SET current_step = 1, current_section = 9
-             WHERE user_id = $1`,
-            [user_id]
-        );
-
-        await client.query('COMMIT');
-
-        return result.rows[0];
-
-    } catch (error) {
-        await client.query('ROLLBACK');
-        throw { status: 500, message: error.message || "Internal Server Error" };
-    } finally {
-        client.release();
-    }
-};
-
-exports.saveGroupInsurance1 = async ({
-    user_id, year, entry_date, amount, group_insurance_cert
-}) => {
-    console.log(user_id, year, entry_date, amount, group_insurance_cert);
-    if (!user_id || !year || !entry_date || !amount || !group_insurance_cert) {
-        throw { status: 400, message: "All fields are required" };
-    }
-
-    const client = await pool.connect();
-
-    try {
-        await client.query('BEGIN');
-
-        const stepCheck = await client.query(
-            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
-            [user_id]
-        );
-
-        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 9) {
-            throw { status: 404, message: "Registration Incomplete" };
-        }
-
-        const result = await client.query(
-            `INSERT INTO employee_group_insurance(user_id, year, entry_date, amount, group_insurance_cert)
-            VALUES($1,$2,$3,$4,$5)
-            RETURNING *`,
-            [user_id, year, entry_date, amount, group_insurance_cert]
-        );
-
-        await client.query(
-            `UPDATE employee_profiles
-             SET current_step = 1, current_section = 10
-             WHERE user_id = $1`,
-            [user_id]
-        );
-
-        await client.query('COMMIT');
-
-        return result.rows[0];
-
-    } catch (error) {
-        await client.query('ROLLBACK');
-        throw { status: 500, message: error.message || "Internal Server Error" };
-    } finally {
-        client.release();
-    }
-};
-
+// 6. चौकशी माहिती २८,३०,३१,३२
 exports.saveDiscussionInfo1 = async ({
     user_id, from_date, to_date, action_taken, absence_cert
 }) => {
@@ -1347,7 +1286,7 @@ exports.saveDiscussionInfo1 = async ({
             [user_id]
         );
 
-        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 10) {
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 6) {
             throw { status: 404, message: "Registration Incomplete" };
         }
 
@@ -1360,7 +1299,7 @@ exports.saveDiscussionInfo1 = async ({
 
         await client.query(
             `UPDATE employee_profiles
-             SET current_step = 2, current_section = 10
+             SET current_step = 2, current_section = 6
              WHERE user_id = $1`,
             [user_id]
         );
@@ -1395,7 +1334,7 @@ exports.saveDiscussionInfo2 = async ({
             [user_id]
         );
 
-        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 10) {
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 6) {
             throw { status: 404, message: "Registration Incomplete" };
         }
 
@@ -1409,7 +1348,7 @@ user_id, inquiry_active, inquiry_from, final_decision, decision_details, discipl
 
         await client.query(
             `UPDATE employee_profiles
-             SET current_step = 3, current_section = 10
+             SET current_step = 3, current_section = 6
              WHERE user_id = $1`,
             [user_id]
         );
@@ -1444,7 +1383,7 @@ exports.saveDiscussionInfo3 = async ({
             [user_id]
         );
 
-        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 10) {
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 6) {
             throw { status: 404, message: "Registration Incomplete" };
         }
 
@@ -1458,7 +1397,7 @@ user_id, was_suspended, suspension_date, suspension_duration, suspension_reason,
 
         await client.query(
             `UPDATE employee_profiles
-             SET current_step = 4, current_section = 10
+             SET current_step = 4, current_section = 6
              WHERE user_id = $1`,
             [user_id]
         );
@@ -1492,7 +1431,7 @@ exports.saveDiscussionInfo4 = async ({
             [user_id]
         );
 
-        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 10) {
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 6) {
             throw { status: 404, message: "Registration Incomplete" };
         }
 
@@ -1501,6 +1440,214 @@ exports.saveDiscussionInfo4 = async ({
             VALUES($1,$2,$3,$4,$5,$6)
             RETURNING *`,
             [user_id, case_active, court_name, order_number, order_date, order_cert]
+        );
+
+        await client.query(
+            `UPDATE employee_profiles
+             SET current_step = 1, current_section = 7
+             WHERE user_id = $1`,
+            [user_id]
+        );
+
+        await client.query('COMMIT');
+
+        return result.rows[0];
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
+    }
+};
+
+// 7. सेवापुस्तक माहिती १४,३३
+exports.saveServiceBook1 = async ({
+    user_id, duplicate_received, is_updated, verification_type, service_book_cert, verification_date, verification_cert
+}) => {
+    if (!user_id || !duplicate_received || !is_updated || !verification_type || !service_book_cert || !verification_date || !verification_cert) {
+        throw { status: 400, message: "All fields are required" };
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
+
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 7) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
+
+        const result = await client.query(
+            `INSERT INTO employee_service_book(user_id, duplicate_received, is_updated, service_book_cert)
+            VALUES($1,$2,$3,$4)
+            RETURNING *`,
+            [user_id, duplicate_received, is_updated, service_book_cert]
+        );
+        const result2 = await client.query(
+            `INSERT INTO employee_service_book_verification(user_id, verification_type, verification_date, verification_cert)
+            VALUES($1,$2,$3,$4)
+            RETURNING *`,
+            [user_id, verification_type, verification_date, verification_cert]
+        );
+        await client.query(
+            `UPDATE employee_profiles
+             SET current_step = 1, current_section = 8
+             WHERE user_id = $1`,
+            [user_id]
+        );
+
+        await client.query('COMMIT');
+
+        return [result.rows[0], result2.rows[0]];
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
+    }
+};
+
+
+
+
+
+// 8. आजार बदल व इतर माहिती ३४
+exports.saveMedicalCondition1 = async ({
+    user_id, has_brain_thalassemia_child, has_chromosomal_disorder_child, has_paralysis, has_mentally_disabled_child, has_kidney_dialysis, has_cancer, is_veteran_spouse_widow, is_abandoned_divorced_woman, other_conditions
+}) => {
+    if (!user_id || !has_brain_thalassemia_child || !has_chromosomal_disorder_child || !has_paralysis || !has_mentally_disabled_child || !has_kidney_dialysis || !has_cancer || !is_veteran_spouse_widow || !is_abandoned_divorced_woman || !other_conditions) {
+        throw { status: 400, message: "All fields are required" };
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
+
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 8) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
+
+        const result = await client.query(
+            `INSERT INTO employee_special_conditions(
+user_id, has_brain_thalassemia_child, has_chromosomal_disorder_child, has_paralysis, has_mentally_disabled_child, has_kidney_dialysis, has_cancer, is_veteran_spouse_widow, is_abandoned_divorced_woman, other_conditions)
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+            RETURNING *`,
+            [user_id, has_brain_thalassemia_child, has_chromosomal_disorder_child, has_paralysis, has_mentally_disabled_child, has_kidney_dialysis, has_cancer, is_veteran_spouse_widow, is_abandoned_divorced_woman, other_conditions]
+        );
+
+        await client.query(
+            `UPDATE employee_profiles
+             SET current_step = 1, current_section = 9
+             WHERE user_id = $1`,
+            [user_id]
+        );
+
+        await client.query('COMMIT');
+
+        return result.rows[0];
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
+    }
+};
+
+// 9. APPRAISAL
+exports.savePromotionInfostep1 = async ({
+    user_id, promotion_type, promotion_category, order_date, is_current_posting, is_district_transfer, posting_location_type, panchayat_samiti, dept_level, office_name, post_name, is_gazetted, joining_date, end_date
+}) => {
+
+    if (!user_id || !promotion_type || !promotion_category || !order_date || !is_current_posting || !is_district_transfer || !posting_location_type || !panchayat_samiti || !dept_level || !office_name || !post_name || !is_gazetted || !joining_date || !end_date) {
+        throw { status: 400, message: "All fields are required" };
+    }
+
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
+
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 9) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
+
+        const result = await client.query(
+            `INSERT INTO employee_promotions(
+            user_id, promotion_type, promotion_category, order_date, is_current_posting, is_district_transfer, posting_location_type, panchayat_samiti, dept_level, office_name, post_name, is_gazetted, joining_date, end_date)
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+            RETURNING *`,
+            [user_id, promotion_type, promotion_category, order_date, is_current_posting, is_district_transfer, posting_location_type, panchayat_samiti, dept_level, office_name, post_name, is_gazetted, joining_date, end_date]
+        );
+
+        await client.query(
+            `UPDATE employee_profiles
+             SET current_step = 1, current_section = 10
+             WHERE user_id = $1`,
+            [user_id]
+        );
+
+        await client.query('COMMIT');
+
+        return result.rows[0];
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
+    }
+};
+
+// 10. सेवा विस्तार माहिती  | SERVICE_EXTENSION_INFO
+exports.saveServiceExtensionInfostep1 = async ({
+    user_id, extension_granted, extension_order_no, extension_order_date, increment_withheld, withheld_from, withheld_to, withheld_order_date, withheld_order_no, withheld_order_cert
+}) => {
+
+    if (!user_id || !extension_granted || !extension_order_no || !extension_order_date || !increment_withheld || !withheld_from || !withheld_to || !withheld_order_date || !withheld_order_no || !withheld_order_cert) {
+        throw { status: 400, message: "All fields are required" };
+    }
+
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const stepCheck = await client.query(
+            `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
+            [user_id]
+        );
+
+        if (!stepCheck.rows.length || stepCheck.rows[0].current_section < 10) {
+            throw { status: 404, message: "Registration Incomplete" };
+        }
+
+        const result = await client.query(
+            `INSERT INTO employee_service_extensions(
+user_id, extension_granted, extension_order_no, extension_order_date, increment_withheld, withheld_from, withheld_to, withheld_order_date, withheld_order_no, withheld_order_cert)
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+            RETURNING *`,
+            [user_id, extension_granted, extension_order_no, extension_order_date, increment_withheld, withheld_from, withheld_to, withheld_order_date, withheld_order_no, withheld_order_cert]
         );
 
         await client.query(
@@ -1522,12 +1669,12 @@ exports.saveDiscussionInfo4 = async ({
     }
 };
 
-// remaining
-exports.saveAdvancesInfo1 = async ({
-    user_id, advance_type, advance_details, amount, fully_repaid, repaid_cert_no, repaid_cert_date
+// 11. अपंगत्व माहिती  | DISABILITY_INFO
+exports.saveDisabilityInfostep1 = async ({
+    user_id, is_disabled, examiner_name, has_udid, udid_number, disability_type, disability_percentage, exam_date, is_permanent, temp_from, temp_to, transport_allowance, profession_tax_exempt, equipment_provided, equipment_name, cert_date, disability_cert
 }) => {
-    // console.log(user_id, year, entry_date, amount, group_insurance_cert);
-    if (!user_id || !advance_type || !advance_details || !amount || !fully_repaid || !repaid_cert_no || !repaid_cert_date) {
+
+    if (!user_id || !is_disabled || !examiner_name || !has_udid || !udid_number || !disability_type || !disability_percentage || !exam_date || !is_permanent || !temp_from || !temp_to || !transport_allowance || !profession_tax_exempt || !equipment_provided || !equipment_name || !cert_date || !disability_cert) {
         throw { status: 400, message: "All fields are required" };
     }
 
@@ -1546,11 +1693,11 @@ exports.saveAdvancesInfo1 = async ({
         }
 
         const result = await client.query(
-            `INSERT INTO employee_advances(
-user_id, advance_type, advance_details, amount, fully_repaid, repaid_cert_no,repaid_cert_date)
-            VALUES($1,$2,$3,$4,$5,$6,$7)
+            `INSERT INTO employee_disability(
+user_id, is_disabled, examiner_name, has_udid, udid_number, disability_type, disability_percentage, exam_date, is_permanent, temp_from, temp_to, transport_allowance, profession_tax_exempt, equipment_provided, equipment_name, cert_date, disability_cert)
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
             RETURNING *`,
-            [user_id, advance_type, advance_details, amount, fully_repaid, repaid_cert_no, repaid_cert_date]
+            [user_id, is_disabled, examiner_name, has_udid, udid_number, disability_type, disability_percentage, exam_date, is_permanent, temp_from, temp_to, transport_allowance, profession_tax_exempt, equipment_provided, equipment_name, cert_date, disability_cert]
         );
 
         await client.query(
@@ -1572,10 +1719,12 @@ user_id, advance_type, advance_details, amount, fully_repaid, repaid_cert_no,rep
     }
 };
 
-exports.saveMedicalCondition1 = async ({
-    user_id, has_brain_thalassemia_child, has_chromosomal_disorder_child, has_paralysis, has_mentally_disabled_child, has_kidney_dialysis, has_cancer, is_veteran_spouse_widow, is_abandoned_divorced_woman, other_conditions
+// 12. गटविमा माहिती २७
+exports.saveGroupInsurance1 = async ({
+    user_id, year, entry_date, amount, group_insurance_cert
 }) => {
-    if (!user_id || !has_brain_thalassemia_child || !has_chromosomal_disorder_child || !has_paralysis || !has_mentally_disabled_child || !has_kidney_dialysis || !has_cancer || !is_veteran_spouse_widow || !is_abandoned_divorced_woman || !other_conditions) {
+    console.log(user_id, year, entry_date, amount, group_insurance_cert);
+    if (!user_id || !year || !entry_date || !amount || !group_insurance_cert) {
         throw { status: 400, message: "All fields are required" };
     }
 
@@ -1594,11 +1743,10 @@ exports.saveMedicalCondition1 = async ({
         }
 
         const result = await client.query(
-            `INSERT INTO employee_special_conditions(
-user_id, has_brain_thalassemia_child, has_chromosomal_disorder_child, has_paralysis, has_mentally_disabled_child, has_kidney_dialysis, has_cancer, is_veteran_spouse_widow, is_abandoned_divorced_woman, other_conditions)
-            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+            `INSERT INTO employee_group_insurance(user_id, year, entry_date, amount, group_insurance_cert)
+            VALUES($1,$2,$3,$4,$5)
             RETURNING *`,
-            [user_id, has_brain_thalassemia_child, has_chromosomal_disorder_child, has_paralysis, has_mentally_disabled_child, has_kidney_dialysis, has_cancer, is_veteran_spouse_widow, is_abandoned_divorced_woman, other_conditions]
+            [user_id, year, entry_date, amount, group_insurance_cert]
         );
 
         await client.query(
@@ -1620,10 +1768,12 @@ user_id, has_brain_thalassemia_child, has_chromosomal_disorder_child, has_paraly
     }
 };
 
-exports.saveServiceBook1 = async ({
-    user_id, duplicate_received, is_updated, verification_type, service_book_cert, verification_date, verification_cert
+// 13. अग्रिम माहिती ३५
+exports.saveAdvancesInfo1 = async ({
+    user_id, advance_type, advance_details, amount, fully_repaid, repaid_cert_no, repaid_cert_date
 }) => {
-    if (!user_id || !duplicate_received || !is_updated || !verification_type || !service_book_cert || !verification_date || !verification_cert) {
+    // console.log(user_id, year, entry_date, amount, group_insurance_cert);
+    if (!user_id || !advance_type || !advance_details || !amount || !fully_repaid || !repaid_cert_no || !repaid_cert_date) {
         throw { status: 400, message: "All fields are required" };
     }
 
@@ -1642,17 +1792,13 @@ exports.saveServiceBook1 = async ({
         }
 
         const result = await client.query(
-            `INSERT INTO employee_service_book(user_id, duplicate_received, is_updated, service_book_cert)
-            VALUES($1,$2,$3,$4)
+            `INSERT INTO employee_advances(
+user_id, advance_type, advance_details, amount, fully_repaid, repaid_cert_no,repaid_cert_date)
+            VALUES($1,$2,$3,$4,$5,$6,$7)
             RETURNING *`,
-            [user_id, duplicate_received, is_updated, service_book_cert]
+            [user_id, advance_type, advance_details, amount, fully_repaid, repaid_cert_no, repaid_cert_date]
         );
-        const result2 = await client.query(
-            `INSERT INTO employee_service_book_verification(user_id, verification_type, verification_date, verification_cert)
-            VALUES($1,$2,$3,$4)
-            RETURNING *`,
-            [user_id, verification_type, verification_date, verification_cert]
-        );
+
         await client.query(
             `UPDATE employee_profiles
              SET current_step = 1, current_section = 14
@@ -1662,7 +1808,7 @@ exports.saveServiceBook1 = async ({
 
         await client.query('COMMIT');
 
-        return [result.rows[0], result2.rows[0]];
+        return result.rows[0];
 
     } catch (error) {
         await client.query('ROLLBACK');
@@ -1672,6 +1818,9 @@ exports.saveServiceBook1 = async ({
     }
 };
 
+
+
+// 14. प्रमाणपत्रे माहिती २६
 exports.saveCertificateInfo1 = async ({
     user_id, character_antecedents, constitution_oath, home_village_decl, medical_cert, small_family_pledge, undertaking, medical_reimbursement_option, nps_family_pension_option }) => {
 

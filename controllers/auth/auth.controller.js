@@ -68,18 +68,29 @@ exports.addEmployee = async (req, res) => {
         });
     }
 };
+exports.loginSuperAdmin = async (req, res) => {
 
+    const result = await authService.loginSuperAdmin(req.body);
+    res.cookie("refreshToken", result.refreshToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 15 * 24 * 60 * 60 * 1000
+    })
+    res.status(200).json({ "accessToken": result.accessToken, "user": result.user });
+};
 exports.login = async (req, res) => {
     if (!req.params.zp_name) {
         return res.status(400).json({ message: "ZP name is required in URL" });
     }
-    req.body.zp_name = req.params.zp_name;
+
+    req.body.zp_name = req.params?.zp_name;
     const result = await authService.loginUser(req.body);
     res.cookie("refreshToken", result.refreshToken, {
-        httpOnly: true, 
+        httpOnly: true,
         secure: false,
         sameSite: "strict",
-        maxAge: 15 * 24 * 60 * 60 * 1000 
+        maxAge: 15 * 24 * 60 * 60 * 1000
     })
     res.status(200).json({ "accessToken": result.accessToken, "user": result.user });
 };
@@ -104,5 +115,12 @@ exports.initiateAuth = async (req, res) => {
 exports.changePassword = async (req, res) => {
     req.body.user = req.user;
     const result = await authService.changePassword(req.body);
+    res.status(200).json(result);
+};
+
+exports.resetPassword = async (req, res) => {
+    req.body.user = req.user;
+    if (!req.body.user_id) return res.status(400).json({ message: "User ID is required" });
+    const result = await authService.resetPassword(req.body);
     res.status(200).json(result);
 };

@@ -984,9 +984,22 @@ exports.getVacanciesByZP = async(req,res)=>{
 }
 
 
-  
-  
+// map departments to zp
+exports.mapDepartmentsToZP = async (req, res) => {
+    try {
+        const { zp_name } = req.params;
+        const { department_ids } = req.body;    
+        if(!zp_name){
+            return res.status(400).json({ message: "ZP name is required" });
+        }
+        if (!Array.isArray(department_ids) || department_ids.length === 0) {
+            return res.status(400).json({ message: "department_ids must be a non-empty array" });
+        }
+        const result = await zpService.mapDepartmentsToZP(zp_name, department_ids);
 
-
-
-
+        res.json({ message: "Departments mapped to ZP successfully", data: result });
+    }
+    catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
