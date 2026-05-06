@@ -1,5 +1,6 @@
 const zpService = require('../../services/zp/zp.service.js');
 const asyncHandler = require('../../middlewares/async_handler.js');
+const { head } = require('../../routes/zp/zp.route.js');
 
 // ZP CRUD
 exports.createZp = asyncHandler(async (req, res) => {
@@ -164,6 +165,81 @@ exports.deleteZpUnderOffice = asyncHandler(async (req, res) => {
         success: true,
         message: "Office deleted successfully",
         data: office
+    });
+});
+
+// salutations crud operations 
+exports.addSalutation = asyncHandler(async (req, res) => {
+    const { name, master_name } = req.body;
+
+    if (!name || !master_name) {
+        return res.status(400).json({
+            message: "name and master_name are required"
+        });
+    }
+
+    const result = await zpService.addEnum(name, master_name);
+
+    return res.status(201).json({
+        message: "Data inserted successfully",
+        data: result
+    });
+});
+
+exports.getSalutations = asyncHandler(async (req, res) => {
+    const salutations = await zpService.getSalutations();
+
+    return res.status(200).json({
+        message: "Salutations fetched successfully",
+        salutations
+    });
+});
+
+exports.getSalutationById = asyncHandler(async (req, res) => {
+    const { enum_id } = req.params; 
+    const salutation = await zpService.getSalutationById(enum_id);
+
+    if (!salutation) {
+        return res.status(404).json({ message: "Salutation not found" });
+    }
+ 
+    return res.status(200).json({
+        message: "Salutation fetched successfully",
+        salutation
+    });
+});
+
+exports.updateSalutation = asyncHandler(async (req, res) => {
+    const { enum_id } = req.params;
+const { name, sort_index, master_name } = req.body;
+    if (!name || sort_index === undefined || master_name === undefined) {
+        return res.status(400).json({ message: "Name, Sort Index, and Master Name are required" });
+    }
+
+    const salutation = await zpService.updateSalutation(enum_id, name, sort_index,master_name);
+
+    if (!salutation) {
+        return res.status(404).json({ message: "Salutation not found" });
+    }
+
+    return res.status(200).json({
+        message: "Salutation updated successfully",
+        salutation
+    });
+});
+
+exports.deleteSalutation = asyncHandler(async (req, res) => {
+    const { enum_id } = req.params;
+  
+    const salutation = await zpService.deleteSalutation(enum_id);
+
+    if (!salutation) {
+        return res.status(404).json({ message: "Salutation not found" });
+    }
+
+    return res.status(200).json({
+        message: "Salutation deleted successfully",
+        salutation
     });
 });
 // add department by zp 
@@ -496,6 +572,181 @@ exports.deletePost = async (req, res) => {
     } catch (error) {
         console.error("Error in deletePost:", error);
         return res.status(500).json({ message: error.message });
+    }
+};
+
+// add headquarter crud operations
+exports.addHeadquarter = async (req,res)=>{
+    try{
+        const {name,name_mr} = req.body;
+        if(!name){
+            return res.status(400).json({message:"Headquarter name is required"});
+        }
+        const zp_id = req.user.zp_id;
+        const headquarter = await zpService.addHeadquarter(name,name_mr,zp_id);
+        return res.status(201).json({
+            message:"Headquarter added successfully",
+            headquarter
+        });
+    } catch(error){
+        console.error("Error in addHeadquarter:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }   
+}
+exports.getHeadquarterByZP = async(req,res)=>{
+    try{
+        const zp_id = req.user.zp_id;
+        const headquarters = await zpService.getHeadquarterByZP(zp_id);
+        if(!headquarters || headquarters.length === 0){
+            return res.status(404).json({message:"No headquarters found"});
+        }
+        return res.status(200).json({
+            message:"Headquarters fetched successfully",
+            headquarters
+        });
+    }catch(error){
+        console.error("Error in getHeadquarterByZP:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+};
+exports.getHeadquarterById = async(req,res)=>{
+    try{
+        const headquarter_id = req.params.headquarter_id;
+        const headquarter = await zpService.getHeadquarterById(headquarter_id);
+        if(!headquarter){
+            return res.status(404).json({message:"Headquarter not found"});
+        }
+        return res.status(200).json({
+            message:"Headquarter fetched successfully",
+            headquarter
+        });
+    }catch(error){
+        console.error("Error in getHeadquarterById:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+};
+exports.updateHeadquarter = async(req,res)=>{
+    try{
+        const headquarter_id = req.params.headquarter_id;
+        const {name,name_mr} = req.body;
+        if(!name){  
+            return res.status(400).json({message:"Headquarter name is required"});
+        }
+        const headquarter = await zpService.updateHeadquarter(headquarter_id,name,name_mr); 
+        if(!headquarter){
+            return res.status(404).json({message:"Headquarter not found"});
+        }
+        return res.status(200).json({
+            message:"Headquarter updated successfully",
+            headquarter
+        });
+    }catch(error){
+        console.error("Error in updateHeadquarter:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+};
+exports.deleteHeadquarter = async(req,res)=>{
+    try{
+        const headquarter_id = req.params.headquarter_id;
+        const headquarter = await zpService.deleteHeadquarter(headquarter_id);  
+        if(!headquarter){
+            return res.status(404).json({message:"Headquarter not found"});
+        }
+        return res.status(200).json({
+            message:"Headquarter deleted successfully",
+            headquarter
+        });
+    }catch(error){
+        console.error("Error in deleteHeadquarter:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+};
+
+exports.addBlock = async(req,res)=>{
+    try{
+        const {name,name_mr} = req.body;
+        if(!name){
+            return res.status(400).json({message:"Block name is required"});
+        }
+        const zp_id = req.user.zp_id;
+        const block = await zpService.addBlock(name,name_mr,zp_id);
+        return res.status(201).json({
+            message:"Block added successfully",
+            block
+        });
+    } catch(error){
+        console.error("Error in addBlock:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+};
+exports.getBlockByZP = async(req,res)=>{
+    try{
+        const zp_id = req.user.zp_id;
+        const blocks = await zpService.getBlockByZP(zp_id);
+        if(!blocks || blocks.length === 0){
+            return res.status(404).json({message:"No blocks found"});
+        }
+        return res.status(200).json({
+            message:"Blocks fetched successfully",
+            blocks
+        });
+    }catch(error){
+        console.error("Error in getBlockByZP:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+};
+exports.getBlockById = async(req,res)=>{
+    try{
+        const block_id = req.params.block_id;
+        const block = await zpService.getBlockById(block_id);
+        if(!block){
+            return res.status(404).json({message:"Block not found"});
+        }
+        return res.status(200).json({
+            message:"Block fetched successfully",
+            block
+        });
+    }
+    catch(error){
+        console.error("Error in getBlockById:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+};
+exports.updateBlock = async(req,res)=>{
+    try{
+        const block_id = req.params.block_id;
+        const {name,name_mr} = req.body;
+        if(!name){
+            return res.status(400).json({message:"Block name is required"});
+        }
+        const block = await zpService.updateBlock(block_id,name,name_mr);
+        if(!block){
+            return res.status(404).json({message:"Block not found"});
+        }
+        return res.status(200).json({
+            message:"Block updated successfully",
+            block
+        });
+    }catch(error){
+        console.error("Error in updateBlock:", error);
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+};
+exports.deleteBlock = async(req,res)=>{
+    try{
+        const block_id = req.params.block_id;
+        const block = await zpService.deleteBlock(block_id);
+        if(!block){
+            return res.status(404).json({message:"Block not found"});
+        }
+        return res.status(200).json({
+            message:"Block deleted successfully",
+            block
+        });
+
+    }catch(error){
+        console.error("Error in deleteBlock:", error);
+        return res.status(500).json({message:"Internal Server Error"});
     }
 };
 

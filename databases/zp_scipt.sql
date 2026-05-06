@@ -915,6 +915,38 @@ BEGIN;
 COMMIT;
 
 
+	CREATE TABLE headquarters (
+		hq_id SERIAL PRIMARY KEY,
+		zp_id INT NOT NULL,
+		name VARCHAR(150) NOT NULL,
+		name_mr VARCHAR(150) NOT NULL,
+		status INT NOT NULL DEFAULT 1,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
+
+	CREATE TABLE blocks (
+    block_id SERIAL PRIMARY KEY,
+
+    zp_id INT NOT NULL,
+
+    name VARCHAR(150) NOT NULL,
+
+    name_mr VARCHAR(150) NOT NULL,
+
+    status INT DEFAULT 1,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_blocks_zp
+    FOREIGN KEY (zp_id)
+    REFERENCES zp(zp_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
 
 -- NOT FOR NOW
 -- CREATE TABLE user_transfer (

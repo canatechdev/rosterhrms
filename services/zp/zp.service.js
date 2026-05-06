@@ -1,5 +1,7 @@
 const pool = require('../../config/database');
 const { logAudit } = require("../../config/logAudit");
+const { addHeadquarter } = require('../../controllers/zp/zp.controller');
+const { head } = require('../../routes/zp/zp.route');
 
 exports.createZp = async (name, district_id, name_mr) => {
     const result = await pool.query(
@@ -189,6 +191,83 @@ exports.deleteZpUnderOffice = async (office_id, zp_id) => {
         console.error("Error in deleteZpUnderOffice service:", error);
         throw error;
     }
+};
+
+// salutation crud operation 
+exports.addEnum = async (name, master_name) => {
+    try {
+        const result = await pool.query(`
+            INSERT INTO enum_master (enum_id, name, master_name, sort_index)
+            VALUES (
+                (
+                    SELECT COALESCE(MAX(enum_id), 0) + 1
+                    FROM enum_master
+                    WHERE master_name = $2
+                ),
+                $1,
+                $2,
+                (
+                    SELECT COALESCE(MAX(sort_index), 0) + 1
+                    FROM enum_master
+                    WHERE master_name = $2
+                )
+            )
+            RETURNING *;
+        `, [name, master_name]);
+
+        return result.rows[0];
+
+    } catch (error) {
+        console.error("Error in addEnum:", error);
+        throw error;
+    }
+};
+
+exports.getSalutations = async (master_name) => {
+    try {
+        const result = await pool.query(
+            `SELECT enum_id, name, master_name, sort_index, is_active
+             FROM enum_master
+             WHERE master_name = $1
+             ORDER BY sort_index ASC, enum_id ASC`,
+            [master_name]
+        );
+        return result.rows;
+    } catch (error) {
+        throw error;
+    }
+};
+
+exports.getSalutationById = async (enum_id, master_name) => {
+    const result = await pool.query(
+        `SELECT *
+         FROM enum_master
+         WHERE enum_id = $1 AND master_name = $2`,
+        [enum_id, master_name]
+    );
+    return result.rows[0];
+};
+
+exports.updateSalutation = async (enum_id, name, master_name) => {
+    const result = await pool.query(`
+        UPDATE enum_master
+        SET name = $3
+        WHERE enum_id = $1 AND master_name = $2
+        RETURNING *;
+    `, [enum_id, master_name, name]);
+
+    return result.rows[0];
+};
+
+exports.deleteSalutation = async (enum_id, master_name) => {
+    const result = await pool.query(`
+        UPDATE enum_master
+        SET is_active = FALSE
+        WHERE enum_id = $1 AND master_name = $2
+        RETURNING *;
+    `, [enum_id, master_name]);
+
+    return result.rows[0];
 };
 
 // add cadre zp wise 
@@ -539,7 +618,117 @@ exports.deletePost = async (post_id) => {
     }
 };
 
+// add addHeadquarter crud operations
+exports.addHeadquarter = async (name, name_mr, zp_id) => {
+    try {
+        const result = await pool.query(`INSERT INTO headquarters (name, name_mr, zp_id) 
+            VALUES ($1, $2, $3) RETURNING *`, [name, name_mr, zp_id]);
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error in addHeadquarter service:", error);
+        throw error;
+    }
+};
+// get headquarter by zp wise
+exports.getHeadquarterByZP = async (zp_id) => {
+    try {        const result = await pool.query(`SELECT name, name_mr FROM
+         headquarters WHERE zp_id = $1 AND status = 1`, [zp_id]);
+        return result.rows;
+    } catch (error) {
+        console.error("Error in getHeadquarterByZP service:", error);
+        throw error;
+    }
+};
+// get headquarter by id
+exports.getHeadquarterById = async (headquarter_id) => {
+    try {
+        const result = await pool.query(`SELECT name, name_mr FROM headquarters 
+            WHERE hq_id = $1 AND status = 1`, [headquarter_id]);
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error in getHeadquarterById service:", error);
+        throw error;
+    }
+};
+// update headquarter
+exports.updateHeadquarter = async (headquarter_id, name, name_mr) => {
+    try {
+        const result = await pool.query(`UPDATE headquarters 
+            SET name = $2, name_mr = $3 WHERE hq_id = $1 AND 
+            status = 1 RETURNING *`, [headquarter_id, name, name_mr]);
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error in updateHeadquarter service:", error);
+        throw error;
+    }
+};
+// delete headquarter
+exports.deleteHeadquarter = async (headquarter_id) => {
+    try {
+        const result = await pool.query(`UPDATE headquarters SET status = 0
+                WHERE hq_id = $1 AND status = 1 RETURNING *`, [headquarter_id]);
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error in deleteHeadquarter service:", error);
+        throw error;
+    }
+};
 
+// blocks crud operations
+exports.addBlock = async (name, name_mr, zp_id) => {
+    try {        const result = await pool.query(`INSERT INTO blocks 
+        (name, name_mr, zp_id) VALUES ($1, $2, $3) RETURNING *`, [name, name_mr, zp_id]);
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error in addBlock service:", error);
+        throw error;
+    }
+};
+// get block by zp wise
+exports.getBlockByZP = async (zp_id) => {
+    try {
+        const result = await pool.query(`SELECT name, name_mr FROM blocks
+             WHERE zp_id = $1 AND status = 1`, [zp_id]);
+        return result.rows;
+    } catch (error) {
+        console.error("Error in getBlockByZP service:", error);
+        throw error;
+    }
+};
+// get block by id
+exports.getBlockById = async (block_id) => {
+    try {
+        const result = await pool.query(`SELECT name, name_mr FROM blocks 
+            WHERE block_id = $1 AND status = 1`, [block_id]);
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error in getBlockById service:", error);
+        throw error;
+    }
+};
+// update block
+exports.updateBlock = async (block_id, name, name_mr) => {
+    try {
+        const result = await pool.query(`UPDATE blocks 
+            SET name = $2, name_mr = $3 WHERE block_id = $1 AND 
+            status = 1 RETURNING *`, [block_id, name, name_mr]);
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error in updateBlock service:", error);
+        throw error;
+    }
+};
+// delete block
+exports.deleteBlock = async (block_id) => {
+    try {
+        const result = await pool.query(`UPDATE blocks SET status = 0
+                WHERE block_id = $1 AND status = 1 RETURNING *`, [block_id]);
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error in deleteBlock service:", error);
+        throw error;
+    }
+};
 // add roster template zp wise
 exports.addRosterTemplate = async (point_no, caste_id, zp_id) => {
     try {

@@ -8,7 +8,11 @@ const createDepartment = asyncHandler(async (req, res) => {
 });
 
 const getDepartments = asyncHandler(async (req, res) => {
-    const departments = await departmentService.getDepartments();
+    const zp_id = req.query.zp_id;
+    if (!zp_id) {
+        return res.status(400).json({ success: false, message: 'ZP ID is required' });
+    }
+    const departments = await departmentService.getDepartments(zp_id);
     res.status(200).json({ success: true, data: departments });
 });
 

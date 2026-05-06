@@ -24,6 +24,14 @@ router.get("/get_department",authMiddleware,zpController.getDepartmentByZP);
 router.get('/get_department/:id',authMiddleware,zpController.getDepartmentById);
 router.put('/update_department/:id',authMiddleware,reqBody,zpController.updateDepartment);
 router.delete('/delete_department/:id',authMiddleware,zpController.deleteDepartment);
+
+// salutations crud operations 
+router.post("/add_salutation", authMiddleware, reqBody, zpController.addSalutation);
+router.get("/get_salutation", authMiddleware, zpController.getSalutations);
+router.get("/get_salutation/:enum_id", authMiddleware, zpController.getSalutationById);
+router.put("/update_salutation/:enum_id", authMiddleware, reqBody, zpController.updateSalutation);
+router.delete("/delete_salutation/:enum_id", authMiddleware, zpController.deleteSalutation);
+ 
 // cadre crud 
 router.post('/add_cadre',authMiddleware, reqBody, zpController.addCadre);
 router.get('/get_cadre', authMiddleware, zpController.getCadre);
@@ -38,6 +46,20 @@ router.get('/get_post/:post_id', authMiddleware, zpController.getPostById);
 router.put('/update_post/:post_id', authMiddleware, reqBody, zpController.updatePost);
 router.delete('/delete_post/:post_id', authMiddleware, zpController.deletePost);
 
+// headquarters crud
+router.post('/add_headquarter', authMiddleware, reqBody, zpController.addHeadquarter);
+router.get('/get_headquarter', authMiddleware, zpController.getHeadquarterByZP);
+router.get('/get_headquarter/:headquarter_id', authMiddleware, zpController.getHeadquarterById);
+router.put('/update_headquarter/:headquarter_id', authMiddleware, reqBody, zpController.updateHeadquarter);
+router.delete('/delete_headquarter/:headquarter_id', authMiddleware, zpController.deleteHeadquarter);
+
+// blocks crud 
+router.post('/add_block', authMiddleware, reqBody, zpController.addBlock);
+router.get('/get_block', authMiddleware, zpController.getBlockByZP);
+router.get('/get_block/:block_id', authMiddleware, zpController.getBlockById);
+router.put('/update_block/:block_id', authMiddleware, reqBody, zpController.updateBlock);
+router.delete('/delete_block/:block_id', authMiddleware, zpController.deleteBlock);
+    
 // roster templates/point crud
 router.post('/add_roster_template', authMiddleware, reqBody, zpController.addRosterTemplate);
 router.get('/get_roster_template', authMiddleware, zpController.getRosterTemplateByZP);
@@ -55,5 +77,6 @@ router.post("/retire-employee/:user_id", authMiddleware, zpController.retireAllZ
 router.post("/promote-employee",authMiddleware,reqBody,zpController.promoteEmployee);
 router.post("/transfer-employee/:user_id",authMiddleware,reqBody,zpController.transferEmployee);
 
- 
+
+
 module.exports = router;

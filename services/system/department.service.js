@@ -13,10 +13,10 @@ exports.createDepartment = async ({ name, zp_id, code, name_mr }) => {
     return result.rows[0];
 };
 
-exports.getDepartments = async () => {
+exports.getDepartments = async (zp_id) => {
     const result = await pool.query(`
-        SELECT d.department_id, d.name, d.code, d.name_mr FROM departments d
-    `);
+        SELECT d.department_id, d.name, d.code, d.name_mr FROM departments d WHERE d.status = 1 AND d.zp_id = $1
+    `, [zp_id]);
     return result.rows;
 };
 
@@ -81,10 +81,4 @@ exports.deleteDepartment = async (id) => {
     await pool.query('UPDATE departments SET status = 0 WHERE department_id = $1', [id]);
 };
 
-// module.exports = {
-//     createDepartment,
-//     getDepartments,
-//     getDepartmentById,
-//     updateDepartment,
-//     deleteDepartment,
-// };
+
