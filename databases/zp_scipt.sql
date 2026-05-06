@@ -907,212 +907,102 @@ BEGIN;
 
 	-- offices 
 	CREATE TABLE offices (
-		office_id SERIAL PRIMARY KEY,
-		zp_id INT NOT NULL REFERENCES zp(zp_id) ON DELETE SET NULL, 
-		office_code VARCHAR(50) NOT NULL UNIQUE,
-		office_name VARCHAR(150) NOT NULL,
-		office_name_marathi VARCHAR(150),
-		description TEXT,
-		description_marathi TEXT,
-		is_active BOOLEAN DEFAULT TRUE,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	);
+    office_id SERIAL PRIMARY KEY,
+    zp_id INT NOT NULL, 
+    office_code VARCHAR(50) NOT NULL UNIQUE,
+    office_name VARCHAR(150) NOT NULL,
+    office_name_marathi VARCHAR(150),
+    description TEXT,
+    description_marathi TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-	-- TO BE CONSIDERED
-	CREATE TABLE appraisal_cycles (
-		cycle_id        BIGSERIAL PRIMARY KEY,
-		zp_id           BIGINT REFERENCES zp(zp_id) ON DELETE SET NULL,
-		year_from       SMALLINT NOT NULL,   -- e.g. 2024
-		year_to         SMALLINT NOT NULL,   -- e.g. 2025
-		start_date      DATE NOT NULL,
-		end_date        DATE NOT NULL,
-		status          INT NOT NULL DEFAULT 1,
-		created_at      TIMESTAMP DEFAULT NOW(),
-		UNIQUE(zp_id, year_from, year_to)
-	);
-
-	-- ─────────────────────────────────────────
-	-- ONE APPRAISAL RECORD PER EMPLOYEE PER CYCLE
-	-- ─────────────────────────────────────────
-	CREATE TABLE appraisals (
-		appraisal_id        BIGSERIAL PRIMARY KEY,
-		cycle_id            BIGINT NOT NULL REFERENCES appraisal_cycles(cycle_id) ON DELETE CASCADE,
-		employee_user_id    BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-
-		-- Who fills each section (resolved at initiation time from org chart)
-		reporting_officer_id  BIGINT REFERENCES users(user_id) ON DELETE SET NULL,
-		reviewing_officer_id  BIGINT REFERENCES users(user_id) ON DELETE SET NULL,
-		establishment_user_id BIGINT REFERENCES users(user_id) ON DELETE SET NULL,
-
-		-- Workflow state
-		status  INT NOT NULL DEFAULT 1,
-		-- 1: initiated | 2: pending_self | 3: pending_reporting | 4: pending_reviewing | 5: completed | 6: acknowledged
-
-		-- Section 1 auto-pulled but officer confirms these on initiation
-		report_period_from  DATE,
-		report_period_to    DATE,
-
-		-- Timestamps for each stage (audit trail)
-		initiated_at            TIMESTAMP,
-		self_submitted_at       TIMESTAMP,
-		reporting_submitted_at  TIMESTAMP,
-		reviewing_submitted_at  TIMESTAMP,
-		acknowledged_at         TIMESTAMP,
-
-		created_at  TIMESTAMP DEFAULT NOW(),
-		updated_at  TIMESTAMP DEFAULT NOW(),
-
-		UNIQUE(cycle_id, employee_user_id)
-	);
-
-	-- ─────────────────────────────────────────
-	-- SECTION 1 — Establishment data
-	-- (most fields are JOINed live; only delta fields stored here)
-	-- ─────────────────────────────────────────
-	CREATE TABLE appraisal_section1 (
-		section1_id     BIGSERIAL PRIMARY KEY,
-		appraisal_id    BIGINT NOT NULL UNIQUE REFERENCES appraisals(appraisal_id) ON DELETE CASCADE,
-
-		-- Leave during appraisal period (one-to-many handled below)
-		-- Training during period (one-to-many handled below)
-
-		-- Asset & liability submission date (Section 1 point 10)
-		asset_liability_submitted_date  DATE,
-		asset_liability_place           VARCHAR(100),
-
-		establishment_officer_name      VARCHAR(150),
-		establishment_officer_designation VARCHAR(150),
-		submitted_at    TIMESTAMP,
-		created_at      TIMESTAMP DEFAULT NOW()
-	);
-
-	-- Leave entries during the appraisal period
-	CREATE TABLE appraisal_leave_entries (
-		leave_entry_id  BIGSERIAL PRIMARY KEY,
-		appraisal_id    BIGINT NOT NULL REFERENCES appraisals(appraisal_id) ON DELETE CASCADE,
-		leave_type      VARCHAR(80),   -- casual / earned / medical / maternity etc
-		from_date       DATE,
-		to_date         DATE,
-		remarks         VARCHAR(200),
-		entry_type      VARCHAR(20) DEFAULT 'leave'  -- 'leave' or 'other_absence'
-	);
-
-	-- Training entries during the appraisal period
-	CREATE TABLE appraisal_training_entries (
-		training_entry_id   BIGSERIAL PRIMARY KEY,
-		appraisal_id        BIGINT NOT NULL REFERENCES appraisals(appraisal_id) ON DELETE CASCADE,
-		period_from         DATE,
-		period_to           DATE,
-		institution         VARCHAR(200),
-		subject             VARCHAR(200),
-		place               VARCHAR(100),
-		training_date       DATE
-	);
-
-	-- ─────────────────────────────────────────
-	-- SECTION 2 — Self Appraisal (Employee)
-	-- ─────────────────────────────────────────
-	CREATE TABLE appraisal_section2 (
-		section2_id     BIGSERIAL PRIMARY KEY,
-		appraisal_id    BIGINT NOT NULL UNIQUE REFERENCES appraisals(appraisal_id) ON DELETE CASCADE,
-
-		task_description        TEXT,   -- Q1: 50 words
-		allocated_targets       TEXT,   -- Q2
-		noteworthy_works        TEXT,   -- Q3: 100 words, 4-5 tasks
-		difficulties_faced      TEXT,   -- Q4
-		training_needs          TEXT,   -- Q5
-		asset_liability_submitted       BOOLEAN DEFAULT FALSE,
-		asset_liability_submit_date     DATE,
-		place                   VARCHAR(100),
-		submitted_at            TIMESTAMP,
-		created_at              TIMESTAMP DEFAULT NOW()
-	);
-
-	-- ─────────────────────────────────────────
-	-- SECTION 3 — Reporting Officer Assessment
-	-- ─────────────────────────────────────────
-	CREATE TABLE appraisal_section3 (
-		section3_id     BIGSERIAL PRIMARY KEY,
-		appraisal_id    BIGINT NOT NULL UNIQUE REFERENCES appraisals(appraisal_id) ON DELETE CASCADE,
-
-		-- Q1-4: Remarks
-		agrees_with_self_appraisal  BOOLEAN,
-		factual_remarks             TEXT,       -- Q1 if disagrees
-		noteworthy_remarks          TEXT,       -- Q2
-		failure_remarks             TEXT,       -- Q3
-		agrees_training_needs       BOOLEAN,    -- Q4
-
-		-- Q5a: Work Completion (weightage 40%) — scores 1–10
-		work_accomplishment_score   SMALLINT CHECK (work_accomplishment_score BETWEEN 1 AND 10),
-		work_quality_score          SMALLINT CHECK (work_quality_score BETWEEN 1 AND 10),
-		work_exceptional_score      SMALLINT CHECK (work_exceptional_score BETWEEN 1 AND 10),
-		-- average computed on read: (sum / 3)
-
-		-- Q5b: Personal Attributes (weightage 30%) — scores 1–10
-		attitude_score              SMALLINT CHECK (attitude_score BETWEEN 1 AND 10),
-		responsibility_score        SMALLINT CHECK (responsibility_score BETWEEN 1 AND 10),
-		personality_score           SMALLINT CHECK (personality_score BETWEEN 1 AND 10),
-		emotional_stability_score   SMALLINT CHECK (emotional_stability_score BETWEEN 1 AND 10),
-		communication_score         SMALLINT CHECK (communication_score BETWEEN 1 AND 10),
-		timeliness_score            SMALLINT CHECK (timeliness_score BETWEEN 1 AND 10),
-		-- average computed on read: (sum / 6)
-
-		-- Q5c: Efficiency (weightage 30%) — scores 1–10
-		knowledge_score             SMALLINT CHECK (knowledge_score BETWEEN 1 AND 10),
-		strategic_planning_score    SMALLINT CHECK (strategic_planning_score BETWEEN 1 AND 10),
-		decision_making_score       SMALLINT CHECK (decision_making_score BETWEEN 1 AND 10),
-		initiative_score            SMALLINT CHECK (initiative_score BETWEEN 1 AND 10),
-		coordination_score          SMALLINT CHECK (coordination_score BETWEEN 1 AND 10),
-		-- average computed on read: (sum / 5)
-
-		-- Q6, Q7
-		character_integrity_remarks TEXT,
-		overall_assessment          TEXT,   -- max 100 words
-
-		-- Q8: Health
-		health_status   VARCHAR(20) CHECK (health_status IN ('very_good', 'good', 'not_good')),
-
-		-- Q9: Overall gradation (1–10)
-		overall_gradation   SMALLINT CHECK (overall_gradation BETWEEN 1 AND 10),
-
-		place           VARCHAR(100),
-		submitted_at    TIMESTAMP,
-		created_at      TIMESTAMP DEFAULT NOW()
-	);
-
-	-- ─────────────────────────────────────────
-	-- SECTION 4 — Reviewing Officer
-	-- ─────────────────────────────────────────
-	CREATE TABLE appraisal_section4 (
-		section4_id     BIGSERIAL PRIMARY KEY,
-		appraisal_id    BIGINT NOT NULL UNIQUE REFERENCES appraisals(appraisal_id) ON DELETE CASCADE,
-
-		-- Q1
-		agrees_with_reporting_officer   BOOLEAN,
-		-- Q2: if no
-		disagreement_details            TEXT,
-		-- Q3: overall (100 words)
-		overall_assessment              TEXT,
-		-- Q4: gradation 1–10
-		overall_gradation   SMALLINT CHECK (overall_gradation BETWEEN 1 AND 10),
-
-		place           VARCHAR(100),
-		submitted_at    TIMESTAMP,
-		created_at      TIMESTAMP DEFAULT NOW()
-	);
-
-	-- ─────────────────────────────────────────
-	-- ACKNOWLEDGEMENT (last block on the form)
-	-- ─────────────────────────────────────────
-	CREATE TABLE appraisal_acknowledgements (
-		ack_id          BIGSERIAL PRIMARY KEY,
-		appraisal_id    BIGINT NOT NULL UNIQUE REFERENCES appraisals(appraisal_id) ON DELETE CASCADE,
-		letter_number   VARCHAR(100),
-		letter_date     DATE,
-		acknowledged_by BIGINT REFERENCES users(user_id) ON DELETE SET NULL,
-		acknowledged_at TIMESTAMP,
-		created_at      TIMESTAMP DEFAULT NOW()
-	);
+    CONSTRAINT fk_zp
+        FOREIGN KEY (zp_id)
+        REFERENCES zp(zp_id)
+        ON DELETE CASCADE
+);
 
 COMMIT;
+
+
+
+-- NOT FOR NOW
+-- CREATE TABLE user_transfer (
+-- 	user_transfer_id BIGSERIAL PRIMARY KEY,
+-- 	user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
+-- 	from_zp_id BIGINT REFERENCES zp(zp_id) ON DELETE SET NULL,
+-- 	to_zp_id BIGINT REFERENCES zp(zp_id) ON DELETE SET NULL,
+-- 	from_post_reservation_id BIGINT REFERENCES post_reservations(post_id) ON DELETE SET NULL,
+-- 	to_post_reservation_id BIGINT REFERENCES post_reservations(post_id) ON DELETE SET NULL,
+-- 	transferred_by BIGINT REFERENCES users(user_id) ON DELETE SET NULL,
+-- 	transfer_date TIMESTAMP DEFAULT NOW(),
+-- 	reason TEXT,
+-- 	status INT NOT NULL DEFAULT 1
+-- );
+
+
+
+
+
+
+
+-- CREATE TABLE roster_template (
+--     template_id SERIAL PRIMARY KEY,
+--     point_no INT,
+--     caste_id INT,
+--     cycle_size INT DEFAULT 100
+-- );
+
+-- CREATE TABLE roster_points (
+--     roster_id SERIAL PRIMARY KEY,
+--     cadre_post_id INT REFERENCES cadre_posts(cadre_post_id),
+--     point_no INT,
+--     caste_id INT REFERENCES castes(caste_id),
+--     cycle_no INT DEFAULT 1,
+--     is_filled BOOLEAN DEFAULT FALSE,
+--     vacancy_id INT,
+--     created_at TIMESTAMP DEFAULT NOW(),
+--     status INT DEFAULT 1,
+--     zp_id INT
+-- );
+
+-- CREATE TABLE vacancies (
+--     vacancy_id SERIAL PRIMARY KEY,
+--     cadre_post_id INT REFERENCES cadre_posts(cadre_post_id),
+--     roster_point INT,
+--     caste_id INT REFERENCES castes(caste_id),
+--     status VARCHAR(50), -- OPEN / FILLED
+--     created_at TIMESTAMP DEFAULT NOW(),
+-- 	user_id INT,
+--     zp_id INT
+-- );
+-- CREATE UNIQUE INDEX unique_active_user_vacancy
+-- ON vacancies(user_id)
+-- WHERE status = 'FILLED';
+
+
+-- CREATE TABLE audit_logs (
+--     log_id SERIAL PRIMARY KEY,
+--     action VARCHAR(100),
+--     cadre_post_id INT,
+--     vacancy_id INT,
+--     created_at TIMESTAMP DEFAULT NOW(),
+--     zp_id INT
+-- );
+
+--  CREATE TABLE employee_movements (
+--     movement_id SERIAL PRIMARY KEY,
+--     user_id INT NOT NULL,
+--     movement_type VARCHAR(20), 
+--     from_zp INT,
+--     to_zp INT,
+--     from_post_id INT,
+--     to_post_id INT,
+--     from_vacancy_id INT,
+--     to_vacancy_id INT,
+--     reason TEXT,
+--     effective_date DATE DEFAULT CURRENT_DATE,
+--     created_at TIMESTAMP DEFAULT NOW()
+-- );

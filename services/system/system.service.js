@@ -1,7 +1,7 @@
 const pool = require("../../config/database");
 exports.getCasts = async () => {
     const casts = await pool.query(`
-        SELECT caste_id, name, full_name, full_name_mr, full_name_mr AS name_mr
+        SELECT caste_id, name, full_name, full_name_mr, priority
         FROM castes
         WHERE status = 1
     `);
