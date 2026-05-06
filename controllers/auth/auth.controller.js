@@ -80,6 +80,7 @@ exports.loginSuperAdmin = async (req, res) => {
     res.status(200).json({ "accessToken": result.accessToken, "user": result.user });
 };
 exports.login = async (req, res) => {
+
     if (!req.params.zp_name) {
         return res.status(400).json({ message: "ZP name is required in URL" });
     }
