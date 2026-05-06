@@ -1,6 +1,7 @@
 const pool = require("../../config/database");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { _checkPermissions } = require("../../middlewares/snippets.middleware");
 // const { sendEmail } = require("../../providers/email.provider");
 const { v7: uuid7 } = require("uuid");
 const { sendWelcomeCredentials } = require("../../controllers/Excel/ExcelOps");
@@ -42,7 +43,7 @@ const _checkPermission = async (userId, permissionName) => {
 };
 
 exports.addZPAdmin = async (data) => {
-    await _checkPermission(data.user.user_id, "add_zp_admin");
+    await _checkPermissions(data.user, ["add_zp_admin"]);
     data.is_verified = true; // ZP Admins are verified by default
     const role = await pool.query(`SELECT role_id FROM roles WHERE name='zp_admin'`);
     if (role.rowCount === 0) {
@@ -55,7 +56,7 @@ exports.addZPAdmin = async (data) => {
     return registerUser(data);
 }
 exports.addDeptHead = async (data) => {
-    await _checkPermission(data.user.user_id, "add_department_head");
+    await _checkPermissions(data.user, ["add_department_head"]);
     data.is_verified = true; // DEPARTMENT HEADS are verified by default
 
     if (!data.department_id) {
@@ -74,7 +75,7 @@ exports.addDeptHead = async (data) => {
 
 }
 exports.registerEmployee = async (data) => {
-    await _checkPermission(data.user.user_id, "add_employee");
+    await _checkPermissions(data.user, ["add_employee"]);
 
     if (!data.department_id) {
         throw { status: 400, message: "department_id is required for Employee" }
@@ -236,7 +237,7 @@ exports.loginSuperAdmin = async ({ email, password }) => {
 
 exports.loginUser = async ({ email, password, zp_name }) => {
     if (!email || !password) {
-        throw { status: 400, message: "Email and password are required" };
+        throw { status: 400, message: "Email/EMP_ID and password are required" };
     }
 
     const client = await pool.connect();
@@ -248,12 +249,11 @@ exports.loginUser = async ({ email, password, zp_name }) => {
             throw { status: 400, message: "Invalid ZP in URL" };
         }
 
-        // Fetch user + profile + roles in one go
-        const isValidEmail = await client.query(`SELECT password FROM users WHERE email=$1 AND zp_id=$2`, [email, zpDetails.rows[0].zp_id]);
+        const isValidEmail = await client.query(`SELECT password FROM users u JOIN employee_profiles ep ON u.user_id=ep.user_id WHERE (email=$1 OR employee_id=$1) AND zp_id=$2`, [email, zpDetails.rows[0].zp_id]);
+        console.log(isValidEmail.rows)
         if (isValidEmail.rowCount === 0) {
             throw { status: 401, message: "Invalid credentials" };
         }
-
         const isMatch = await bcrypt.compare(password, isValidEmail.rows[0].password);
         if (!isMatch) {
             throw { status: 401, message: "Invalid credentials" };
@@ -267,20 +267,20 @@ exports.loginUser = async ({ email, password, zp_name }) => {
                 u.is_verified,
                 u.status,
                 z.name ZP_name,
-                up.first_name,
-                up.middle_name,
-                up.last_name,
-                up.joining_date,
+                ep.first_name,
+                ep.middle_name,
+                ep.last_name,
+                ep.joining_date,
                 r.name AS roles,
                 ARRAY_AGG(DISTINCT p.name) AS permissions
              FROM users u
-             LEFT JOIN employee_profiles up ON u.user_id = up.user_id
+             LEFT JOIN employee_profiles ep ON u.user_id = ep.user_id
              LEFT JOIN roles r ON u.role_id = r.role_id
              LEFT JOIN zp z ON u.zp_id = z.zp_id
              JOIN role_permissions rp ON u.role_id = rp.role_id
              JOIN permissions p ON rp.permission_id = p.permission_id
-             WHERE u.email = $1 AND u.zp_id=$2
-             GROUP BY u.user_id, up.first_name, up.last_name,up.middle_name, r.name, z.name, u.zp_id, up.department_id, up.post_id, up.joining_date`,
+             WHERE (u.email = $1 OR (ep.employee_id=$1 AND ep.employee_id IS NOT NULL)) AND u.zp_id=$2
+             GROUP BY u.user_id, ep.first_name, ep.last_name,ep.middle_name, r.name, z.name, u.zp_id, ep.department_id, ep.post_id, ep.joining_date`,
             [email, zpDetails.rows[0].zp_id]
         );
 
@@ -400,9 +400,12 @@ exports.changePassword = async ({ old_password, new_password, user }) => {
     }
 }
 
-exports.resetPassword = async ({ user_id }) => {
+exports.resetPassword = async ({ user, user_id }) => {
     const client = await pool.connect();
     try {
+
+        await _checkPermissions(user, ['reset_password']);
+
         const res = await client.query(`SELECT email, ep.first_name FROM users u JOIN employee_profiles ep ON u.user_id = ep.user_id WHERE u.user_id = $1`, [user_id]);
         if (res.rowCount === 0) {
             throw { status: 404, message: "User not found" };

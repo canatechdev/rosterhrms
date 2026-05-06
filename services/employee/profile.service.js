@@ -214,11 +214,11 @@ exports.savePersonalInfoStep5 = async ({ user_id,
     if (!user_id || !birth_cert || !aadhar || !pan || !caste_validity || !gazette_name_change) {
         throw { status: 400, message: "All fields are required" };
     }
-    if (marital_status == 2 && !marriage_cert) throw { status: 400, message: "Marriage Certificate is required" }
 
     const client = await pool.connect();
     let marriage_cert_res, birth_cert_res, aadhar_res, pan_res, caste_validity_res, gazette_name_change_res;
     try {
+        
         // console.log(aadhar_number, user_id)
         const stepCheck = await client.query(
             `SELECT user_id, current_step, current_section FROM employee_profiles WHERE user_id = $1`,
@@ -237,7 +237,7 @@ exports.savePersonalInfoStep5 = async ({ user_id,
             await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'caste_validity', caste_validity]),
             await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'gazette_name_change', gazette_name_change])
         ]);
-        if (marital_status == 2) {
+        if (marital_status == 1) {
             [marriage_cert_res] = await Promise.all([await client.query(`INSERT INTO employee_documents (user_id, doc_type, file_url) VALUES ($1, $2, $3) RETURNING *`, [user_id, 'marriage_cert', marriage_cert]),]);
         }
         await client.query(

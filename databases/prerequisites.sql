@@ -93,8 +93,8 @@ BEGIN;
 
 
     INSERT INTO permissions (name) VALUES
-    ('add_employee'), ('add_zp_admin'), ('add_department_head'),
-    ('view_reports'), ('manage_employees'), ('manage_departments'),('process_appraisals');
+    ('add_employee'),('add_zp_admin'),('add_department_head'),('view_reports'),
+    ('manage_employees'),('manage_departments'),('process_appraisals'),('reset_password');
 
     INSERT INTO role_permissions (role_id, permission_id) VALUES
     (1, 2), (1, 4), (1, 6), -- super_admin has all permissions

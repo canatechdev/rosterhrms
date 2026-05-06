@@ -119,6 +119,7 @@ exports.changePassword = async (req, res) => {
 };
 
 exports.resetPassword = async (req, res) => {
+    req.body.user = req.user;
     if (!req.body.user_id) return res.status(400).json({ message: "User ID is required" });
     const result = await authService.resetPassword(req.body);
     res.status(200).json(result);

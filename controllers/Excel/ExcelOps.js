@@ -244,7 +244,7 @@ async function processUploadedFile(req, res) {
                     email: user.email,
                     password: plainPassword, // send plain temp password in email
                     name: user.first_name + ' ' + user.last_name,
-                    changePasswordUrl: `${process.env.BASE_URL}/change_password`
+                    changePasswordUrl: `${process.env.BASE_URL}/change-password`
                 });
                 inserted.push({ employee_id: user.employee_id, db_id: userId });
 
