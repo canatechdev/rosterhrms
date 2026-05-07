@@ -1,6 +1,6 @@
 const zpService = require('../../services/zp/zp.service.js');
 const asyncHandler = require('../../middlewares/async_handler.js');
-const { head } = require('../../routes/zp/zp.route.js');
+// const { head } = require('../../routes/zp/zp.route.js');
 
 // ZP CRUD
 exports.createZp = asyncHandler(async (req, res) => {

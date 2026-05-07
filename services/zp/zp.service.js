@@ -1,7 +1,7 @@
 const pool = require('../../config/database');
 const { logAudit } = require("../../config/logAudit");
-const { addHeadquarter } = require('../../controllers/zp/zp.controller');
-const { head } = require('../../routes/zp/zp.route');
+// const { addHeadquarter } = require('../../controllers/zp/zp.controller');
+// const { head } = require('../../routes/zp/zp.route');
 
 exports.createZp = async (name, district_id, name_mr) => {
     const result = await pool.query(
