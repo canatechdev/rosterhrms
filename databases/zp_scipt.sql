@@ -10,7 +10,7 @@ BEGIN;
 		master_name  VARCHAR(100) NOT NULL,  -- e.g. "marital_status"
 		sort_index INT NOT NULL DEFAULT 1,
 		is_active     BOOLEAN NOT NULL DEFAULT TRUE,
-		PRIMARY KEY (enum_id, master_name)
+		UNIQUE (master_name, name)
 	);
 
 	CREATE TABLE districts (
@@ -907,22 +907,43 @@ BEGIN;
 
 	-- offices 
 	CREATE TABLE offices (
-    office_id SERIAL PRIMARY KEY,
-    zp_id INT NOT NULL, 
-    office_code VARCHAR(50) NOT NULL UNIQUE,
-    office_name VARCHAR(150) NOT NULL,
-    office_name_marathi VARCHAR(150),
-    description TEXT,
-    description_marathi TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		office_id SERIAL PRIMARY KEY,
+		zp_id INT NOT NULL, 
+		office_code VARCHAR(50) NOT NULL UNIQUE,
+		office_name VARCHAR(150) NOT NULL,
+		office_name_marathi VARCHAR(150),
+		description TEXT,
+		description_marathi TEXT,
+		is_active BOOLEAN DEFAULT TRUE,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_zp
-        FOREIGN KEY (zp_id)
-        REFERENCES zp(zp_id)
-        ON DELETE CASCADE
-);
+		CONSTRAINT fk_zp
+			FOREIGN KEY (zp_id)
+			REFERENCES zp(zp_id)
+			ON DELETE CASCADE
+	);
+
+-- TRIGGER FOR ENUM_MASTER
+	CREATE OR REPLACE FUNCTION enum_id_generation()
+	RETURNS TRIGGER AS $$
+		DECLARE max_id INT;
+		BEGIN
+			SELECT COALESCE(MAX(enum_id),0) + 1 
+			INTO max_id 
+			FROM enum_master
+			WHERE master_name = NEW.master_name;
+
+			NEW.enum_id = max_id;
+			NEW.sort_index= max_id;
+			RETURN NEW;
+		END;
+	$$ LANGUAGE plpgsql;
+
+	CREATE TRIGGER enum_master_trigger
+	BEFORE INSERT ON enum_master
+	FOR EACH ROW
+	EXECUTE FUNCTION enum_id_generation();
 
 COMMIT;
 

@@ -249,9 +249,9 @@ exports.addDepartment = async(req,res)=>{
         if(!name){
             return res.status(400).json({message:"Department name is required"});
         }
-        console.log("Request body:", req.body);
+        // console.log("Request body:", req.body);
         const zp_id = req.user.zp_id;
-        console.log("zp_id",zp_id);
+        // console.log("zp_id",zp_id);
         if(!zp_id){
             return res.status(400).json({message:"Invalid ZP ID ZP ID is required to add department"});
         }
@@ -269,7 +269,7 @@ exports.addDepartment = async(req,res)=>{
 exports.getDepartmentByZP = async(req,res)=>{
     try{
         const zp_id = req.user.zp_id;
-        console.log("zp_id",zp_id);
+        // console.log("zp_id",zp_id);
         console.log("GET DEPARTMENT HIT");
         const departments = await zpService.getDepartmentByZP(zp_id);
         if(!departments || departments.length === 0){
@@ -350,7 +350,7 @@ exports.addCadre = async (req, res) => {
             return res.status(400).json({ message: "All fields are required" });
         }
         const zp_id = req.user.zp_id;
-        console.log("zp_id",zp_id);
+        // console.log("zp_id",zp_id);
 
         const cadre = await zpService.addCadre(
             department_id,

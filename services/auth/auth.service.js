@@ -250,7 +250,7 @@ exports.loginUser = async ({ email, password, zp_name }) => {
         }
 
         const isValidEmail = await client.query(`SELECT password FROM users u JOIN employee_profiles ep ON u.user_id=ep.user_id WHERE (email=$1 OR employee_id=$1) AND zp_id=$2`, [email, zpDetails.rows[0].zp_id]);
-        console.log(isValidEmail.rows)
+        // console.log(isValidEmail.rows)
         if (isValidEmail.rowCount === 0) {
             throw { status: 401, message: "Invalid credentials" };
         }
