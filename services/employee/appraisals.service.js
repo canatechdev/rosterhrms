@@ -41,6 +41,64 @@ exports.initiateAppraisal = async ({ user, year_from, year_to, start_date, end_d
     return result.rows[0] || [];
 }
 
+exports.getAppraisalStatus = async (user) => {
+    console.log(user, "Getting appraisal status for user");
+    if (!user || !user.user_id || !user.zp_id) {
+        throw { status: 400, message: "User information is required" };
+    }
+    const client = await pool.connect();
+    let result;
+    try {
+        const user_details = await client.query(`SELECT u.user_id, zp_id, ARRAY_AGG(r.name) AS roles FROM users u
+            JOIN user_roles ur ON u.user_id = ur.user_id
+            JOIN roles r ON ur.role_id = r.role_id
+            WHERE u.user_id = $1
+            GROUP BY u.user_id, u.zp_id`, [user.user_id]);
+
+        const isDeptHead = user_details.rows.length > 0 && user_details.rows[0].roles.includes('dept_head');
+
+        let query;
+        if (isDeptHead) {
+            query = `
+                SELECT ac.cycle_id, ac.year_from, ac.year_to, ac.start_date, ac.end_date,
+                'initiated' AS appraisal_status
+                FROM appraisal_cycles ac
+                WHERE ac.zp_id = $1
+                ORDER BY ac.year_from DESC, ac.year_to DESC
+            `;
+        } else {
+            query = `
+                SELECT ac.cycle_id, ac.year_from, ac.year_to, ac.start_date, ac.end_date,
+                    CASE
+                        WHEN a.appraisal_id IS NULL THEN 'not_initiated'
+                        WHEN a.reporting_submitted_at IS NULL THEN 'initiated'
+                        WHEN a.reviewing_submitted_at IS NULL THEN 'reporting_submitted'
+                        ELSE 'completed'
+                    END AS appraisal_status
+                FROM appraisal_cycles ac
+                LEFT JOIN appraisals a ON ac.cycle_id = a.cycle_id AND a.employee_user_id = $2
+                WHERE ac.zp_id = $1
+                ORDER BY ac.year_from DESC, ac.year_to DESC
+            `;
+        }
+
+        const queryParams = isDeptHead ? [user.zp_id] : [user.zp_id, user.user_id];
+        result = await client.query(query, queryParams);
+
+        if (result.rowCount === 0) {
+            return [{ appraisal_status: 'coming_soon' }];
+        }
+
+        await client.query('COMMIT');
+        return result.rows;
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
+    }
+}
+
 exports.initiateAppraisalEmployee = async ({ user, cycle_id, employee_user_id, reporting_officer_id, reviewing_officer_id, establishment_user_id, report_period_from, report_period_to }) => {
 
     if (!cycle_id || !employee_user_id || !reporting_officer_id || !reviewing_officer_id || !establishment_user_id || !report_period_from || !report_period_to) {

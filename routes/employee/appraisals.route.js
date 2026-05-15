@@ -10,6 +10,7 @@ const upload = require("../../config/multer.config");
 
 
 router.post("/initiate", authMiddleware, reqBody, appraisalController.initiateAppraisal);
+router.get("/status", authMiddleware, appraisalController.getAppraisalStatus)
 router.post("/employee", authMiddleware, reqBody, appraisalController.initiateAppraisalEmployee);
 router.post("/section1", authMiddleware, reqBody, appraisalController.section1AppraisalEmployee);
 router.get("/section1", authMiddleware, appraisalController.getSection1AppraisalEmployee);
