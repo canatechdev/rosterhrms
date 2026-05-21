@@ -68,7 +68,7 @@ exports.getAppraisalStatus = async (user) => {
             `;
         } else {
             query = `
-                SELECT ac.cycle_id, ac.year_from, ac.year_to, ac.start_date, ac.end_date,
+                SELECT ac.cycle_id, a.appraisal_id, ac.year_from, ac.year_to, ac.start_date, ac.end_date,
                     CASE
                         WHEN a.appraisal_id IS NULL THEN 'not_initiated'
                         WHEN a.reporting_submitted_at IS NULL THEN 'initiated'
