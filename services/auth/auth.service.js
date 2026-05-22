@@ -276,7 +276,7 @@ exports.loginUser = async ({ email, password, zp_name }) => {
              LEFT JOIN employee_profiles ep ON u.user_id = ep.user_id
              JOIN user_roles ur ON u.user_id = ur.user_id
              JOIN roles r ON ur.role_id = r.role_id
-             JOIN role_permissions rp ON u.role_id = rp.role_id
+             JOIN role_permissions rp ON rp.role_id = r.role_id
              JOIN permissions p ON rp.permission_id = p.permission_id
              WHERE (u.email = $1 OR (ep.employee_id=$1 AND ep.employee_id IS NOT NULL)) 
              GROUP BY u.user_id, ep.first_name, ep.last_name,ep.middle_name, ep.department_id, ep.post_id, ep.joining_date`,
