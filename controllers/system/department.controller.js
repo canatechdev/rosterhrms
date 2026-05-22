@@ -8,7 +8,8 @@ const createDepartment = asyncHandler(async (req, res) => {
 });
 
 const getDepartments = asyncHandler(async (req, res) => {
-    const zp_id = req.query.zp_id;
+    const zp_id = req.user.zp_id;
+    // console.log(req.user, 'user from getDepartments');
     if (!zp_id) {
         return res.status(400).json({ success: false, message: 'ZP ID is required' });
     }
