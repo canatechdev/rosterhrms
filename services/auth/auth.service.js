@@ -258,7 +258,7 @@ exports.loginUser = async ({ email, password, zp_name }) => {
         if (!isMatch) {
             throw { status: 401, message: "Invalid credentials" };
         }
-
+        
         const result = await client.query(
             `SELECT
                 u.user_id,
@@ -266,22 +266,21 @@ exports.loginUser = async ({ email, password, zp_name }) => {
                 u.phone,
                 u.is_verified,
                 u.status,
-                z.name ZP_name,
                 ep.first_name,
                 ep.middle_name,
                 ep.last_name,
                 ep.joining_date,
-                r.name AS roles,
+                ARRAY_AGG(DISTINCT r.name) AS roles,
                 ARRAY_AGG(DISTINCT p.name) AS permissions
              FROM users u
              LEFT JOIN employee_profiles ep ON u.user_id = ep.user_id
-             LEFT JOIN roles r ON u.role_id = r.role_id
-             LEFT JOIN zp z ON u.zp_id = z.zp_id
+             JOIN user_roles ur ON u.user_id = ur.user_id
+             JOIN roles r ON ur.role_id = r.role_id
              JOIN role_permissions rp ON u.role_id = rp.role_id
              JOIN permissions p ON rp.permission_id = p.permission_id
-             WHERE (u.email = $1 OR (ep.employee_id=$1 AND ep.employee_id IS NOT NULL)) AND u.zp_id=$2
-             GROUP BY u.user_id, ep.first_name, ep.last_name,ep.middle_name, r.name, z.name, u.zp_id, ep.department_id, ep.post_id, ep.joining_date`,
-            [email, zpDetails.rows[0].zp_id]
+             WHERE (u.email = $1 OR (ep.employee_id=$1 AND ep.employee_id IS NOT NULL)) 
+             GROUP BY u.user_id, ep.first_name, ep.last_name,ep.middle_name, ep.department_id, ep.post_id, ep.joining_date`,
+            [email]
         );
 
         if (result.rowCount === 0) {

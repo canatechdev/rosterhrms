@@ -332,7 +332,7 @@ exports.section3AppraisalEmployee = async ({ user, appraisal_id,
         ]);
 
         if (isAppraisal.rows.length === 0) {
-            throw { status: 403, message: "No such Reporting Officer" };
+            throw { status: 403, message: "Forbidden" };
         }
 
         result = await client.query(
@@ -377,7 +377,7 @@ exports.section4AppraisalEmployee = async ({ user, appraisal_id,
         ]);
 
         if (isAppraisal.rows.length === 0) {
-            throw { status: 403, message: "No such appraisal found for reviewing officer" };
+            throw { status: 403, message: "Forbidden" };
         }
 
         result = await client.query(
@@ -399,3 +399,74 @@ ON CONFLICT(appraisal_id) DO UPDATE SET agrees_with_reporting_officer = EXCLUDED
 
     return result.rows || [];
 }
+
+exports.getPendingAppraisals = async (user) => {
+    if (!user || !user.user_id || !user.zp_id) {
+        throw { status: 400, message: "User information is required" };
+    }
+
+    const client = await pool.connect();
+    try {
+        const userDetails = await client.query(
+            `SELECT r.name AS role_name
+             FROM user_roles ur
+             JOIN roles r ON ur.role_id = r.role_id
+             WHERE ur.user_id = $1`,
+            [user.user_id]
+        );
+
+        const roles = userDetails.rows.map(row => row.role_name);
+        let query = '';
+        const queryParams = [user.zp_id, user.user_id];
+
+        if (roles.includes('dept_head')) {
+            query = `
+                SELECT u.user_id, ep.first_name, ep.last_name,
+                    CASE
+                        WHEN as2.submitted_at IS NULL THEN 'Pending at Employee'
+                        WHEN a.reporting_submitted_at IS NULL THEN 'Pending at Reporting Officer'
+                        WHEN a.reviewing_submitted_at IS NULL THEN 'Pending at Reviewing Officer'
+                        ELSE 'Completed'
+                    END AS status
+                FROM appraisals a
+                JOIN users u ON a.employee_user_id = u.user_id
+                JOIN employee_profiles ep ON u.user_id = ep.user_id
+                LEFT JOIN appraisal_section2 as2 ON a.appraisal_id = as2.appraisal_id
+                WHERE u.zp_id = $1 AND a.reviewing_submitted_at IS NULL
+                ORDER BY a.created_at ASC;
+            `;
+            queryParams.pop(); // dept_head does not need user_id
+        } else if (roles.includes('reporting_officer')) {
+            query = `
+                SELECT u.user_id, ep.first_name, ep.last_name
+                FROM appraisals a
+                JOIN users u ON a.employee_user_id = u.user_id
+                JOIN employee_profiles ep ON u.user_id = ep.user_id
+                JOIN appraisal_section2 as2 ON a.appraisal_id = as2.appraisal_id
+                WHERE a.reporting_officer_id = $2
+                  AND a.reporting_submitted_at IS NULL
+                  AND u.zp_id = $1;
+            `;
+        } else if (roles.includes('reviewing_officer')) {
+            query = `
+                SELECT u.user_id, ep.first_name, ep.last_name
+                FROM appraisals a
+                JOIN users u ON a.employee_user_id = u.user_id
+                JOIN employee_profiles ep ON u.user_id = ep.user_id
+                WHERE a.reviewing_officer_id = $2
+                  AND a.reporting_submitted_at IS NOT NULL
+                  AND a.reviewing_submitted_at IS NULL
+                  AND u.zp_id = $1;
+            `;
+        } else {
+            return []; // No specific view for other roles on this endpoint
+        }
+
+        const result = await client.query(query, queryParams);
+        return result.rows;
+    } catch (error) {
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
+    }
+};

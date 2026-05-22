@@ -6,8 +6,20 @@ const upload = require("../../config/multer.config");
 
 // excel
 // const { generateTemplate, processUploadedFile } = require('../../controllers/Excel/ExcelOps.js');
+const {
+    initiateAppraisal,
+    getAppraisalStatus,
+    initiateAppraisalEmployee,
+    getSection1AppraisalEmployee,
+    section1AppraisalEmployee,
+    section2AppraisalEmployee,
+    section3AppraisalEmployee,
+    section4AppraisalEmployee,
+    getPendingAppraisals
+} = require('../../controllers/employee/appraisals.controller');
+const { auth } = require('../../middlewares/auth.middleware');
 
-
+// const { generateTemplate, processUploadedFile } = require('../../controllers/Excel/ExcelOps.js');
 
 router.post("/initiate", authMiddleware, reqBody, appraisalController.initiateAppraisal);
 router.get("/status", authMiddleware, appraisalController.getAppraisalStatus)
@@ -17,7 +29,6 @@ router.get("/section1", authMiddleware, appraisalController.getSection1Appraisal
 router.post("/section2", authMiddleware, reqBody, appraisalController.section2AppraisalEmployee);
 router.post("/section3", authMiddleware, reqBody, appraisalController.section3AppraisalEmployee);
 router.post("/section4", authMiddleware, reqBody, appraisalController.section4AppraisalEmployee);
-// router.get("/section1", authMiddleware, appraisalController.getSection1AppraisalEmployee);
-// router.get('/test', (req, res) => { res.json({ message: "Test successful" }) })
+router.get("/pending", authMiddleware, appraisalController.getPendingAppraisals);
 
 module.exports = router;
