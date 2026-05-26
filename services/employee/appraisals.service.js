@@ -470,3 +470,117 @@ exports.getPendingAppraisals = async (user) => {
         client.release();
     }
 };
+
+exports.getAppraisalOfficers = async (user, type) => {
+    if (!user || !user.user_id || !user.zp_id) {
+        throw { status: 400, message: "User information is required" };
+    }
+
+    const client = await pool.connect();
+    try {
+        const hasAuthority = await client.query(
+            `SELECT u.user_id, u.zp_id FROM users u
+             JOIN role_permissions rp ON u.role_id = rp.role_id
+             JOIN permissions p ON rp.permission_id = p.permission_id
+             WHERE u.user_id = $1 AND p.name = 'process_appraisals'`,
+            [user.user_id]
+        );
+
+        if (!hasAuthority.rows.length || hasAuthority.rows[0].zp_id !== user.zp_id) {
+            throw { status: 403, message: "Insufficient permissions" };
+        }
+
+        const normalizedType = typeof type === 'string' ? type.trim().toLowerCase() : undefined;
+        const typeToRole = {
+            reporting: 'reporting_officer',
+            reporting_officer: 'reporting_officer',
+            reviewing: 'reviewing_officer',
+            reviewing_officer: 'reviewing_officer',
+            establishment: 'establishment_officer',
+            establishment_officer: 'establishment_officer',
+        };
+
+        let roleNames = ['reporting_officer', 'reviewing_officer', 'establishment_officer'];
+        if (normalizedType && normalizedType !== 'all' && normalizedType !== '*') {
+            const mapped = typeToRole[normalizedType];
+            if (!mapped) {
+                throw { status: 400, message: "Invalid type. Use reporting|reviewing|establishment (or omit type for all)." };
+            }
+            roleNames = [mapped];
+        }
+
+        const officers = await client.query(
+            `WITH user_role_names AS (
+                SELECT u.user_id, r.name AS role_name
+                FROM users u
+                JOIN roles r ON u.role_id = r.role_id
+                WHERE u.zp_id = $1
+
+                UNION
+
+                SELECT ur.user_id, r.name AS role_name
+                FROM user_roles ur
+                JOIN roles r ON ur.role_id = r.role_id
+                JOIN users u2 ON u2.user_id = ur.user_id
+                WHERE u2.zp_id = $1
+            )
+            SELECT DISTINCT ON (u.user_id, urn.role_name)
+                u.user_id,
+                u.email,
+                u.phone,
+                ep.first_name,
+                ep.last_name,
+                urn.role_name
+            FROM user_role_names urn
+            JOIN users u ON u.user_id = urn.user_id
+            LEFT JOIN employee_profiles ep ON ep.user_id = u.user_id
+            WHERE urn.role_name = ANY($2::text[])
+            ORDER BY u.user_id, urn.role_name, ep.first_name NULLS LAST, ep.last_name NULLS LAST`,
+            [user.zp_id, roleNames]
+        );
+
+        const response = {
+            reporting_officers: [],
+            reviewing_officers: [],
+            establishment_officers: [],
+        };
+
+        const seen = {
+            reporting_officer: new Set(),
+            reviewing_officer: new Set(),
+            establishment_officer: new Set(),
+        };
+
+        for (const row of officers.rows) {
+            const officer = {
+                user_id: row.user_id,
+                first_name: row.first_name,
+                last_name: row.last_name,
+                email: row.email,
+                phone: row.phone,
+            };
+
+            if (row.role_name === 'reporting_officer' && !seen.reporting_officer.has(row.user_id)) {
+                response.reporting_officers.push(officer);
+                seen.reporting_officer.add(row.user_id);
+            }
+
+            if (row.role_name === 'reviewing_officer' && !seen.reviewing_officer.has(row.user_id)) {
+                response.reviewing_officers.push(officer);
+                seen.reviewing_officer.add(row.user_id);
+            }
+
+            if (row.role_name === 'establishment_officer' && !seen.establishment_officer.has(row.user_id)) {
+                response.establishment_officers.push(officer);
+                seen.establishment_officer.add(row.user_id);
+            }
+        }
+
+        return response;
+    } catch (error) {
+        if (error?.status) throw error;
+        throw { status: 500, message: error.message || "Internal Server Error" };
+    } finally {
+        client.release();
+    }
+};

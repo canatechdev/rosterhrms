@@ -30,5 +30,7 @@ router.post("/section2", authMiddleware, reqBody, appraisalController.section2Ap
 router.post("/section3", authMiddleware, reqBody, appraisalController.section3AppraisalEmployee);
 router.post("/section4", authMiddleware, reqBody, appraisalController.section4AppraisalEmployee);
 router.get("/pending", authMiddleware, appraisalController.getPendingAppraisals);
+router.get("/officers", authMiddleware, appraisalController.getAppraisalOfficers);
+router.get("/officers/:type", authMiddleware, appraisalController.getAppraisalOfficers);
 
 module.exports = router;

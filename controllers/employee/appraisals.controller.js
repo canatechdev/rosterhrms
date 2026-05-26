@@ -57,3 +57,9 @@ exports.getPendingAppraisals = async (req, res, next) => {
         next(error);
     }
 }
+
+exports.getAppraisalOfficers = asyncHandler(async (req, res) => {
+    const type = req.params?.type || req.query?.type;
+    const result = await appraisalsService.getAppraisalOfficers(req.user, type);
+    res.status(200).json({ success: true, data: result });
+});
