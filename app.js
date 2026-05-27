@@ -34,6 +34,7 @@ const STATIC_ORIGINS = [
   "http://10.195.223.133:5173/",
   "http://10.94.220.133:5173/",
   "http://172.20.10.2:5173/",
+  "http://192.168.1.46:5173/",
   "http://172.20.10.11:5173/",
   "http://zproster.thecanatech.com",
   "https://zproster.thecanatech.com",
@@ -110,6 +111,7 @@ app.use('/api/departments', require('./routes/system/department.route'));
 app.use('/api/roles', require('./routes/system/role.route.js'));
 app.use('/api/permissions', require('./routes/system/permission.route.js'));
 app.use('/api/castes', require('./routes/system/caste.route.js'));
+app.use('/api/bindu-points', require('./routes/system/bindu.route.js'));
 app.use('/api/posts', require('./routes/system/post.route.js'));
 app.use('/api/zp', require('./routes/zp/zp.route'));
 app.use('/api/districts', require('./routes/system/district.route.js'));

@@ -94,13 +94,14 @@ BEGIN;
 
     INSERT INTO permissions (name) VALUES
     ('add_employee'),('add_zp_admin'),('add_department_head'),('view_reports'),
-    ('manage_employees'),('manage_departments'),('process_appraisals'),('reset_password');
+    ('manage_employees'),('manage_departments'),('process_appraisals'),('reset_password'), ('review_appraisals'), ('verify_appraisal_reports'),('establish_appraisal_reports');
 
     INSERT INTO role_permissions (role_id, permission_id) VALUES
     (1, 2), (1, 4), (1, 6), -- super_admin has all permissions
     (2, 3), (2, 4), (2, 5), -- zp_admin can manage employees and departments
     (3, 1), (3, 4),(3,7), -- dept_head can add employees and view reports
-    (4, 4); -- employee can only view reports
+    (4, 4),
+    (5, 9),(6, 10),(7, 11); -- employee can only view reports
 
     INSERT INTO genders (name) VALUES
     ('Male'), ('Female'), ('Other');
@@ -189,4 +190,9 @@ BEGIN;
     
     INSERT INTO user_roles (user_id, role_id) VALUES
     (1, 1);
+
+    INSERT INTO bindu_points (point_no)
+    SELECT gs
+    FROM generate_series(1, 200) gs
+    ON CONFLICT (point_no) DO NOTHING;
 COMMIT;
